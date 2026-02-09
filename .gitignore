@@ -1,0 +1,21 @@
+# Environment variables (contains API keys)
+.env
+WebPlatform/.env
+
+# SQLite database
+*.db
+WebPlatform/courier.db
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Streamlit
+.streamlit/secrets.toml
