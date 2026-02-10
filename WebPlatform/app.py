@@ -31,6 +31,9 @@ if 'data_manager' not in st.session_state:
 
 dm = st.session_state.data_manager
 
+# Load company name from settings
+company_name = dm.get_setting('company_name', 'Sydney Metro Courier')
+
 # Initialize data mode (persist across refreshes by defaulting to Local)
 if 'data_mode' not in st.session_state:
     if wms_config.is_configured:
@@ -43,14 +46,14 @@ if 'data_mode' not in st.session_state:
 # ============================================
 
 with st.sidebar:
-    st.markdown("""
+    st.markdown(f"""
     <div style="text-align: center; padding: 1.5rem 0;">
         <div style="font-size: 2.5rem;">📦</div>
         <div style="font-family: 'DM Sans', sans-serif; font-size: 1.25rem; font-weight: 700; color: white; margin-top: 0.5rem;">
-            Sydney Metro
+            {company_name}
         </div>
         <div style="font-family: 'Space Mono', monospace; font-size: 0.75rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 2px;">
-            Courier System
+            Dashboard
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -144,7 +147,7 @@ with col1:
     st.markdown(f"""
     <div class="dashboard-header">
         <div>
-            <h1 class="dashboard-title">Sydney Metro Courier</h1>
+            <h1 class="dashboard-title">{company_name}</h1>
             <p class="dashboard-subtitle">{datetime.now().strftime('%A, %d %B %Y')} &bull; Operations Dashboard</p>
         </div>
     </div>
@@ -188,10 +191,10 @@ elif page == "⚙️ Settings":
 # FOOTER
 # ============================================
 
-st.markdown("""
+st.markdown(f"""
 <div style="text-align: center; padding: 2rem; margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1);">
     <div style="font-family: 'Space Mono', monospace; font-size: 0.75rem; color: rgba(255,255,255,0.3);">
-        Sydney Metro Courier Dashboard v2.0 &bull; Powered by Thomax .wms API &bull; Built with Streamlit
+        {company_name} v2.0 &bull; Powered by Thomax .wms API &bull; Built with Streamlit
     </div>
 </div>
 """, unsafe_allow_html=True)
