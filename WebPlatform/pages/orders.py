@@ -3,6 +3,8 @@ from datetime import datetime
 
 from config.constants import ZONE_MAPPING
 
+ITEMS_PER_PAGE = 20
+
 
 def render(orders_df, drivers_df, data_manager, zone_filter, service_filter, status_filter):
     st.markdown('<div class="section-header">Order Management</div>', unsafe_allow_html=True)
@@ -11,21 +13,24 @@ def render(orders_df, drivers_df, data_manager, zone_filter, service_filter, sta
         "All Orders", "Pending Allocation", "In Transit", "Completed", "Inbound Receipts",
     ])
 
-    filtered_df = orders_df.copy()
+    if not orders_df.empty:
+        filtered_df = orders_df.copy()
 
-    # Apply filters from sidebar
-    if zone_filter:
-        selected_suburbs = []
-        for zone in zone_filter:
-            selected_suburbs.extend(ZONE_MAPPING.get(zone, []))
-        if selected_suburbs:
-            filtered_df = filtered_df[filtered_df['suburb'].isin(selected_suburbs)]
+        # Apply filters from sidebar
+        if zone_filter and 'suburb' in filtered_df.columns:
+            selected_suburbs = []
+            for zone in zone_filter:
+                selected_suburbs.extend(ZONE_MAPPING.get(zone, []))
+            if selected_suburbs:
+                filtered_df = filtered_df[filtered_df['suburb'].isin(selected_suburbs)]
 
-    if service_filter:
-        filtered_df = filtered_df[filtered_df['service_level'].isin(service_filter)]
+        if service_filter and 'service_level' in filtered_df.columns:
+            filtered_df = filtered_df[filtered_df['service_level'].isin(service_filter)]
 
-    if status_filter:
-        filtered_df = filtered_df[filtered_df['status'].isin(status_filter)]
+        if status_filter and 'status' in filtered_df.columns:
+            filtered_df = filtered_df[filtered_df['status'].isin(status_filter)]
+    else:
+        filtered_df = orders_df
 
     with tab1:
         _render_all_orders(filtered_df, data_manager)
@@ -54,34 +59,86 @@ def _render_all_orders(orders_df, data_manager):
         if st.button("New Order", use_container_width=True):
             st.session_state['show_new_order_form'] = True
 
-    if search:
-        orders_df = orders_df[
-            orders_df['order_id'].str.contains(search, case=False) |
-            orders_df['customer'].str.contains(search, case=False) |
-            orders_df['address'].str.contains(search, case=False)
-        ]
-
     # New order form
     if st.session_state.get('show_new_order_form'):
         _render_new_order_form(data_manager)
 
-    for _, order in orders_df.iterrows():
+    if orders_df.empty:
+        st.info("No orders yet. Click 'New Order' to create your first order.")
+        return
+
+    # Apply search
+    if search:
+        mask = (
+            orders_df['order_id'].str.contains(search, case=False, na=False) |
+            orders_df['customer'].str.contains(search, case=False, na=False) |
+            orders_df['address'].str.contains(search, case=False, na=False)
+        )
+        orders_df = orders_df[mask]
+
+    # Apply sorting
+    if sort_by == "Created (newest)" and 'created_at' in orders_df.columns:
+        orders_df = orders_df.sort_values('created_at', ascending=False)
+    elif sort_by == "Created (oldest)" and 'created_at' in orders_df.columns:
+        orders_df = orders_df.sort_values('created_at', ascending=True)
+    elif sort_by == "Service Level" and 'service_level' in orders_df.columns:
+        service_order = {'express': 0, 'standard': 1, 'economy': 2}
+        orders_df = orders_df.sort_values(
+            'service_level', key=lambda x: x.map(service_order).fillna(99)
+        )
+    elif sort_by == "Status" and 'status' in orders_df.columns:
+        status_order = {'pending': 0, 'allocated': 1, 'in_transit': 2, 'delivered': 3, 'failed': 4}
+        orders_df = orders_df.sort_values(
+            'status', key=lambda x: x.map(status_order).fillna(99)
+        )
+
+    # Pagination
+    total_orders = len(orders_df)
+    total_pages = max(1, (total_orders + ITEMS_PER_PAGE - 1) // ITEMS_PER_PAGE)
+
+    if total_orders > ITEMS_PER_PAGE:
+        col_prev, col_page, col_next = st.columns([1, 2, 1])
+        current_page = st.session_state.get('orders_page', 1)
+        current_page = min(current_page, total_pages)
+
+        with col_prev:
+            if st.button("Previous", disabled=current_page <= 1, use_container_width=True):
+                st.session_state['orders_page'] = current_page - 1
+                st.rerun()
+        with col_page:
+            st.markdown(f"<div style='text-align:center; padding:0.5rem;'>Page {current_page} of {total_pages} ({total_orders} orders)</div>", unsafe_allow_html=True)
+        with col_next:
+            if st.button("Next", disabled=current_page >= total_pages, use_container_width=True):
+                st.session_state['orders_page'] = current_page + 1
+                st.rerun()
+
+        start_idx = (current_page - 1) * ITEMS_PER_PAGE
+        end_idx = start_idx + ITEMS_PER_PAGE
+        page_df = orders_df.iloc[start_idx:end_idx]
+    else:
+        page_df = orders_df
+
+    for _, order in page_df.iterrows():
         status_class = f"status-{order['status'].replace('_', '-')}"
 
-        with st.expander(f"{order['order_id']} - {order['customer']} - {order['suburb']}", expanded=False):
+        with st.expander(f"{order['order_id']} - {order['customer']} - {order.get('suburb', '')}", expanded=False):
             col1, col2 = st.columns([2, 1])
 
             with col1:
+                created_str = ''
+                if hasattr(order.get('created_at'), 'strftime'):
+                    created_str = order['created_at'].strftime('%Y-%m-%d %H:%M')
+
                 st.markdown(f"""
                 **Customer:** {order['customer']}
-                **Address:** {order['address']}, {order['suburb']} {order['postcode']}
-                **Parcels:** {order['parcels']}
-                **Created:** {order['created_at'].strftime('%Y-%m-%d %H:%M')}
+                **Address:** {order['address']}, {order.get('suburb', '')} {order.get('postcode', '')}
+                **Parcels:** {order.get('parcels', 1)}
+                **Created:** {created_str}
                 """)
 
-                if order['driver_id']:
+                if order.get('driver_id'):
                     st.markdown(f"**Assigned Driver:** {order['driver_id']}")
-                if order['eta']:
+                if order.get('eta'):
                     st.markdown(f"**ETA:** {order['eta']}")
 
             with col2:
@@ -180,8 +237,16 @@ def _render_new_order_form(data_manager):
 
 
 def _render_pending(orders_df, drivers_df, data_manager):
+    if orders_df.empty:
+        st.info("No orders to display.")
+        return
+
     pending = orders_df[orders_df['status'] == 'pending']
     st.info(f"{len(pending)} orders awaiting allocation")
+
+    if pending.empty:
+        st.success("All orders have been allocated!")
+        return
 
     col1, col2 = st.columns([1, 1])
     with col1:
@@ -190,7 +255,12 @@ def _render_pending(orders_df, drivers_df, data_manager):
             pending['order_id'].tolist()
         )
     with col2:
-        driver_options = drivers_df[drivers_df['status'] == 'available']['name'].tolist()
+        if not drivers_df.empty:
+            driver_options = drivers_df[drivers_df['status'] == 'available']['name'].tolist()
+            if not driver_options:
+                driver_options = drivers_df['name'].tolist()
+        else:
+            driver_options = []
         assigned_driver = st.selectbox("Assign to driver", ["Select driver..."] + driver_options)
 
     if st.button("Allocate Selected Orders", disabled=not selected_orders or assigned_driver == "Select driver..."):
@@ -206,9 +276,9 @@ def _render_pending(orders_df, drivers_df, data_manager):
                 <div>
                     <div class="order-id">{order['order_id']}</div>
                     <div class="order-customer">{order['customer']}</div>
-                    <div class="order-address">{order['address']}, {order['suburb']} {order['postcode']}</div>
+                    <div class="order-address">{order['address']}, {order.get('suburb', '')} {order.get('postcode', '')}</div>
                     <div style="margin-top: 0.5rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; color: rgba(255,255,255,0.5);">
-                        {order['parcels']} parcel(s) &bull; {order['service_level'].upper()}
+                        {order.get('parcels', 1)} parcel(s) &bull; {order['service_level'].upper()}
                     </div>
                 </div>
             </div>
@@ -217,8 +287,16 @@ def _render_pending(orders_df, drivers_df, data_manager):
 
 
 def _render_in_transit(orders_df):
+    if orders_df.empty:
+        st.info("No orders to display.")
+        return
+
     in_transit = orders_df[orders_df['status'] == 'in_transit']
     st.info(f"{len(in_transit)} orders currently in transit")
+
+    if in_transit.empty:
+        st.info("No orders in transit.")
+        return
 
     for _, order in in_transit.iterrows():
         st.markdown(f"""
@@ -227,30 +305,33 @@ def _render_in_transit(orders_df):
                 <div>
                     <div class="order-id">{order['order_id']}</div>
                     <div class="order-customer">{order['customer']}</div>
-                    <div class="order-address">{order['address']}, {order['suburb']} {order['postcode']}</div>
+                    <div class="order-address">{order['address']}, {order.get('suburb', '')} {order.get('postcode', '')}</div>
                 </div>
                 <div style="text-align: right;">
                     <span class="status-badge status-in-transit">In Transit</span>
                     <div style="margin-top: 0.5rem; font-family: 'Space Mono', monospace; font-size: 0.9rem; color: #667eea;">
-                        ETA {order['eta']}
+                        {f"ETA {order['eta']}" if order.get('eta') else ''}
                     </div>
                 </div>
             </div>
-            <div style="margin-top: 0.75rem; display: flex; justify-content: space-between; align-items: center;">
-                <div style="font-family: 'Space Mono', monospace; font-size: 0.75rem; color: rgba(255,255,255,0.5);">
-                    Driver: {order['driver_id']}
-                </div>
-                <div class="live-indicator">
-                    <div class="live-dot"></div>
-                    Live tracking
-                </div>
+            <div style="margin-top: 0.75rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; color: rgba(255,255,255,0.5);">
+                {f"Driver: {order['driver_id']}" if order.get('driver_id') else ''}
             </div>
         </div>
         """, unsafe_allow_html=True)
 
 
 def _render_completed(orders_df):
+    if orders_df.empty:
+        st.info("No orders to display.")
+        return
+
     completed = orders_df[orders_df['status'].isin(['delivered', 'failed'])]
+
+    if completed.empty:
+        st.info("No completed orders yet.")
+        return
+
     delivered_count = len(completed[completed['status'] == 'delivered'])
     failed_count = len(completed[completed['status'] == 'failed'])
 
@@ -268,7 +349,7 @@ def _render_completed(orders_df):
                 <div>
                     <div class="order-id">{order['order_id']}</div>
                     <div class="order-customer">{order['customer']}</div>
-                    <div class="order-address">{order['address']}, {order['suburb']}</div>
+                    <div class="order-address">{order['address']}, {order.get('suburb', '')}</div>
                 </div>
                 <span class="status-badge {status_class}">{order['status']}</span>
             </div>

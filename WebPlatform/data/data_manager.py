@@ -27,6 +27,8 @@ class DataManager:
     def __init__(self):
         self.store = LocalStore()
         self._client = None
+        # Seed default zones on first init
+        self.store.seed_default_zones()
 
     @property
     def client(self):
@@ -41,7 +43,7 @@ class DataManager:
     @property
     def data_mode(self):
         import streamlit as st
-        mode = st.session_state.get('data_mode', '')
+        mode = st.session_state.get('data_mode', 'Local Only (SQLite)')
         if 'Live' in mode and self.is_live:
             return 'live'
         elif 'Local' in mode:
@@ -53,10 +55,7 @@ class DataManager:
     def get_orders(self):
         if self.data_mode == 'demo':
             return generate_mock_orders(50)
-        orders = self.store.get_orders()
-        if orders.empty:
-            return generate_mock_orders(50)
-        return orders
+        return self.store.get_orders()
 
     def create_order(self, order_data):
         order_id = f"SMC-{random.randint(10000, 99999)}"
@@ -136,10 +135,7 @@ class DataManager:
     def get_drivers(self):
         if self.data_mode == 'demo':
             return generate_mock_drivers(10)
-        drivers = self.store.get_drivers()
-        if drivers.empty:
-            return generate_mock_drivers(10)
-        return drivers
+        return self.store.get_drivers()
 
     def add_driver(self, driver_data):
         driver_id = f"DRV-{random.randint(100, 999)}"
@@ -147,10 +143,91 @@ class DataManager:
         self.store.save_driver(driver_data)
         return {'success': True, 'driver_id': driver_id}
 
+    def update_driver(self, driver_id, driver_data):
+        self.store.update_driver(driver_id, driver_data)
+        return {'success': True}
+
+    def delete_driver(self, driver_id):
+        self.store.delete_driver(driver_id)
+        return {'success': True}
+
     # === Runs ===
 
     def get_runs(self):
-        return generate_mock_runs(15)
+        if self.data_mode == 'demo':
+            return generate_mock_runs(15)
+        return self.store.get_runs()
+
+    def create_run(self, zone, driver_id, driver_name, order_ids):
+        today = datetime.now().strftime('%y%m%d')
+        count = self.store.count_runs_today()
+        run_id = f"RUN-{today}-{count + 1:03d}"
+
+        run_data = {
+            'run_id': run_id,
+            'zone': zone,
+            'driver_id': driver_id,
+            'driver_name': driver_name,
+            'status': 'active',
+            'total_stops': len(order_ids),
+            'completed': 0,
+        }
+        self.store.save_run(run_data)
+        self.store.save_run_orders(run_id, order_ids)
+
+        # Update each order's status to allocated
+        for oid in order_ids:
+            self.store.update_order_status(oid, 'allocated', driver_id=driver_name)
+
+        return {'success': True, 'run_id': run_id}
+
+    def update_run_progress(self, run_id, completed):
+        self.store.update_run_progress(run_id, completed)
+        return {'success': True}
+
+    def complete_run(self, run_id):
+        self.store.update_run_status(run_id, 'completed')
+        # Mark all orders in this run as delivered
+        run_orders = self.store.get_run_orders(run_id)
+        if not run_orders.empty:
+            for _, ro in run_orders.iterrows():
+                self.store.update_order_status(ro['order_id'], 'delivered')
+            self.store.update_run_progress(run_id, len(run_orders))
+        return {'success': True}
+
+    def cancel_run(self, run_id):
+        self.store.update_run_status(run_id, 'cancelled')
+        # Revert orders back to pending
+        run_orders = self.store.get_run_orders(run_id)
+        if not run_orders.empty:
+            for _, ro in run_orders.iterrows():
+                self.store.update_order_status(ro['order_id'], 'pending')
+        return {'success': True}
+
+    def get_run_orders(self, run_id):
+        return self.store.get_run_orders(run_id)
+
+    # === Settings ===
+
+    def get_setting(self, key, default=None):
+        return self.store.get_setting(key, default)
+
+    def get_all_settings(self):
+        return self.store.get_all_settings()
+
+    def save_settings(self, settings_dict):
+        self.store.set_settings_bulk(settings_dict)
+
+    # === Zones ===
+
+    def get_zones(self):
+        return self.store.get_zones()
+
+    def save_zone(self, zone_data):
+        self.store.save_zone(zone_data)
+
+    def delete_zone(self, zone_name):
+        self.store.delete_zone(zone_name)
 
     # === Receipts ===
 

@@ -7,14 +7,18 @@ import pandas as pd
 
 
 class LocalStore:
-    """SQLite-backed local persistence for orders, receipts, items, drivers, and API logs."""
+    """SQLite-backed local persistence for orders, receipts, items, drivers, runs, settings, zones, and API logs."""
 
     def __init__(self, db_path=None):
         if db_path is None:
-            db_path = os.path.join(os.path.dirname(__file__), '..', 'courier.db')
+            db_path = os.environ.get(
+                'DATABASE_PATH',
+                os.path.join(os.path.dirname(__file__), '..', 'courier.db'),
+            )
         self.db_path = db_path
         self.conn = sqlite3.connect(db_path, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
+        self.conn.execute("PRAGMA journal_mode=WAL")
         self._create_tables()
 
     def _create_tables(self):
@@ -88,6 +92,43 @@ class LocalStore:
                 rating REAL DEFAULT 4.5,
                 active_orders INTEGER DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS runs (
+                run_id TEXT PRIMARY KEY,
+                zone TEXT,
+                driver_id TEXT,
+                driver_name TEXT,
+                status TEXT DEFAULT 'active',
+                total_stops INTEGER DEFAULT 0,
+                completed INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS run_orders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_id TEXT NOT NULL,
+                order_id TEXT NOT NULL,
+                stop_sequence INTEGER,
+                status TEXT DEFAULT 'pending',
+                FOREIGN KEY (run_id) REFERENCES runs(run_id),
+                FOREIGN KEY (order_id) REFERENCES orders(order_id)
+            );
+
+            CREATE TABLE IF NOT EXISTS settings (
+                key TEXT PRIMARY KEY,
+                value TEXT,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS zones (
+                zone_name TEXT PRIMARY KEY,
+                suburbs TEXT,
+                postcodes TEXT,
+                surcharge REAL DEFAULT 0.0,
+                max_stops INTEGER DEFAULT 15,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
 
             CREATE TABLE IF NOT EXISTS api_log (
@@ -244,8 +285,175 @@ class LocalStore:
         ))
         self.conn.commit()
 
+    def update_driver(self, driver_id, driver_data):
+        self.conn.execute('''
+            UPDATE drivers SET
+                name=?, vehicle_type=?, plate=?, status=?, current_zone=?, phone=?
+            WHERE driver_id=?
+        ''', (
+            driver_data.get('name'),
+            driver_data.get('vehicle_type'),
+            driver_data.get('plate'),
+            driver_data.get('status', 'available'),
+            driver_data.get('current_zone'),
+            driver_data.get('phone'),
+            driver_id,
+        ))
+        self.conn.commit()
+
+    def delete_driver(self, driver_id):
+        self.conn.execute("DELETE FROM drivers WHERE driver_id=?", (driver_id,))
+        self.conn.commit()
+
     def get_drivers(self):
         return pd.read_sql_query("SELECT * FROM drivers ORDER BY name", self.conn)
+
+    # === Runs ===
+
+    def save_run(self, run_data):
+        self.conn.execute('''
+            INSERT OR REPLACE INTO runs
+            (run_id, zone, driver_id, driver_name, status, total_stops, completed,
+             created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            run_data.get('run_id'),
+            run_data.get('zone'),
+            run_data.get('driver_id'),
+            run_data.get('driver_name'),
+            run_data.get('status', 'active'),
+            run_data.get('total_stops', 0),
+            run_data.get('completed', 0),
+            run_data.get('created_at', datetime.now().isoformat()),
+            datetime.now().isoformat(),
+        ))
+        self.conn.commit()
+
+    def save_run_orders(self, run_id, order_ids):
+        for seq, oid in enumerate(order_ids, 1):
+            self.conn.execute('''
+                INSERT INTO run_orders (run_id, order_id, stop_sequence, status)
+                VALUES (?, ?, ?, 'pending')
+            ''', (run_id, oid, seq))
+        self.conn.commit()
+
+    def get_runs(self, status=None):
+        if status:
+            query = "SELECT * FROM runs WHERE status=? ORDER BY created_at DESC"
+            df = pd.read_sql_query(query, self.conn, params=(status,))
+        else:
+            df = pd.read_sql_query("SELECT * FROM runs ORDER BY created_at DESC", self.conn)
+        if not df.empty:
+            df['created_at'] = pd.to_datetime(df['created_at'])
+            # Calculate progress
+            df['progress'] = df.apply(
+                lambda r: (r['completed'] / r['total_stops'] * 100) if r['total_stops'] > 0 else 0,
+                axis=1,
+            )
+        return df
+
+    def get_run_orders(self, run_id):
+        query = '''
+            SELECT ro.*, o.customer, o.address, o.suburb, o.postcode, o.service_level, o.parcels
+            FROM run_orders ro
+            JOIN orders o ON ro.order_id = o.order_id
+            WHERE ro.run_id = ?
+            ORDER BY ro.stop_sequence
+        '''
+        return pd.read_sql_query(query, self.conn, params=(run_id,))
+
+    def update_run_status(self, run_id, status):
+        self.conn.execute(
+            "UPDATE runs SET status=?, updated_at=? WHERE run_id=?",
+            (status, datetime.now().isoformat(), run_id),
+        )
+        self.conn.commit()
+
+    def update_run_progress(self, run_id, completed):
+        self.conn.execute(
+            "UPDATE runs SET completed=?, updated_at=? WHERE run_id=?",
+            (completed, datetime.now().isoformat(), run_id),
+        )
+        self.conn.commit()
+
+    def delete_run(self, run_id):
+        self.conn.execute("DELETE FROM run_orders WHERE run_id=?", (run_id,))
+        self.conn.execute("DELETE FROM runs WHERE run_id=?", (run_id,))
+        self.conn.commit()
+
+    def count_runs_today(self):
+        today = datetime.now().strftime('%Y-%m-%d')
+        row = self.conn.execute(
+            "SELECT COUNT(*) as cnt FROM runs WHERE DATE(created_at) = ?",
+            (today,),
+        ).fetchone()
+        return row['cnt'] if row else 0
+
+    # === Settings ===
+
+    def get_setting(self, key, default=None):
+        row = self.conn.execute(
+            "SELECT value FROM settings WHERE key=?", (key,)
+        ).fetchone()
+        return row['value'] if row else default
+
+    def set_setting(self, key, value):
+        self.conn.execute(
+            "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, ?)",
+            (key, str(value), datetime.now().isoformat()),
+        )
+        self.conn.commit()
+
+    def get_all_settings(self):
+        rows = self.conn.execute("SELECT key, value FROM settings").fetchall()
+        return {row['key']: row['value'] for row in rows}
+
+    def set_settings_bulk(self, settings_dict):
+        now = datetime.now().isoformat()
+        for key, value in settings_dict.items():
+            self.conn.execute(
+                "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, ?)",
+                (key, str(value), now),
+            )
+        self.conn.commit()
+
+    # === Zones ===
+
+    def get_zones(self):
+        return pd.read_sql_query("SELECT * FROM zones ORDER BY zone_name", self.conn)
+
+    def save_zone(self, zone_data):
+        self.conn.execute('''
+            INSERT OR REPLACE INTO zones
+            (zone_name, suburbs, postcodes, surcharge, max_stops, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (
+            zone_data['zone_name'],
+            json.dumps(zone_data.get('suburbs', [])),
+            zone_data.get('postcodes', ''),
+            zone_data.get('surcharge', 0.0),
+            zone_data.get('max_stops', 15),
+            datetime.now().isoformat(),
+        ))
+        self.conn.commit()
+
+    def delete_zone(self, zone_name):
+        self.conn.execute("DELETE FROM zones WHERE zone_name=?", (zone_name,))
+        self.conn.commit()
+
+    def seed_default_zones(self):
+        """Seed zones from constants if the table is empty."""
+        from config.constants import ZONE_MAPPING, ZONE_POSTCODES
+        count = self.conn.execute("SELECT COUNT(*) as cnt FROM zones").fetchone()['cnt']
+        if count == 0:
+            for zone_name, suburbs in ZONE_MAPPING.items():
+                self.save_zone({
+                    'zone_name': zone_name,
+                    'suburbs': suburbs,
+                    'postcodes': ZONE_POSTCODES.get(zone_name, ''),
+                    'surcharge': 5.0 if zone_name == "Eastern Suburbs" else 0.0,
+                    'max_stops': 15,
+                })
 
     # === API Log ===
 

@@ -1,3 +1,4 @@
+import json
 import streamlit as st
 from datetime import datetime
 
@@ -7,57 +8,108 @@ from config.settings import wms_config
 def render(data_manager):
     st.markdown('<div class="section-header">System Settings</div>', unsafe_allow_html=True)
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "General", "WMS Integration", "Zones & Routing", "Users", "API Log",
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "General", "WMS Integration", "Zones & Routing", "API Log",
     ])
 
     with tab1:
-        _render_general()
+        _render_general(data_manager)
 
     with tab2:
         _render_wms_integration(data_manager)
 
     with tab3:
-        _render_zones()
+        _render_zones(data_manager)
 
     with tab4:
-        _render_users()
-
-    with tab5:
         _render_api_log(data_manager)
 
 
-def _render_general():
+def _render_general(data_manager):
     st.markdown("### General Settings")
 
-    col1, col2 = st.columns(2)
+    with st.form("general_settings_form"):
+        col1, col2 = st.columns(2)
 
-    with col1:
-        st.text_input("Company Name", value="Sydney Metro Courier")
-        st.text_input("Primary Contact Email", value="ops@sydneymetrocourier.com.au")
-        st.text_input("Support Phone", value="1300 DELIVER")
+        with col1:
+            company_name = st.text_input(
+                "Company Name",
+                value=data_manager.get_setting('company_name', 'Sydney Metro Courier'),
+            )
+            contact_email = st.text_input(
+                "Primary Contact Email",
+                value=data_manager.get_setting('contact_email', 'ops@sydneymetrocourier.com.au'),
+            )
+            support_phone = st.text_input(
+                "Support Phone",
+                value=data_manager.get_setting('support_phone', '1300 DELIVER'),
+            )
 
-    with col2:
-        st.selectbox("Timezone", ["Australia/Sydney", "Australia/Melbourne", "Australia/Brisbane"])
-        st.selectbox("Date Format", ["DD/MM/YYYY", "MM/DD/YYYY", "YYYY-MM-DD"])
-        st.selectbox("Default Service Level", ["standard", "express", "economy"])
+        with col2:
+            timezone_options = ["Australia/Sydney", "Australia/Melbourne", "Australia/Brisbane"]
+            current_tz = data_manager.get_setting('timezone', 'Australia/Sydney')
+            tz_index = timezone_options.index(current_tz) if current_tz in timezone_options else 0
+            timezone = st.selectbox("Timezone", timezone_options, index=tz_index)
 
-    st.markdown("### Operating Hours")
+            date_format_options = ["DD/MM/YYYY", "MM/DD/YYYY", "YYYY-MM-DD"]
+            current_df = data_manager.get_setting('date_format', 'DD/MM/YYYY')
+            df_index = date_format_options.index(current_df) if current_df in date_format_options else 0
+            date_format = st.selectbox("Date Format", date_format_options, index=df_index)
 
-    col1, col2 = st.columns(2)
-    with col1:
-        st.time_input("Start Time", datetime.strptime("06:00", "%H:%M"))
-    with col2:
-        st.time_input("End Time", datetime.strptime("21:00", "%H:%M"))
+            service_options = ["standard", "express", "economy"]
+            current_sl = data_manager.get_setting('default_service_level', 'standard')
+            sl_index = service_options.index(current_sl) if current_sl in service_options else 0
+            default_service = st.selectbox("Default Service Level", service_options, index=sl_index)
 
-    st.multiselect(
-        "Operating Days",
-        ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-        default=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-    )
+        st.markdown("### Operating Hours")
+        col1, col2 = st.columns(2)
+        with col1:
+            saved_start = data_manager.get_setting('operating_start_time', '06:00')
+            start_time = st.time_input("Start Time", datetime.strptime(saved_start, "%H:%M"))
+        with col2:
+            saved_end = data_manager.get_setting('operating_end_time', '21:00')
+            end_time = st.time_input("End Time", datetime.strptime(saved_end, "%H:%M"))
+
+        all_days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        saved_days = data_manager.get_setting('operating_days', None)
+        if saved_days:
+            try:
+                default_days = json.loads(saved_days)
+            except (json.JSONDecodeError, TypeError):
+                default_days = all_days[:6]
+        else:
+            default_days = all_days[:6]
+
+        operating_days = st.multiselect("Operating Days", all_days, default=default_days)
+
+        submitted = st.form_submit_button("Save Settings", use_container_width=True, type="primary")
+
+        if submitted:
+            data_manager.save_settings({
+                'company_name': company_name,
+                'contact_email': contact_email,
+                'support_phone': support_phone,
+                'timezone': timezone,
+                'date_format': date_format,
+                'default_service_level': default_service,
+                'operating_start_time': start_time.strftime('%H:%M'),
+                'operating_end_time': end_time.strftime('%H:%M'),
+                'operating_days': json.dumps(operating_days),
+            })
+            st.success("Settings saved!")
 
 
 def _render_wms_integration(data_manager):
+    st.markdown("### Data Mode")
+    data_mode = st.radio(
+        "Select how the dashboard operates",
+        ["Demo Mode (mock data)", "Local Only (SQLite)", "Live (push to .wms + local store)"],
+        index=2 if wms_config.is_configured else 1,
+    )
+    st.session_state['data_mode'] = data_mode
+
+    st.markdown("---")
+
     st.markdown("### Thomax .wms Connection")
 
     if wms_config.is_configured:
@@ -138,78 +190,138 @@ def _render_wms_integration(data_manager):
                 st.info("Sync initiated. Note: .wms API is push-only. "
                         "Ask Thomax about outbound/webhook APIs for pull data.")
 
-    st.markdown("---")
 
-    st.markdown("### Data Mode")
-    data_mode = st.radio(
-        "Select how the dashboard operates",
-        ["Demo Mode (mock data)", "Local Only (SQLite)", "Live (push to .wms + local store)"],
-        index=2 if wms_config.is_configured else 0,
-    )
-    st.session_state['data_mode'] = data_mode
-
-    st.markdown("---")
-
-    st.markdown("### Notification Services")
-    st.checkbox("SMS notifications (Twilio)", value=False)
-    st.checkbox("Email notifications (SendGrid)", value=False)
-    st.checkbox("Push notifications (Firebase)", value=False)
-
-
-def _render_zones():
+def _render_zones(data_manager):
     st.markdown("### Delivery Zones")
 
-    zones = [
-        {"name": "CBD", "postcodes": "2000, 2010, 2011", "surcharge": 0},
-        {"name": "Inner West", "postcodes": "2037, 2040, 2041, 2042, 2043, 2044", "surcharge": 0},
-        {"name": "Eastern Suburbs", "postcodes": "2021, 2022, 2024, 2025, 2026", "surcharge": 5},
-        {"name": "South Sydney", "postcodes": "2015, 2016, 2017, 2018, 2020", "surcharge": 0},
-        {"name": "Inner City", "postcodes": "2039, 2041", "surcharge": 0},
-    ]
+    zones_df = data_manager.get_zones()
 
-    for zone in zones:
-        with st.expander(f"{zone['name']}"):
-            col1, col2 = st.columns([2, 1])
-            with col1:
-                st.text_input("Postcodes", value=zone['postcodes'], key=f"pc_{zone['name']}")
-            with col2:
-                st.number_input("Surcharge ($)", value=zone['surcharge'], key=f"sc_{zone['name']}")
+    if zones_df.empty:
+        st.info("No zones configured. Default zones will be created.")
+        return
 
-    if st.button("Add New Zone"):
-        st.info("Zone creation dialog would open")
+    for _, zone in zones_df.iterrows():
+        zone_name = zone['zone_name']
+        try:
+            suburbs = json.loads(zone['suburbs']) if zone['suburbs'] else []
+        except (json.JSONDecodeError, TypeError):
+            suburbs = []
 
-    st.markdown("### Routing Preferences")
+        with st.expander(f"{zone_name} ({len(suburbs)} suburbs)"):
+            with st.form(f"zone_form_{zone_name}"):
+                col1, col2 = st.columns([2, 1])
+                with col1:
+                    postcodes = st.text_input(
+                        "Postcodes",
+                        value=zone.get('postcodes', ''),
+                        key=f"pc_{zone_name}",
+                    )
+                    suburbs_text = st.text_input(
+                        "Suburbs (comma-separated)",
+                        value=', '.join(suburbs),
+                        key=f"sub_{zone_name}",
+                    )
+                with col2:
+                    surcharge = st.number_input(
+                        "Surcharge ($)",
+                        value=float(zone.get('surcharge', 0)),
+                        key=f"sc_{zone_name}",
+                    )
+                    max_stops = st.number_input(
+                        "Max stops per run",
+                        value=int(zone.get('max_stops', 15)),
+                        min_value=1,
+                        max_value=50,
+                        key=f"ms_{zone_name}",
+                    )
 
-    st.slider("Max stops per run", 5, 30, 15)
-    st.slider("Max run duration (hours)", 2, 8, 4)
-    st.checkbox("Avoid toll roads", value=False)
-    st.checkbox("Prioritize express deliveries", value=True)
+                col_save, col_delete = st.columns(2)
+                with col_save:
+                    save_btn = st.form_submit_button("Save Zone", use_container_width=True)
+                with col_delete:
+                    delete_btn = st.form_submit_button("Delete Zone", use_container_width=True)
 
+                if save_btn:
+                    parsed_suburbs = [s.strip() for s in suburbs_text.split(',') if s.strip()]
+                    data_manager.save_zone({
+                        'zone_name': zone_name,
+                        'suburbs': parsed_suburbs,
+                        'postcodes': postcodes,
+                        'surcharge': surcharge,
+                        'max_stops': max_stops,
+                    })
+                    st.success(f"Zone '{zone_name}' saved!")
+                    st.rerun()
 
-def _render_users():
-    st.markdown("### User Management")
+                if delete_btn:
+                    data_manager.delete_zone(zone_name)
+                    st.success(f"Zone '{zone_name}' deleted!")
+                    st.rerun()
 
-    users = [
-        {"name": "Admin User", "email": "admin@smc.com.au", "role": "Administrator", "status": "Active"},
-        {"name": "Dispatch Manager", "email": "dispatch@smc.com.au", "role": "Dispatcher", "status": "Active"},
-        {"name": "Operations Lead", "email": "ops@smc.com.au", "role": "Manager", "status": "Active"},
-    ]
+    # Add new zone
+    st.markdown("---")
+    st.markdown("### Add New Zone")
 
-    for user in users:
-        col1, col2, col3, col4 = st.columns([2, 2, 1, 1])
+    with st.form("new_zone_form"):
+        col1, col2 = st.columns(2)
         with col1:
-            st.text(user['name'])
+            new_zone_name = st.text_input("Zone Name")
+            new_suburbs = st.text_input("Suburbs (comma-separated)")
+            new_postcodes = st.text_input("Postcodes (comma-separated)")
         with col2:
-            st.text(user['email'])
-        with col3:
-            st.text(user['role'])
-        with col4:
-            st.button("Edit", key=f"edit_{user['email']}")
+            new_surcharge = st.number_input("Surcharge ($)", value=0.0, key="new_zone_surcharge")
+            new_max_stops = st.number_input("Max stops per run", value=15, min_value=1, max_value=50, key="new_zone_max_stops")
+
+        submitted = st.form_submit_button("Create Zone", use_container_width=True, type="primary")
+
+        if submitted:
+            if not new_zone_name:
+                st.error("Zone name is required")
+            else:
+                parsed_suburbs = [s.strip() for s in new_suburbs.split(',') if s.strip()]
+                data_manager.save_zone({
+                    'zone_name': new_zone_name,
+                    'suburbs': parsed_suburbs,
+                    'postcodes': new_postcodes,
+                    'surcharge': new_surcharge,
+                    'max_stops': new_max_stops,
+                })
+                st.success(f"Zone '{new_zone_name}' created!")
+                st.rerun()
 
     st.markdown("---")
+    st.markdown("### Routing Preferences")
 
-    if st.button("Add New User"):
-        st.info("User creation dialog would open")
+    with st.form("routing_prefs_form"):
+        max_stops = st.slider(
+            "Default max stops per run",
+            5, 30,
+            int(data_manager.get_setting('max_stops_per_run', '15')),
+        )
+        max_duration = st.slider(
+            "Max run duration (hours)",
+            2, 8,
+            int(data_manager.get_setting('max_run_duration', '4')),
+        )
+        avoid_tolls = st.checkbox(
+            "Avoid toll roads",
+            value=data_manager.get_setting('avoid_tolls', 'False') == 'True',
+        )
+        express_priority = st.checkbox(
+            "Prioritize express deliveries",
+            value=data_manager.get_setting('express_priority', 'True') == 'True',
+        )
+
+        submitted = st.form_submit_button("Save Routing Preferences", use_container_width=True)
+
+        if submitted:
+            data_manager.save_settings({
+                'max_stops_per_run': str(max_stops),
+                'max_run_duration': str(max_duration),
+                'avoid_tolls': str(avoid_tolls),
+                'express_priority': str(express_priority),
+            })
+            st.success("Routing preferences saved!")
 
 
 def _render_api_log(data_manager):

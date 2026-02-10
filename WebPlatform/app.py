@@ -31,6 +31,13 @@ if 'data_manager' not in st.session_state:
 
 dm = st.session_state.data_manager
 
+# Initialize data mode (persist across refreshes by defaulting to Local)
+if 'data_mode' not in st.session_state:
+    if wms_config.is_configured:
+        st.session_state['data_mode'] = 'Live (push to .wms + local store)'
+    else:
+        st.session_state['data_mode'] = 'Local Only (SQLite)'
+
 # ============================================
 # SIDEBAR
 # ============================================
@@ -150,7 +157,7 @@ with col1:
 
 if page == "📊 Dashboard":
     from pages.dashboard import render
-    render(orders_df, drivers_df, runs_df)
+    render(orders_df, drivers_df, runs_df, dm)
 
 elif page == "📋 Orders":
     from pages.orders import render
@@ -162,7 +169,7 @@ elif page == "🚚 Drivers":
 
 elif page == "🗺️ Route Planning":
     from pages.route_planning import render
-    render(orders_df, drivers_df, runs_df)
+    render(orders_df, drivers_df, runs_df, dm)
 
 elif page == "📦 Inventory":
     from pages.inventory import render
