@@ -89,15 +89,17 @@ def render(orders_df, drivers_df, runs_df, data_manager=None):
 
         # Zone summary cards with real data
         zone_colors = {
-            "CBD": ("#667eea", "rgba(102, 126, 234, 0.2)", "rgba(102, 126, 234, 0.3)"),
             "Inner West": ("#10b981", "rgba(16, 185, 129, 0.2)", "rgba(16, 185, 129, 0.3)"),
             "Eastern Suburbs": ("#fbbf24", "rgba(251, 191, 36, 0.2)", "rgba(251, 191, 36, 0.3)"),
+            "CBD": ("#667eea", "rgba(102, 126, 234, 0.2)", "rgba(102, 126, 234, 0.3)"),
             "South Sydney": ("#ef4444", "rgba(239, 68, 68, 0.2)", "rgba(239, 68, 68, 0.3)"),
             "Inner City": ("#8b5cf6", "rgba(139, 92, 246, 0.2)", "rgba(139, 92, 246, 0.3)"),
         }
 
-        zone_cards_html = '<div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem;">'
-        for zone_name, suburbs in ZONE_MAPPING.items():
+        zone_names = list(ZONE_MAPPING.keys())
+        zone_cols = st.columns(len(zone_names))
+        for idx, zone_name in enumerate(zone_names):
+            suburbs = ZONE_MAPPING[zone_name]
             active_count = 0
             if not orders_df.empty and 'suburb' in orders_df.columns:
                 active_count = len(orders_df[
@@ -105,14 +107,13 @@ def render(orders_df, drivers_df, runs_df, data_manager=None):
                     (orders_df['status'].isin(['pending', 'allocated', 'in_transit']))
                 ])
             color, bg, border = zone_colors.get(zone_name, ("#667eea", "rgba(102, 126, 234, 0.2)", "rgba(102, 126, 234, 0.3)"))
-            zone_cards_html += f'''
-                <div style="background: {bg}; padding: 0.75rem 1.25rem; border-radius: 8px; border: 1px solid {border};">
-                    <div style="font-family: 'Space Mono', monospace; color: {color}; font-weight: 700;">{zone_name}</div>
+            with zone_cols[idx]:
+                st.markdown(f"""
+                <div style="background: {bg}; padding: 0.75rem 1.25rem; border-radius: 8px; border: 1px solid {border}; text-align: center;">
+                    <div style="font-family: 'Space Mono', monospace; color: {color}; font-weight: 700; font-size: 0.85rem;">{zone_name}</div>
                     <div style="font-family: 'DM Sans', sans-serif; color: rgba(255,255,255,0.6); font-size: 0.8rem;">{active_count} active</div>
                 </div>
-            '''
-        zone_cards_html += '</div>'
-        st.markdown(zone_cards_html, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
 

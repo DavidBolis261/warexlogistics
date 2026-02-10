@@ -156,31 +156,31 @@ with col1:
 # ============================================
 
 if page == "📊 Dashboard":
-    from pages.dashboard import render
+    from views.dashboard import render
     render(orders_df, drivers_df, runs_df, dm)
 
 elif page == "📋 Orders":
-    from pages.orders import render
+    from views.orders import render
     render(orders_df, drivers_df, dm, zone_filter, service_filter, status_filter)
 
 elif page == "🚚 Drivers":
-    from pages.drivers import render
+    from views.drivers import render
     render(drivers_df, dm)
 
 elif page == "🗺️ Route Planning":
-    from pages.route_planning import render
+    from views.route_planning import render
     render(orders_df, drivers_df, runs_df, dm)
 
 elif page == "📦 Inventory":
-    from pages.inventory import render
+    from views.inventory import render
     render(dm)
 
 elif page == "📈 Analytics":
-    from pages.analytics import render
+    from views.analytics import render
     render(orders_df, drivers_df, dm)
 
 elif page == "⚙️ Settings":
-    from pages.settings_page import render
+    from views.settings_page import render
     render(dm)
 
 
