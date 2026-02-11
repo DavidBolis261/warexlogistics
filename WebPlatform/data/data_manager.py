@@ -1,5 +1,7 @@
 import random
 import json
+import hashlib
+import secrets
 from datetime import datetime
 
 import pandas as pd
@@ -59,7 +61,9 @@ class DataManager:
 
     def create_order(self, order_data):
         order_id = f"SMC-{random.randint(10000, 99999)}"
+        tracking_number = self._generate_tracking_number()
         order_data['order_id'] = order_id
+        order_data['tracking_number'] = tracking_number
         order_data['status'] = 'pending'
         order_data['created_at'] = datetime.now().isoformat()
         order_data['order_date'] = datetime.now().strftime('%Y-%m-%d')
@@ -85,6 +89,7 @@ class DataManager:
         return {
             'success': True,
             'order_id': order_id,
+            'tracking_number': tracking_number,
             'wms_pushed': pushed,
             'mock': self.data_mode == 'demo',
         }
@@ -418,3 +423,47 @@ class DataManager:
 
     def clear_api_log(self):
         self.store.clear_api_log()
+
+    # === Tracking ===
+
+    def _generate_tracking_number(self):
+        """Generate a unique tracking number like WRX-2602-A3F7B1."""
+        prefix = datetime.now().strftime('%y%m')
+        for _ in range(10):
+            hex_part = secrets.token_hex(3).upper()
+            tracking = f"WRX-{prefix}-{hex_part}"
+            if not self.store.tracking_number_exists(tracking):
+                return tracking
+        raise RuntimeError("Failed to generate unique tracking number")
+
+    def get_order_by_tracking(self, tracking_number):
+        return self.store.get_order_by_tracking(tracking_number)
+
+    # === Authentication ===
+
+    def _hash_password(self, password, salt=None):
+        """Hash a password with SHA-256 + salt."""
+        if salt is None:
+            salt = secrets.token_hex(16)
+        pw_hash = hashlib.sha256((salt + password).encode('utf-8')).hexdigest()
+        return pw_hash, salt
+
+    def authenticate(self, username, password):
+        """Verify username/password. Returns True if valid."""
+        user = self.store.get_admin_user(username)
+        if not user:
+            return False
+        pw_hash, _ = self._hash_password(password, user['salt'])
+        return pw_hash == user['password_hash']
+
+    def create_admin(self, username, password):
+        """Create an admin user."""
+        if self.store.get_admin_user(username):
+            return {'success': False, 'error': 'Username already exists'}
+        pw_hash, salt = self._hash_password(password)
+        self.store.create_admin_user(username, pw_hash, salt)
+        return {'success': True}
+
+    def admin_exists(self):
+        """Check if any admin user exists."""
+        return self.store.admin_user_count() > 0

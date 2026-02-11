@@ -74,6 +74,8 @@ def _render_all_orders(orders_df, data_manager):
             orders_df['customer'].str.contains(search, case=False, na=False) |
             orders_df['address'].str.contains(search, case=False, na=False)
         )
+        if 'tracking_number' in orders_df.columns:
+            mask = mask | orders_df['tracking_number'].str.contains(search, case=False, na=False)
         orders_df = orders_df[mask]
 
     # Apply sorting
@@ -125,13 +127,25 @@ def _render_all_orders(orders_df, data_manager):
             col1, col2 = st.columns([2, 1])
 
             with col1:
+                if order.get('tracking_number'):
+                    st.markdown(f"**Tracking:** `{order['tracking_number']}`")
+
                 created_str = ''
                 if hasattr(order.get('created_at'), 'strftime'):
                     created_str = order['created_at'].strftime('%Y-%m-%d %H:%M')
 
+                if order.get('pickup_address'):
+                    pickup_line = f"{order['pickup_address']}, {order.get('pickup_suburb', '')} {order.get('pickup_state', '')} {order.get('pickup_postcode', '')}"
+                    pickup_contact_line = ""
+                    if order.get('pickup_contact'):
+                        pickup_contact_line += f" &bull; {order['pickup_contact']}"
+                    if order.get('pickup_phone'):
+                        pickup_contact_line += f" &bull; {order['pickup_phone']}"
+                    st.markdown(f"**Pickup:** {pickup_line}{pickup_contact_line}")
+
                 st.markdown(f"""
                 **Customer:** {order['customer']}
-                **Address:** {order['address']}, {order.get('suburb', '')} {order.get('postcode', '')}
+                **Deliver to:** {order['address']}, {order.get('suburb', '')} {order.get('postcode', '')}
                 **Parcels:** {order.get('parcels', 1)}
                 **Created:** {created_str}
                 """)
@@ -174,6 +188,20 @@ def _render_new_order_form(data_manager):
     st.markdown('<div class="section-header">Create New Order</div>', unsafe_allow_html=True)
 
     with st.form("new_order_form"):
+        st.markdown("### Pickup Address")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            pickup_address = st.text_input("Pickup Address *")
+            pickup_suburb = st.text_input("Pickup Suburb *")
+            pickup_contact = st.text_input("Pickup Contact Name")
+
+        with col2:
+            pickup_state = st.selectbox("Pickup State", ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"], key="pickup_state")
+            pickup_postcode = st.text_input("Pickup Postcode *")
+            pickup_phone = st.text_input("Pickup Phone")
+
+        st.markdown("### Delivery Address")
         col1, col2 = st.columns(2)
 
         with col1:
@@ -184,7 +212,7 @@ def _render_new_order_form(data_manager):
             suburb = st.text_input("Suburb *")
 
         with col2:
-            state = st.selectbox("State", ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"])
+            state = st.selectbox("State", ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"], key="delivery_state")
             postcode = st.text_input("Postcode *")
             country = st.text_input("Country", value="Australia")
             email = st.text_input("Email")
@@ -207,6 +235,8 @@ def _render_new_order_form(data_manager):
         if submitted:
             if not customer_name or not address1 or not suburb or not postcode:
                 st.error("Please fill in all required fields (marked with *)")
+            elif not pickup_address or not pickup_suburb or not pickup_postcode:
+                st.error("Please fill in all required pickup address fields (marked with *)")
             else:
                 order_data = {
                     'customer': customer_name,
@@ -224,10 +254,17 @@ def _render_new_order_form(data_manager):
                     'parcels': quantity,
                     'carrier_service': carrier_service,
                     'special_instructions': special_instructions,
+                    'pickup_address': pickup_address,
+                    'pickup_suburb': pickup_suburb,
+                    'pickup_state': pickup_state,
+                    'pickup_postcode': pickup_postcode,
+                    'pickup_contact': pickup_contact,
+                    'pickup_phone': pickup_phone,
                 }
                 result = data_manager.create_order(order_data)
                 if result.get('success'):
-                    st.success(f"Order {result.get('order_id', '')} created successfully!")
+                    tracking = result.get('tracking_number', '')
+                    st.success(f"Order {result.get('order_id', '')} created! Tracking: {tracking}")
                     if result.get('wms_pushed'):
                         st.info("Order pushed to .wms")
                     st.session_state['show_new_order_form'] = False

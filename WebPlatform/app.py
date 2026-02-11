@@ -1,5 +1,5 @@
 """
-Sydney Metro Courier Dashboard
+Warex Logistics Dashboard
 A comprehensive logistics management interface integrated with Thomax .wms API
 """
 
@@ -16,7 +16,7 @@ from data.data_manager import DataManager
 
 # Page configuration
 st.set_page_config(
-    page_title="Sydney Metro Courier",
+    page_title="Warex Logistics",
     page_icon="📦",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -32,7 +32,13 @@ if 'data_manager' not in st.session_state:
 dm = st.session_state.data_manager
 
 # Load company name from settings
-company_name = dm.get_setting('company_name', 'Sydney Metro Courier')
+company_name = dm.get_setting('company_name', 'Warex Logistics')
+
+# Initialize auth state
+if 'authenticated' not in st.session_state:
+    st.session_state.authenticated = False
+if 'show_login' not in st.session_state:
+    st.session_state.show_login = False
 
 # Initialize data mode (persist across refreshes by defaulting to Local)
 if 'data_mode' not in st.session_state:
@@ -41,10 +47,38 @@ if 'data_mode' not in st.session_state:
     else:
         st.session_state['data_mode'] = 'Local Only (SQLite)'
 
+
 # ============================================
-# SIDEBAR
+# AUTH GATE
 # ============================================
 
+from views.tracking import render_tracking_page, render_login_page, render_first_run_setup
+
+# First-run setup — no admin exists yet
+if not dm.admin_exists():
+    render_first_run_setup(dm)
+    st.stop()
+
+# Authenticated — show admin dashboard
+if st.session_state.authenticated:
+    pass  # Fall through to admin dashboard below
+
+# Login page
+elif st.session_state.show_login:
+    render_login_page(dm, company_name)
+    st.stop()
+
+# Public tracking page (default)
+else:
+    render_tracking_page(dm, company_name)
+    st.stop()
+
+
+# ============================================
+# ADMIN DASHBOARD (authenticated only)
+# ============================================
+
+# SIDEBAR
 with st.sidebar:
     st.markdown(f"""
     <div style="text-align: center; padding: 1.5rem 0;">
@@ -128,20 +162,21 @@ with st.sidebar:
     if st.button("🔄 Refresh Data", use_container_width=True):
         st.rerun()
 
+    st.markdown("---")
 
-# ============================================
+    if st.button("🚪 Logout", use_container_width=True):
+        st.session_state.authenticated = False
+        st.session_state.show_login = False
+        st.rerun()
+
+
 # LOAD DATA
-# ============================================
-
 orders_df = dm.get_orders()
 drivers_df = dm.get_drivers()
 runs_df = dm.get_runs()
 
 
-# ============================================
 # HEADER
-# ============================================
-
 col1, col2 = st.columns([3, 1])
 with col1:
     st.markdown(f"""
@@ -154,10 +189,7 @@ with col1:
     """, unsafe_allow_html=True)
 
 
-# ============================================
 # PAGE ROUTING
-# ============================================
-
 if page == "📊 Dashboard":
     from views.dashboard import render
     render(orders_df, drivers_df, runs_df, dm)
@@ -187,10 +219,7 @@ elif page == "⚙️ Settings":
     render(dm)
 
 
-# ============================================
 # FOOTER
-# ============================================
-
 st.markdown(f"""
 <div style="text-align: center; padding: 2rem; margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1);">
     <div style="font-family: 'Space Mono', monospace; font-size: 0.75rem; color: rgba(255,255,255,0.3);">

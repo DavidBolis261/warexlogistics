@@ -353,5 +353,91 @@ def apply_styles():
     ::-webkit-scrollbar-thumb:hover {
         background: rgba(102, 126, 234, 0.5);
     }
+
+    /* Tracking page */
+    .tracking-timeline {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        margin: 1.5rem 0 2rem;
+        padding: 0 1rem;
+    }
+
+    .timeline-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        position: relative;
+        max-width: 150px;
+    }
+
+    .timeline-dot {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.08);
+        border: 2px solid rgba(255,255,255,0.15);
+        z-index: 2;
+        position: relative;
+    }
+
+    .timeline-dot.active {
+        background: #667eea;
+        border-color: #667eea;
+        box-shadow: 0 0 16px rgba(102, 126, 234, 0.5);
+    }
+
+    .timeline-dot.current {
+        animation: pulse 2s infinite;
+    }
+
+    .timeline-label {
+        font-family: 'Space Mono', monospace;
+        font-size: 0.65rem;
+        color: rgba(255,255,255,0.3);
+        margin-top: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-align: center;
+    }
+
+    .timeline-label.active {
+        color: #667eea;
+    }
+
+    .timeline-line {
+        position: absolute;
+        top: 14px;
+        right: 50%;
+        width: 100%;
+        height: 2px;
+        background: rgba(255,255,255,0.08);
+        z-index: 1;
+    }
+
+    .timeline-line.active {
+        background: #667eea;
+    }
+
+    .tracking-result {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-top: 1.5rem;
+    }
+
+    .tracking-result:hover {
+        border-color: rgba(102, 126, 234, 0.3);
+    }
+
+    .tracking-failed {
+        border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .tracking-failed:hover {
+        border-color: rgba(239, 68, 68, 0.5);
+    }
 </style>
 """, unsafe_allow_html=True)

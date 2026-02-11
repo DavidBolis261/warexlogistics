@@ -1,6 +1,7 @@
 import sqlite3
 import json
 import os
+import secrets
 from datetime import datetime
 
 import pandas as pd
@@ -20,11 +21,13 @@ class LocalStore:
         self.conn.row_factory = sqlite3.Row
         self.conn.execute("PRAGMA journal_mode=WAL")
         self._create_tables()
+        self._migrate()
 
     def _create_tables(self):
         self.conn.executescript('''
             CREATE TABLE IF NOT EXISTS orders (
                 order_id TEXT PRIMARY KEY,
+                tracking_number TEXT UNIQUE,
                 customer TEXT,
                 delivery_company TEXT,
                 address TEXT,
@@ -42,6 +45,12 @@ class LocalStore:
                 driver_id TEXT,
                 carrier_service TEXT,
                 special_instructions TEXT,
+                pickup_address TEXT,
+                pickup_suburb TEXT,
+                pickup_state TEXT,
+                pickup_postcode TEXT,
+                pickup_contact TEXT,
+                pickup_phone TEXT,
                 eta TEXT,
                 pushed_to_wms INTEGER DEFAULT 0,
                 wms_response TEXT,
@@ -131,6 +140,14 @@ class LocalStore:
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
 
+            CREATE TABLE IF NOT EXISTS admin_users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                salt TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+
             CREATE TABLE IF NOT EXISTS api_log (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -145,18 +162,59 @@ class LocalStore:
         ''')
         self.conn.commit()
 
+    def _migrate(self):
+        """Add columns that may not exist in older databases."""
+        existing = {row[1] for row in self.conn.execute("PRAGMA table_info(orders)").fetchall()}
+        new_cols = {
+            'pickup_address': 'TEXT',
+            'pickup_suburb': 'TEXT',
+            'pickup_state': 'TEXT',
+            'pickup_postcode': 'TEXT',
+            'pickup_contact': 'TEXT',
+            'pickup_phone': 'TEXT',
+            'tracking_number': 'TEXT',
+        }
+        for col, col_type in new_cols.items():
+            if col not in existing:
+                self.conn.execute(f"ALTER TABLE orders ADD COLUMN {col} {col_type}")
+
+        # Add unique index on tracking_number if column was just added
+        if 'tracking_number' not in existing:
+            try:
+                self.conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_tracking_number ON orders(tracking_number)")
+            except sqlite3.OperationalError:
+                pass
+
+        self.conn.commit()
+
+        # Backfill tracking numbers for existing orders that don't have one
+        null_orders = self.conn.execute(
+            "SELECT order_id FROM orders WHERE tracking_number IS NULL"
+        ).fetchall()
+        if null_orders:
+            prefix = datetime.now().strftime('%y%m')
+            for row in null_orders:
+                tracking = f"WRX-{prefix}-{secrets.token_hex(3).upper()}"
+                self.conn.execute(
+                    "UPDATE orders SET tracking_number = ? WHERE order_id = ?",
+                    (tracking, row['order_id']),
+                )
+            self.conn.commit()
+
     # === Orders ===
 
     def save_order(self, order_data, wms_response=None, pushed=False):
         self.conn.execute('''
             INSERT OR REPLACE INTO orders
-            (order_id, customer, delivery_company, address, address2, suburb, state, postcode,
+            (order_id, tracking_number, customer, delivery_company, address, address2, suburb, state, postcode,
              country, email, phone, status, service_level, parcels, item_code,
-             driver_id, carrier_service, special_instructions, eta,
-             pushed_to_wms, wms_response, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             driver_id, carrier_service, special_instructions,
+             pickup_address, pickup_suburb, pickup_state, pickup_postcode, pickup_contact, pickup_phone,
+             eta, pushed_to_wms, wms_response, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             order_data.get('order_id'),
+            order_data.get('tracking_number'),
             order_data.get('customer'),
             order_data.get('delivery_company'),
             order_data.get('address'),
@@ -174,6 +232,12 @@ class LocalStore:
             order_data.get('driver_id'),
             order_data.get('carrier_service'),
             order_data.get('special_instructions'),
+            order_data.get('pickup_address'),
+            order_data.get('pickup_suburb'),
+            order_data.get('pickup_state'),
+            order_data.get('pickup_postcode'),
+            order_data.get('pickup_contact'),
+            order_data.get('pickup_phone'),
             order_data.get('eta'),
             1 if pushed else 0,
             json.dumps(wms_response) if wms_response else None,
@@ -454,6 +518,38 @@ class LocalStore:
                     'surcharge': 5.0 if zone_name == "Eastern Suburbs" else 0.0,
                     'max_stops': 15,
                 })
+
+    # === Admin Users ===
+
+    def create_admin_user(self, username, password_hash, salt):
+        self.conn.execute(
+            "INSERT INTO admin_users (username, password_hash, salt) VALUES (?, ?, ?)",
+            (username, password_hash, salt),
+        )
+        self.conn.commit()
+
+    def get_admin_user(self, username):
+        return self.conn.execute(
+            "SELECT * FROM admin_users WHERE username = ?", (username,)
+        ).fetchone()
+
+    def admin_user_count(self):
+        row = self.conn.execute("SELECT COUNT(*) as cnt FROM admin_users").fetchone()
+        return row['cnt'] if row else 0
+
+    # === Tracking ===
+
+    def tracking_number_exists(self, tracking_number):
+        row = self.conn.execute(
+            "SELECT 1 FROM orders WHERE tracking_number = ?", (tracking_number,)
+        ).fetchone()
+        return row is not None
+
+    def get_order_by_tracking(self, tracking_number):
+        row = self.conn.execute(
+            "SELECT * FROM orders WHERE tracking_number = ?", (tracking_number,)
+        ).fetchone()
+        return dict(row) if row else None
 
     # === API Log ===
 
