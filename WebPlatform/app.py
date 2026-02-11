@@ -63,6 +63,12 @@ if 'data_mode' not in st.session_state:
 
 from views.tracking import render_tracking_page, render_login_page, render_first_run_setup
 
+# Admin reset via environment variable (set RESET_ADMIN=true on Railway to wipe admin accounts)
+if os.environ.get('RESET_ADMIN', '').lower() == 'true':
+    dm.store.conn.execute("DELETE FROM admin_users")
+    dm.store.conn.execute("DELETE FROM session_tokens")
+    dm.store.conn.commit()
+
 # First-run setup — no admin exists yet
 if not dm.admin_exists():
     render_first_run_setup(dm)
