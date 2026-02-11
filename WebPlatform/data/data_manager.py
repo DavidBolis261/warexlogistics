@@ -2,7 +2,7 @@ import random
 import json
 import hashlib
 import secrets
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pandas as pd
 
@@ -449,20 +449,42 @@ class DataManager:
         return pw_hash, salt
 
     def authenticate(self, username, password):
-        """Verify username/password. Returns True if valid."""
+        """Verify username/password. Returns session token if valid, None otherwise."""
         user = self.store.get_admin_user(username)
         if not user:
-            return False
+            return None
         pw_hash, _ = self._hash_password(password, user['salt'])
-        return pw_hash == user['password_hash']
+        if pw_hash != user['password_hash']:
+            return None
+        # Create a session token valid for 7 days
+        token = secrets.token_urlsafe(32)
+        expires = (datetime.now() + timedelta(days=7)).isoformat()
+        self.store.create_session_token(token, user['username'], expires)
+        return token
+
+    def validate_session_token(self, token):
+        """Check if a session token is valid and not expired."""
+        if not token:
+            return False
+        session = self.store.get_session_token(token)
+        return session is not None
+
+    def logout_token(self, token):
+        """Invalidate a session token."""
+        if token:
+            self.store.delete_session_token(token)
 
     def create_admin(self, username, password):
-        """Create an admin user."""
+        """Create an admin user. Returns dict with success and optional token."""
         if self.store.get_admin_user(username):
             return {'success': False, 'error': 'Username already exists'}
         pw_hash, salt = self._hash_password(password)
         self.store.create_admin_user(username, pw_hash, salt)
-        return {'success': True}
+        # Auto-login: create session token
+        token = secrets.token_urlsafe(32)
+        expires = (datetime.now() + timedelta(days=7)).isoformat()
+        self.store.create_session_token(token, username, expires)
+        return {'success': True, 'token': token}
 
     def admin_exists(self):
         """Check if any admin user exists."""

@@ -202,12 +202,16 @@ def render_login_page(dm, company_name):
             if submitted:
                 if not username or not password:
                     st.error("Please enter both username and password.")
-                elif dm.authenticate(username, password):
-                    st.session_state.authenticated = True
-                    st.session_state.show_login = False
-                    st.rerun()
                 else:
-                    st.error("Invalid username or password.")
+                    token = dm.authenticate(username, password)
+                    if token:
+                        st.session_state.authenticated = True
+                        st.session_state.show_login = False
+                        st.session_state.session_token = token
+                        st.query_params['token'] = token
+                        st.rerun()
+                    else:
+                        st.error("Invalid username or password.")
 
         if st.button("Back to Tracking", use_container_width=True):
             st.session_state.show_login = False
@@ -249,8 +253,12 @@ def render_first_run_setup(dm):
                 else:
                     result = dm.create_admin(username, password)
                     if result['success']:
+                        token = result.get('token')
                         st.session_state.authenticated = True
                         st.session_state.show_login = False
+                        st.session_state.session_token = token
+                        if token:
+                            st.query_params['token'] = token
                         st.rerun()
                     else:
                         st.error(result.get('error', 'Failed to create account.'))

@@ -39,6 +39,15 @@ if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
 if 'show_login' not in st.session_state:
     st.session_state.show_login = False
+if 'session_token' not in st.session_state:
+    st.session_state.session_token = None
+
+# Restore session from query param token (survives page refresh)
+if not st.session_state.authenticated:
+    token_from_url = st.query_params.get('token')
+    if token_from_url and dm.validate_session_token(token_from_url):
+        st.session_state.authenticated = True
+        st.session_state.session_token = token_from_url
 
 # Initialize data mode (persist across refreshes by defaulting to Local)
 if 'data_mode' not in st.session_state:
@@ -165,8 +174,11 @@ with st.sidebar:
     st.markdown("---")
 
     if st.button("🚪 Logout", use_container_width=True):
+        dm.logout_token(st.session_state.get('session_token'))
         st.session_state.authenticated = False
         st.session_state.show_login = False
+        st.session_state.session_token = None
+        st.query_params.clear()
         st.rerun()
 
 

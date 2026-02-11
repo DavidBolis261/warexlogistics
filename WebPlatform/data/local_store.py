@@ -148,6 +148,13 @@ class LocalStore:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
 
+            CREATE TABLE IF NOT EXISTS session_tokens (
+                token TEXT PRIMARY KEY,
+                username TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                expires_at TIMESTAMP NOT NULL
+            );
+
             CREATE TABLE IF NOT EXISTS api_log (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -530,12 +537,35 @@ class LocalStore:
 
     def get_admin_user(self, username):
         return self.conn.execute(
-            "SELECT * FROM admin_users WHERE username = ?", (username,)
+            "SELECT * FROM admin_users WHERE LOWER(username) = LOWER(?)", (username,)
         ).fetchone()
 
     def admin_user_count(self):
         row = self.conn.execute("SELECT COUNT(*) as cnt FROM admin_users").fetchone()
         return row['cnt'] if row else 0
+
+    # === Session Tokens ===
+
+    def create_session_token(self, token, username, expires_at):
+        self.conn.execute(
+            "INSERT OR REPLACE INTO session_tokens (token, username, created_at, expires_at) VALUES (?, ?, ?, ?)",
+            (token, username, datetime.now().isoformat(), expires_at),
+        )
+        self.conn.commit()
+
+    def get_session_token(self, token):
+        return self.conn.execute(
+            "SELECT * FROM session_tokens WHERE token = ? AND expires_at > ?",
+            (token, datetime.now().isoformat()),
+        ).fetchone()
+
+    def delete_session_token(self, token):
+        self.conn.execute("DELETE FROM session_tokens WHERE token = ?", (token,))
+        self.conn.commit()
+
+    def cleanup_expired_tokens(self):
+        self.conn.execute("DELETE FROM session_tokens WHERE expires_at < ?", (datetime.now().isoformat(),))
+        self.conn.commit()
 
     # === Tracking ===
 
