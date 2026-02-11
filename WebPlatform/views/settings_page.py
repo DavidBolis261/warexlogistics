@@ -104,14 +104,14 @@ def _render_general(data_manager):
 
 def _render_email_settings(data_manager):
     st.markdown("### Email Notifications")
-    st.caption("Configure SMTP to send automated emails to customers when orders are created or status changes.")
+    st.caption("Send automated emails to customers when orders are created or status changes. Powered by Resend.")
 
-    from utils.email_service import is_email_configured, test_smtp_connection
+    from utils.email_service import is_email_configured, test_email_connection
 
     if is_email_configured(data_manager):
-        st.success("✅ Email notifications are enabled")
+        st.success("Email notifications are enabled")
     else:
-        st.warning("Email notifications are disabled. Configure your SMTP settings below.")
+        st.warning("Email notifications are disabled. Configure your settings below.")
 
     with st.form("email_settings_form"):
         enabled = st.toggle(
@@ -119,71 +119,69 @@ def _render_email_settings(data_manager):
             value=data_manager.get_setting('email_notifications_enabled', 'false').lower() == 'true',
         )
 
-        st.markdown("### SMTP Server")
-        st.caption("For GoDaddy email: Host = `smtpout.secureserver.net`, Port = `465`")
+        st.markdown("### Resend API")
+        st.caption("Sign up at [resend.com](https://resend.com), add your domain, and get your API key.")
+
+        import os
+        api_key_env = os.environ.get('RESEND_API_KEY', '')
 
         col1, col2 = st.columns(2)
         with col1:
-            smtp_host = st.text_input(
-                "SMTP Host",
-                value=data_manager.get_setting('smtp_host', 'smtpout.secureserver.net'),
-            )
-            smtp_username = st.text_input(
-                "Email Address / Username",
-                value=data_manager.get_setting('smtp_username', ''),
-                placeholder="info@warexlogistics.com.au",
-            )
+            if api_key_env:
+                st.text_input(
+                    "Resend API Key",
+                    value="Set via RESEND_API_KEY environment variable",
+                    disabled=True,
+                )
+                resend_api_key = ''
+            else:
+                resend_api_key = st.text_input(
+                    "Resend API Key",
+                    value=data_manager.get_setting('resend_api_key', ''),
+                    type="password",
+                    placeholder="re_xxxxxxxxx",
+                )
 
         with col2:
-            smtp_port = st.number_input(
-                "SMTP Port",
-                value=int(data_manager.get_setting('smtp_port', '465')),
-                min_value=1,
-                max_value=65535,
-            )
-            smtp_password = st.text_input(
-                "Email Password",
-                value=data_manager.get_setting('smtp_password', ''),
-                type="password",
-            )
-
-        st.markdown("### Sender Settings")
-        col1, col2 = st.columns(2)
-        with col1:
             from_email = st.text_input(
-                "From Email (if different from username)",
-                value=data_manager.get_setting('smtp_from_email', ''),
-                placeholder="Leave blank to use the username above",
+                "From Email Address",
+                value=data_manager.get_setting('email_from_address', ''),
+                placeholder="info@warexlogistics.com.au",
+                help="Must match a verified domain in your Resend account",
             )
-        with col2:
-            site_domain = st.text_input(
-                "Your Website Domain (for tracking links in emails)",
-                value=data_manager.get_setting('site_domain', ''),
-                placeholder="warexlogistics.com.au",
-            )
+
+        st.markdown("### Website")
+        site_domain = st.text_input(
+            "Your Website Domain (for tracking links in emails)",
+            value=data_manager.get_setting('site_domain', ''),
+            placeholder="warexlogistics.com.au",
+        )
 
         submitted = st.form_submit_button("Save Email Settings", use_container_width=True, type="primary")
 
         if submitted:
-            data_manager.save_settings({
+            settings = {
                 'email_notifications_enabled': str(enabled).lower(),
-                'smtp_host': smtp_host,
-                'smtp_port': str(int(smtp_port)),
-                'smtp_username': smtp_username,
-                'smtp_password': smtp_password,
-                'smtp_from_email': from_email,
+                'email_from_address': from_email,
                 'site_domain': site_domain,
-            })
+            }
+            if resend_api_key:
+                settings['resend_api_key'] = resend_api_key
+            data_manager.save_settings(settings)
             st.success("Email settings saved!")
 
     # Test connection
     st.markdown("### Test Connection")
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("🔌 Test SMTP Connection", use_container_width=True):
-            result = test_smtp_connection(data_manager)
+        if st.button("🔌 Test Resend Connection", use_container_width=True):
+            result = test_email_connection(data_manager)
             if result.get('success'):
-                st.success("SMTP connection successful! Emails are ready to send.")
+                domains = result.get('domains', [])
+                if domains:
+                    st.success(f"Connected! Verified domains: {', '.join(domains)}")
+                else:
+                    st.warning(result.get('warning', 'API key works but no verified domains.'))
             else:
                 st.error(f"Connection failed: {result.get('error', 'Unknown error')}")
     with col2:
@@ -192,7 +190,7 @@ def _render_email_settings(data_manager):
             if not test_email:
                 st.warning("Enter an email address above to send a test.")
             elif not is_email_configured(data_manager):
-                st.error("Please save your SMTP settings and enable notifications first.")
+                st.error("Please save your email settings and enable notifications first.")
             else:
                 from utils.email_service import send_order_confirmation
                 test_order = {
@@ -211,14 +209,30 @@ def _render_email_settings(data_manager):
                     st.error(f"Failed: {result.get('error', 'Unknown error')}")
 
     st.markdown("---")
-    st.markdown("### How it works")
+    st.markdown("### Setup Guide")
     st.markdown("""
-    When enabled, the system will automatically send emails to customers:
+    **Step 1:** Sign up at [resend.com](https://resend.com) (free — 100 emails/day)
 
-    1. **Order Confirmation** — When a new order is created with a customer email, they receive a confirmation with their tracking number.
-    2. **Status Updates** — When you change an order's status (e.g. Allocated → In Transit → Delivered), the customer gets an email update.
+    **Step 2:** Go to **Domains** → **Add Domain** → enter `warexlogistics.com.au`
 
-    Emails include the tracking number and a link to track their delivery on your website.
+    **Step 3:** Add the DNS records Resend gives you on GoDaddy (2 TXT records)
+
+    **Step 4:** Click **Verify** in Resend once DNS has propagated
+
+    **Step 5:** Go to **API Keys** → **Create API Key** → copy the key (starts with `re_`)
+
+    **Step 6:** Add `RESEND_API_KEY` as an environment variable on Railway, OR paste it above
+
+    **Step 7:** Set the **From Email** above to `info@warexlogistics.com.au` and **Enable** notifications
+
+    **Step 8:** Click **Test Resend Connection** to verify, then send yourself a test email!
+
+    ---
+
+    **When enabled, the system automatically sends:**
+
+    1. **Order Confirmation** — When a new order is created with a customer email
+    2. **Status Updates** — When you change an order status (Allocated → In Transit → Delivered)
     """)
 
 
