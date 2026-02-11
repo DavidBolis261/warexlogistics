@@ -94,20 +94,36 @@ def _render_tracking_result(order, company_name):
         </div>
         """, unsafe_allow_html=True)
 
-        # Status timeline
+        # Build status timeline HTML inline (avoids Streamlit nested unsafe_allow_html issues)
         if status == 'failed':
-            st.markdown("""
-            <div style="text-align: center; padding: 1.5rem; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; margin-bottom: 1.5rem;">
-                <div style="font-family: 'DM Sans', sans-serif; font-size: 1.25rem; font-weight: 700; color: #ef4444;">
-                    Delivery Failed
-                </div>
-                <div style="font-family: 'DM Sans', sans-serif; font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-top: 0.5rem;">
-                    Please contact us for assistance.
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            timeline_html = (
+                '<div style="text-align: center; padding: 1.5rem; background: rgba(239, 68, 68, 0.1); '
+                'border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; margin-bottom: 1.5rem;">'
+                '<div style="font-family: DM Sans, sans-serif; font-size: 1.25rem; font-weight: 700; color: #ef4444;">'
+                'Delivery Failed</div>'
+                '<div style="font-family: DM Sans, sans-serif; font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-top: 0.5rem;">'
+                'Please contact us for assistance.</div></div>'
+            )
         else:
-            _render_status_timeline(status)
+            status_index = TRACKING_STATUSES.index(status) if status in TRACKING_STATUSES else 0
+            timeline_html = '<div class="tracking-timeline">'
+            for i, s in enumerate(TRACKING_STATUSES):
+                is_active = i <= status_index
+                is_current = i == status_index
+                active_class = 'active' if is_active else ''
+                current_class = 'current' if is_current else ''
+                line_class = 'active' if i < status_index else ''
+                line_div = f'<div class="timeline-line {line_class}"></div>' if i > 0 else ''
+                timeline_html += (
+                    f'<div class="timeline-step">'
+                    f'{line_div}'
+                    f'<div class="timeline-dot {active_class} {current_class}"></div>'
+                    f'<div class="timeline-label {active_class}">{STATUS_LABELS[s]}</div>'
+                    f'</div>'
+                )
+            timeline_html += '</div>'
+
+        st.markdown(timeline_html, unsafe_allow_html=True)
 
         # Order details card
         created_str = ''
@@ -168,30 +184,6 @@ def _render_tracking_result(order, company_name):
             </div>
         </div>
         """, unsafe_allow_html=True)
-
-
-def _render_status_timeline(current_status):
-    """Render a horizontal status timeline."""
-    status_index = TRACKING_STATUSES.index(current_status) if current_status in TRACKING_STATUSES else 0
-
-    steps_html = '<div class="tracking-timeline">'
-    for i, status in enumerate(TRACKING_STATUSES):
-        is_active = i <= status_index
-        is_current = i == status_index
-        active_class = 'active' if is_active else ''
-        current_class = 'current' if is_current else ''
-        line_class = 'active' if i < status_index else ''
-
-        steps_html += f'''
-        <div class="timeline-step">
-            {'<div class="timeline-line ' + line_class + '"></div>' if i > 0 else ''}
-            <div class="timeline-dot {active_class} {current_class}"></div>
-            <div class="timeline-label {active_class}">{STATUS_LABELS[status]}</div>
-        </div>
-        '''
-    steps_html += '</div>'
-
-    st.markdown(steps_html, unsafe_allow_html=True)
 
 
 def render_login_page(dm, company_name):
