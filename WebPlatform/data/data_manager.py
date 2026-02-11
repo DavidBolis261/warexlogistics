@@ -14,6 +14,7 @@ from api.fulfilment import upsert_fulfilment_request, cancel_sales_order
 from api.receipts import upsert_asn_receipt, cancel_receipt as api_cancel_receipt
 from api.inventory import upsert_item_master_data, delete_item_master_data
 from api.stock import adjust_uld_stock, create_uld as api_create_uld, destroy_uld as api_destroy_uld, move_uld as api_move_uld
+from utils.email_service import send_order_confirmation, send_status_update, is_email_configured
 from api.logistics import create_kitting_job as api_create_kitting_job
 
 
@@ -86,11 +87,18 @@ class DataManager:
 
         self.store.save_order(order_data, wms_response=wms_result, pushed=pushed)
 
+        # Send confirmation email if configured and customer has email
+        email_sent = False
+        if order_data.get('email') and is_email_configured(self):
+            result = send_order_confirmation(self, order_data)
+            email_sent = result.get('success', False)
+
         return {
             'success': True,
             'order_id': order_id,
             'tracking_number': tracking_number,
             'wms_pushed': pushed,
+            'email_sent': email_sent,
             'mock': self.data_mode == 'demo',
         }
 
@@ -138,6 +146,12 @@ class DataManager:
     def update_order(self, order_id, **fields):
         """Update order fields (status, zone, driver_id, etc.)."""
         self.store.update_order_fields(order_id, **fields)
+
+        # Send status update email if status changed
+        if 'status' in fields and is_email_configured(self):
+            order = self.store.get_order_by_id(order_id)
+            if order and order.get('email'):
+                send_status_update(self, dict(order), fields['status'])
 
     # === Drivers ===
 

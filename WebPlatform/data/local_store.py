@@ -596,6 +596,12 @@ class LocalStore:
         ).fetchone()
         return dict(row) if row else None
 
+    def get_order_by_id(self, order_id):
+        row = self.conn.execute(
+            "SELECT * FROM orders WHERE order_id = ?", (order_id,)
+        ).fetchone()
+        return dict(row) if row else None
+
     # === API Log ===
 
     def log_api_call(self, operation, endpoint, request_summary, success, status_code=None,

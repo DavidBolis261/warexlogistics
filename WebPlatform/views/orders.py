@@ -344,6 +344,8 @@ def _render_new_order_form(data_manager):
                     st.success(f"Order {result.get('order_id', '')} created! Tracking: {tracking}")
                     if result.get('wms_pushed'):
                         st.info("Order pushed to .wms")
+                    if result.get('email_sent'):
+                        st.info(f"📧 Confirmation email sent to {order_data.get('email', '')}")
                     st.session_state['show_new_order_form'] = False
                     st.rerun()
                 else:

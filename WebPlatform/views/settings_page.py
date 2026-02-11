@@ -8,20 +8,23 @@ from config.settings import wms_config
 def render(data_manager):
     st.markdown('<div class="section-header">System Settings</div>', unsafe_allow_html=True)
 
-    tab1, tab2, tab3, tab4 = st.tabs([
-        "General", "WMS Integration", "Zones & Routing", "API Log",
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "General", "Email Notifications", "WMS Integration", "Zones & Routing", "API Log",
     ])
 
     with tab1:
         _render_general(data_manager)
 
     with tab2:
-        _render_wms_integration(data_manager)
+        _render_email_settings(data_manager)
 
     with tab3:
-        _render_zones(data_manager)
+        _render_wms_integration(data_manager)
 
     with tab4:
+        _render_zones(data_manager)
+
+    with tab5:
         _render_api_log(data_manager)
 
 
@@ -97,6 +100,126 @@ def _render_general(data_manager):
                 'operating_days': json.dumps(operating_days),
             })
             st.success("Settings saved!")
+
+
+def _render_email_settings(data_manager):
+    st.markdown("### Email Notifications")
+    st.caption("Configure SMTP to send automated emails to customers when orders are created or status changes.")
+
+    from utils.email_service import is_email_configured, test_smtp_connection
+
+    if is_email_configured(data_manager):
+        st.success("✅ Email notifications are enabled")
+    else:
+        st.warning("Email notifications are disabled. Configure your SMTP settings below.")
+
+    with st.form("email_settings_form"):
+        enabled = st.toggle(
+            "Enable email notifications",
+            value=data_manager.get_setting('email_notifications_enabled', 'false').lower() == 'true',
+        )
+
+        st.markdown("### SMTP Server")
+        st.caption("For GoDaddy email: Host = `smtpout.secureserver.net`, Port = `465`")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            smtp_host = st.text_input(
+                "SMTP Host",
+                value=data_manager.get_setting('smtp_host', 'smtpout.secureserver.net'),
+            )
+            smtp_username = st.text_input(
+                "Email Address / Username",
+                value=data_manager.get_setting('smtp_username', ''),
+                placeholder="info@warexlogistics.com.au",
+            )
+
+        with col2:
+            smtp_port = st.number_input(
+                "SMTP Port",
+                value=int(data_manager.get_setting('smtp_port', '465')),
+                min_value=1,
+                max_value=65535,
+            )
+            smtp_password = st.text_input(
+                "Email Password",
+                value=data_manager.get_setting('smtp_password', ''),
+                type="password",
+            )
+
+        st.markdown("### Sender Settings")
+        col1, col2 = st.columns(2)
+        with col1:
+            from_email = st.text_input(
+                "From Email (if different from username)",
+                value=data_manager.get_setting('smtp_from_email', ''),
+                placeholder="Leave blank to use the username above",
+            )
+        with col2:
+            site_domain = st.text_input(
+                "Your Website Domain (for tracking links in emails)",
+                value=data_manager.get_setting('site_domain', ''),
+                placeholder="warexlogistics.com.au",
+            )
+
+        submitted = st.form_submit_button("Save Email Settings", use_container_width=True, type="primary")
+
+        if submitted:
+            data_manager.save_settings({
+                'email_notifications_enabled': str(enabled).lower(),
+                'smtp_host': smtp_host,
+                'smtp_port': str(int(smtp_port)),
+                'smtp_username': smtp_username,
+                'smtp_password': smtp_password,
+                'smtp_from_email': from_email,
+                'site_domain': site_domain,
+            })
+            st.success("Email settings saved!")
+
+    # Test connection
+    st.markdown("### Test Connection")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🔌 Test SMTP Connection", use_container_width=True):
+            result = test_smtp_connection(data_manager)
+            if result.get('success'):
+                st.success("SMTP connection successful! Emails are ready to send.")
+            else:
+                st.error(f"Connection failed: {result.get('error', 'Unknown error')}")
+    with col2:
+        test_email = st.text_input("Send test email to", placeholder="your@email.com", key="test_email_addr")
+        if st.button("📧 Send Test Email", use_container_width=True):
+            if not test_email:
+                st.warning("Enter an email address above to send a test.")
+            elif not is_email_configured(data_manager):
+                st.error("Please save your SMTP settings and enable notifications first.")
+            else:
+                from utils.email_service import send_order_confirmation
+                test_order = {
+                    'email': test_email,
+                    'customer': 'Test Customer',
+                    'tracking_number': 'WRX-TEST-000000',
+                    'suburb': 'Sydney',
+                    'postcode': '2000',
+                    'service_level': 'express',
+                    'parcels': 1,
+                }
+                result = send_order_confirmation(data_manager, test_order)
+                if result.get('success'):
+                    st.success(f"Test email sent to {test_email}!")
+                else:
+                    st.error(f"Failed: {result.get('error', 'Unknown error')}")
+
+    st.markdown("---")
+    st.markdown("### How it works")
+    st.markdown("""
+    When enabled, the system will automatically send emails to customers:
+
+    1. **Order Confirmation** — When a new order is created with a customer email, they receive a confirmation with their tracking number.
+    2. **Status Updates** — When you change an order's status (e.g. Allocated → In Transit → Delivered), the customer gets an email update.
+
+    Emails include the tracking number and a link to track their delivery on your website.
+    """)
 
 
 def _render_wms_integration(data_manager):
