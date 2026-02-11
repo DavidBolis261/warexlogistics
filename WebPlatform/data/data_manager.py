@@ -135,6 +135,10 @@ class DataManager:
     def allocate_order(self, order_id, driver_name):
         self.store.update_order_status(order_id, 'allocated', driver_id=driver_name)
 
+    def update_order(self, order_id, **fields):
+        """Update order fields (status, zone, driver_id, etc.)."""
+        self.store.update_order_fields(order_id, **fields)
+
     # === Drivers ===
 
     def get_drivers(self):

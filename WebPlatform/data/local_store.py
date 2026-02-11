@@ -180,6 +180,7 @@ class LocalStore:
             'pickup_contact': 'TEXT',
             'pickup_phone': 'TEXT',
             'tracking_number': 'TEXT',
+            'zone': 'TEXT',
         }
         for col, col_type in new_cols.items():
             if col not in existing:
@@ -272,6 +273,20 @@ class LocalStore:
                 "UPDATE orders SET status=?, updated_at=? WHERE order_id=?",
                 (status, datetime.now().isoformat(), order_id)
             )
+        self.conn.commit()
+
+    def update_order_fields(self, order_id, **fields):
+        """Update arbitrary fields on an order."""
+        if not fields:
+            return
+        set_clauses = ', '.join(f"{k}=?" for k in fields)
+        values = list(fields.values())
+        values.append(datetime.now().isoformat())
+        values.append(order_id)
+        self.conn.execute(
+            f"UPDATE orders SET {set_clauses}, updated_at=? WHERE order_id=?",
+            values,
+        )
         self.conn.commit()
 
     # === Receipts ===

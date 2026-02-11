@@ -1,9 +1,18 @@
 import streamlit as st
 from datetime import datetime
 
-from config.constants import ZONE_MAPPING
+from config.constants import ZONE_MAPPING, ZONES
 
 ITEMS_PER_PAGE = 20
+
+STATUS_OPTIONS = ['pending', 'allocated', 'in_transit', 'delivered', 'failed']
+STATUS_LABELS = {
+    'pending': 'Pending',
+    'allocated': 'Allocated',
+    'in_transit': 'In Transit',
+    'delivered': 'Delivered',
+    'failed': 'Failed',
+}
 
 
 def render(orders_df, drivers_df, data_manager, zone_filter, service_filter, status_filter):
@@ -33,7 +42,7 @@ def render(orders_df, drivers_df, data_manager, zone_filter, service_filter, sta
         filtered_df = orders_df
 
     with tab1:
-        _render_all_orders(filtered_df, data_manager)
+        _render_all_orders(filtered_df, drivers_df, data_manager)
 
     with tab2:
         _render_pending(filtered_df, drivers_df, data_manager)
@@ -48,10 +57,10 @@ def render(orders_df, drivers_df, data_manager, zone_filter, service_filter, sta
         _render_inbound_receipts(data_manager)
 
 
-def _render_all_orders(orders_df, data_manager):
+def _render_all_orders(orders_df, drivers_df, data_manager):
     col1, col2, col3 = st.columns([2, 1, 1])
     with col1:
-        search = st.text_input("Search orders...", placeholder="Order ID, customer name, or address")
+        search = st.text_input("Search orders...", placeholder="Order ID, customer name, tracking number, or address")
     with col2:
         sort_by = st.selectbox("Sort by", ["Created (newest)", "Created (oldest)", "Service Level", "Status"])
     with col3:
@@ -66,6 +75,12 @@ def _render_all_orders(orders_df, data_manager):
     if orders_df.empty:
         st.info("No orders yet. Click 'New Order' to create your first order.")
         return
+
+    # Build driver options list once
+    driver_options = []
+    if not drivers_df.empty:
+        available = drivers_df[drivers_df['status'] == 'available']['name'].tolist()
+        driver_options = available if available else drivers_df['name'].tolist()
 
     # Apply search
     if search:
@@ -122,8 +137,12 @@ def _render_all_orders(orders_df, data_manager):
 
     for _, order in page_df.iterrows():
         status_class = f"status-{order['status'].replace('_', '-')}"
+        order_id = order['order_id']
+        current_status = order['status']
+        current_zone = order.get('zone', '') or ''
+        current_driver = order.get('driver_id', '') or ''
 
-        with st.expander(f"{order['order_id']} - {order['customer']} - {order.get('suburb', '')}", expanded=False):
+        with st.expander(f"{order_id} - {order['customer']} - {order.get('suburb', '')}", expanded=False):
             col1, col2 = st.columns([2, 1])
 
             with col1:
@@ -150,22 +169,79 @@ def _render_all_orders(orders_df, data_manager):
                 **Created:** {created_str}
                 """)
 
-                if order.get('driver_id'):
-                    st.markdown(f"**Assigned Driver:** {order['driver_id']}")
+                if current_driver:
+                    st.markdown(f"**Assigned Driver:** {current_driver}")
+                if current_zone:
+                    st.markdown(f"**Zone:** {current_zone}")
                 if order.get('eta'):
                     st.markdown(f"**ETA:** {order['eta']}")
 
             with col2:
                 st.markdown(f"""
-                <span class="status-badge {status_class}">{order['status'].replace('_', ' ')}</span>
+                <span class="status-badge {status_class}">{current_status.replace('_', ' ')}</span>
                 <br><br>
                 <span class="status-badge status-{order['service_level']}">{order['service_level']}</span>
                 """, unsafe_allow_html=True)
 
-                st.markdown("<br>", unsafe_allow_html=True)
+            # --- Update Controls ---
+            st.markdown("---")
+            st.markdown("**Update Order**")
 
-                if order['status'] == 'pending':
-                    if st.button("Push to WMS", key=f"push_{order['order_id']}"):
+            uc1, uc2, uc3 = st.columns(3)
+
+            with uc1:
+                status_idx = STATUS_OPTIONS.index(current_status) if current_status in STATUS_OPTIONS else 0
+                new_status = st.selectbox(
+                    "Status",
+                    STATUS_OPTIONS,
+                    index=status_idx,
+                    format_func=lambda s: STATUS_LABELS.get(s, s),
+                    key=f"status_{order_id}",
+                )
+
+            with uc2:
+                zone_options = ["None"] + ZONES
+                zone_idx = 0
+                if current_zone in ZONES:
+                    zone_idx = ZONES.index(current_zone) + 1
+                new_zone = st.selectbox(
+                    "Zone",
+                    zone_options,
+                    index=zone_idx,
+                    key=f"zone_{order_id}",
+                )
+
+            with uc3:
+                driver_list = ["None"] + driver_options
+                driver_idx = 0
+                if current_driver in driver_options:
+                    driver_idx = driver_options.index(current_driver) + 1
+                new_driver = st.selectbox(
+                    "Driver",
+                    driver_list,
+                    index=driver_idx,
+                    key=f"driver_{order_id}",
+                )
+
+            # Build update dict from changed fields
+            updates = {}
+            if new_status != current_status:
+                updates['status'] = new_status
+            if (new_zone if new_zone != "None" else '') != current_zone:
+                updates['zone'] = new_zone if new_zone != "None" else ''
+            if (new_driver if new_driver != "None" else '') != current_driver:
+                updates['driver_id'] = new_driver if new_driver != "None" else ''
+
+            bc1, bc2, bc3 = st.columns(3)
+            with bc1:
+                if st.button("💾 Save Changes", key=f"save_{order_id}", use_container_width=True, disabled=not updates):
+                    data_manager.update_order(order_id, **updates)
+                    st.success("Order updated!")
+                    st.rerun()
+
+            with bc2:
+                if current_status == 'pending':
+                    if st.button("📤 Push to WMS", key=f"push_{order_id}", use_container_width=True):
                         result = data_manager.push_order_to_wms(order.to_dict())
                         if result.get('success'):
                             st.success("Pushed to .wms successfully")
@@ -174,9 +250,10 @@ def _render_all_orders(orders_df, data_manager):
                         else:
                             st.error(f"Failed: {result.get('error', 'Unknown error')}")
 
-                if order['status'] in ['pending', 'allocated']:
-                    if st.button("Cancel Order", key=f"cancel_{order['order_id']}"):
-                        result = data_manager.cancel_order(order['order_id'])
+            with bc3:
+                if current_status in ['pending', 'allocated']:
+                    if st.button("❌ Cancel Order", key=f"cancel_{order_id}", use_container_width=True):
+                        result = data_manager.cancel_order(order_id)
                         if result.get('success'):
                             st.success("Order cancelled")
                             st.rerun()
