@@ -157,33 +157,22 @@ def _render_tracking_result(order, company_name):
                 '</div>'
             )
 
-        st.markdown(f"""
-        <div class="tracking-result {result_class}">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
-                <div>
-                    <div style="font-family: Space Mono, monospace; font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;">Status</div>
-                    <div style="font-family: DM Sans, sans-serif; font-size: 1rem; color: white; font-weight: 600; margin-top: 0.25rem;">{status_label}</div>
-                </div>
-                <div>
-                    <div style="font-family: Space Mono, monospace; font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;">Service</div>
-                    <div style="font-family: DM Sans, sans-serif; font-size: 1rem; color: white; font-weight: 600; margin-top: 0.25rem;">{service}</div>
-                </div>
-                <div>
-                    <div style="font-family: Space Mono, monospace; font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;">Destination</div>
-                    <div style="font-family: DM Sans, sans-serif; font-size: 1rem; color: white; font-weight: 600; margin-top: 0.25rem;">{destination or 'N/A'}</div>
-                </div>
-                <div>
-                    <div style="font-family: Space Mono, monospace; font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;">Parcels</div>
-                    <div style="font-family: DM Sans, sans-serif; font-size: 1rem; color: white; font-weight: 600; margin-top: 0.25rem;">{parcels}</div>
-                </div>
-                <div>
-                    <div style="font-family: Space Mono, monospace; font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;">Order Placed</div>
-                    <div style="font-family: DM Sans, sans-serif; font-size: 1rem; color: white; font-weight: 600; margin-top: 0.25rem;">{created_str or 'N/A'}</div>
-                </div>
-                {eta_html}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        label_style = 'font-family: Space Mono, monospace; font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;'
+        value_style = 'font-family: DM Sans, sans-serif; font-size: 1rem; color: white; font-weight: 600; margin-top: 0.25rem;'
+
+        details_html = (
+            f'<div class="tracking-result {result_class}">'
+            f'<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">'
+            f'<div><div style="{label_style}">Status</div><div style="{value_style}">{status_label}</div></div>'
+            f'<div><div style="{label_style}">Service</div><div style="{value_style}">{service}</div></div>'
+            f'<div><div style="{label_style}">Destination</div><div style="{value_style}">{destination or "N/A"}</div></div>'
+            f'<div><div style="{label_style}">Parcels</div><div style="{value_style}">{parcels}</div></div>'
+            f'<div><div style="{label_style}">Order Placed</div><div style="{value_style}">{created_str or "N/A"}</div></div>'
+            f'{eta_html}'
+            f'</div></div>'
+        )
+
+        st.markdown(details_html, unsafe_allow_html=True)
 
 
 def render_login_page(dm, company_name):
