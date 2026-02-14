@@ -217,7 +217,7 @@ elif page == "📋 Orders":
 
 elif page == "🚚 Drivers":
     from views.drivers import render
-    render(drivers_df, dm)
+    render(drivers_df, dm, orders_df)
 
 elif page == "🗺️ Route Planning":
     from views.route_planning import render

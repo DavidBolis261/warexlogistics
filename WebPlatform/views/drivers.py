@@ -1,9 +1,10 @@
 import streamlit as st
+import pandas as pd
 
 from config.constants import ZONES, VEHICLE_TYPES
 
 
-def render(drivers_df, data_manager):
+def render(drivers_df, data_manager, orders_df=None):
     st.markdown('<div class="section-header">Driver Management</div>', unsafe_allow_html=True)
 
     # Driver stats summary
@@ -106,12 +107,24 @@ def render(drivers_df, data_manager):
 
                 with col_actions:
                     st.markdown("<br>", unsafe_allow_html=True)
+                    if st.button("View Orders", key=f"view_{driver_id}", use_container_width=True):
+                        # Toggle view state
+                        current_view = st.session_state.get('viewing_driver_orders', None)
+                        if current_view == driver_id:
+                            st.session_state.pop('viewing_driver_orders', None)
+                        else:
+                            st.session_state['viewing_driver_orders'] = driver_id
+                        st.rerun()
                     if st.button("Edit", key=f"edit_{driver_id}", use_container_width=True):
                         st.session_state['editing_driver'] = driver_id
                         st.rerun()
                     if st.button("Delete", key=f"del_{driver_id}", use_container_width=True):
                         st.session_state['confirm_delete_driver'] = driver_id
                         st.rerun()
+
+            # Show driver's orders if viewing
+            if st.session_state.get('viewing_driver_orders') == driver_id and orders_df is not None:
+                _render_driver_orders(driver, orders_df)
 
             # Confirm delete dialog
             if st.session_state.get('confirm_delete_driver') == driver_id:
@@ -211,4 +224,126 @@ def _render_edit_form(driver, data_manager):
 
         if cancel_btn:
             st.session_state.pop('editing_driver', None)
+            st.rerun()
+
+
+def _render_driver_orders(driver, orders_df):
+    """Render all orders for a specific driver."""
+    driver_id = driver['driver_id']
+    driver_name = driver['name']
+
+    # Get all orders for this driver
+    driver_orders = orders_df[orders_df['driver_id'] == driver_id] if not orders_df.empty else pd.DataFrame()
+
+    with st.container():
+        st.markdown(f"""
+        <div style="margin: 1rem 0; padding: 1.25rem; background: rgba(59, 130, 246, 0.1); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.3);">
+            <div style="font-family: 'Space Mono', monospace; font-size: 1rem; font-weight: 700; color: #3b82f6; margin-bottom: 0.75rem;">
+                📦 Orders for {driver_name}
+            </div>
+        """, unsafe_allow_html=True)
+
+        if driver_orders.empty:
+            st.info(f"No orders assigned to {driver_name} yet.")
+        else:
+            # Group orders by status
+            status_groups = {
+                'pending': driver_orders[driver_orders['status'] == 'pending'],
+                'allocated': driver_orders[driver_orders['status'] == 'allocated'],
+                'in_transit': driver_orders[driver_orders['status'] == 'in_transit'],
+                'delivered': driver_orders[driver_orders['status'] == 'delivered'],
+                'failed': driver_orders[driver_orders['status'] == 'failed']
+            }
+
+            # Summary stats
+            col1, col2, col3, col4, col5 = st.columns(5)
+            with col1:
+                st.metric("Total", len(driver_orders))
+            with col2:
+                st.metric("Pending", len(status_groups['pending']))
+            with col3:
+                st.metric("Allocated", len(status_groups['allocated']))
+            with col4:
+                st.metric("In Transit", len(status_groups['in_transit']))
+            with col5:
+                st.metric("Delivered", len(status_groups['delivered']))
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            # Create tabs for each status
+            tab_labels = []
+            tab_data = []
+
+            if not status_groups['in_transit'].empty:
+                tab_labels.append(f"🚚 In Transit ({len(status_groups['in_transit'])})")
+                tab_data.append(status_groups['in_transit'])
+
+            if not status_groups['allocated'].empty:
+                tab_labels.append(f"📋 Allocated ({len(status_groups['allocated'])})")
+                tab_data.append(status_groups['allocated'])
+
+            if not status_groups['pending'].empty:
+                tab_labels.append(f"⏳ Pending ({len(status_groups['pending'])})")
+                tab_data.append(status_groups['pending'])
+
+            if not status_groups['delivered'].empty:
+                tab_labels.append(f"✅ Delivered ({len(status_groups['delivered'])})")
+                tab_data.append(status_groups['delivered'])
+
+            if not status_groups['failed'].empty:
+                tab_labels.append(f"❌ Failed ({len(status_groups['failed'])})")
+                tab_data.append(status_groups['failed'])
+
+            if tab_labels:
+                tabs = st.tabs(tab_labels)
+
+                for tab, orders in zip(tabs, tab_data):
+                    with tab:
+                        for _, order in orders.iterrows():
+                            # Status colors
+                            status_colors = {
+                                'pending': '#fbbf24',
+                                'allocated': '#3b82f6',
+                                'in_transit': '#10b981',
+                                'delivered': '#10b981',
+                                'failed': '#ef4444'
+                            }
+                            status_color = status_colors.get(order['status'], '#667eea')
+
+                            # Format timestamps
+                            created_at = ''
+                            if hasattr(order.get('created_at'), 'strftime'):
+                                created_at = order['created_at'].strftime('%Y-%m-%d %H:%M')
+
+                            st.markdown(f"""
+                            <div style="margin-bottom: 0.75rem; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 8px; border-left: 4px solid {status_color};">
+                                <div style="display: flex; justify-content: space-between; align-items: start;">
+                                    <div style="flex: 1;">
+                                        <div style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 0.95rem; color: {status_color};">
+                                            {order['order_id']}
+                                        </div>
+                                        <div style="font-family: 'DM Sans', sans-serif; font-size: 0.9rem; color: rgba(255,255,255,0.9); margin-top: 0.25rem;">
+                                            <strong>{order['customer']}</strong>
+                                        </div>
+                                        <div style="font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-top: 0.25rem;">
+                                            📍 {order['address']}, {order['suburb']} {order['postcode']}
+                                        </div>
+                                        <div style="font-family: 'Space Mono', monospace; font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-top: 0.5rem;">
+                                            {order['parcels']} parcel(s) • {order['service_level']} • Created: {created_at}
+                                        </div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <span style="background: {status_color}; color: white; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">
+                                            {order['status']}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        # Close button
+        if st.button("Close", key=f"close_orders_{driver_id}", use_container_width=True):
+            st.session_state.pop('viewing_driver_orders', None)
             st.rerun()
