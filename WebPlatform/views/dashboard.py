@@ -158,8 +158,7 @@ def render(orders_df, drivers_df, runs_df, data_manager=None):
                         layers=[layer],
                         initial_view_state=view_state,
                         tooltip=tooltip,
-                        map_provider='carto',
-                        map_style=pdk.map_styles.DARK_MATTER,
+                        map_style=pdk.map_styles.CARTO_DARK,
                     )
 
                     st.pydeck_chart(r, use_container_width=True)
