@@ -149,12 +149,13 @@ def render(orders_df, drivers_df, runs_df, data_manager):
                                 }
                             }
 
-                            # Render map
+                            # Render map (without mapbox to avoid token requirement)
                             r = pdk.Deck(
                                 layers=layers,
                                 initial_view_state=view_state,
                                 tooltip=tooltip,
-                                map_style='mapbox://styles/mapbox/dark-v10',
+                                map_provider='carto',
+                                map_style=pdk.map_styles.DARK_MATTER,
                             )
 
                             st.pydeck_chart(r, use_container_width=True)
