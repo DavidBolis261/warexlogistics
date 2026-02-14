@@ -1,11 +1,178 @@
 import streamlit as st
+import pandas as pd
+import pydeck as pdk
 from datetime import datetime
 
-from config.constants import ZONE_MAPPING
+from config.constants import ZONE_MAPPING, SUBURB_COORDS
+from utils.google_maps import geocode_address, get_route_polyline, decode_polyline
 
 
 def render(orders_df, drivers_df, runs_df, data_manager):
     st.markdown('<div class="section-header">Route Planning & Runs</div>', unsafe_allow_html=True)
+
+    # Route Visualization Section
+    if not runs_df.empty:
+        active_runs = runs_df[runs_df['status'] == 'active'] if 'status' in runs_df.columns else runs_df
+
+        if not active_runs.empty:
+            st.markdown("### Active Routes Map")
+
+            # Select a run to visualize
+            run_options = [f"{run['run_id']} - {run.get('driver_name', 'Unassigned')} ({run.get('zone', '')})"
+                          for _, run in active_runs.iterrows()]
+
+            selected_run_display = st.selectbox("Select Run to Visualize", run_options, key="route_viz_select")
+
+            if selected_run_display:
+                # Extract run_id from selection
+                selected_run_id = selected_run_display.split(' - ')[0]
+                run_row = active_runs[active_runs['run_id'] == selected_run_id].iloc[0]
+
+                # Get orders for this run
+                run_orders = orders_df[
+                    (orders_df['status'].isin(['allocated', 'in_transit'])) &
+                    (orders_df['driver_id'] == run_row['driver_id'])
+                ] if not orders_df.empty else pd.DataFrame()
+
+                if not run_orders.empty:
+                    # Geocode all stops
+                    waypoints = []
+                    map_markers = []
+
+                    for idx, order in run_orders.iterrows():
+                        address = order.get('address', '')
+                        suburb = order.get('suburb', '')
+                        state = order.get('state', 'NSW')
+                        postcode = order.get('postcode', '')
+
+                        # Geocode
+                        coords = geocode_address(address, suburb, state, postcode)
+
+                        # Fallback to suburb coords
+                        if not coords and suburb in SUBURB_COORDS:
+                            coords = SUBURB_COORDS[suburb]
+
+                        if coords:
+                            lat, lng = coords
+                            waypoints.append({'lat': lat, 'lng': lng})
+
+                            # Add marker
+                            map_markers.append({
+                                'lat': lat,
+                                'lng': lng,
+                                'order_id': order.get('order_id', ''),
+                                'customer': order.get('customer', ''),
+                                'address': f"{address}, {suburb} {postcode}",
+                                'stop_number': len(waypoints),
+                                'color': [16, 185, 129, 200],  # Green
+                                'size': 120
+                            })
+
+                    if waypoints and len(waypoints) >= 2:
+                        # Get route polyline from Google
+                        polyline = get_route_polyline(waypoints)
+                        route_coords = []
+
+                        if polyline:
+                            # Decode polyline into coordinates
+                            route_coords = decode_polyline(polyline)
+
+                        # Create map layers
+                        layers = []
+
+                        # Route line layer
+                        if route_coords:
+                            route_df = pd.DataFrame([
+                                {'lat': lat, 'lng': lng} for lat, lng in route_coords
+                            ])
+
+                            # Create path layer
+                            path_layer = pdk.Layer(
+                                'PathLayer',
+                                data=[{'path': [[lng, lat] for lat, lng in route_coords]}],
+                                get_path='path',
+                                get_color=[59, 130, 246, 200],  # Blue
+                                width_scale=20,
+                                width_min_pixels=3,
+                                pickable=False,
+                            )
+                            layers.append(path_layer)
+
+                        # Markers layer
+                        if map_markers:
+                            markers_df = pd.DataFrame(map_markers)
+
+                            marker_layer = pdk.Layer(
+                                'ScatterplotLayer',
+                                data=markers_df,
+                                get_position='[lng, lat]',
+                                get_color='color',
+                                get_radius='size',
+                                pickable=True,
+                                auto_highlight=True,
+                            )
+                            layers.append(marker_layer)
+
+                            # Text layer for stop numbers
+                            text_layer = pdk.Layer(
+                                'TextLayer',
+                                data=markers_df,
+                                get_position='[lng, lat]',
+                                get_text='stop_number',
+                                get_color=[255, 255, 255, 255],
+                                get_size=16,
+                                get_alignment_baseline="'center'",
+                                pickable=False,
+                            )
+                            layers.append(text_layer)
+
+                            # Calculate center
+                            center_lat = markers_df['lat'].mean()
+                            center_lng = markers_df['lng'].mean()
+
+                            # View state
+                            view_state = pdk.ViewState(
+                                latitude=center_lat,
+                                longitude=center_lng,
+                                zoom=12,
+                                pitch=0,
+                            )
+
+                            # Tooltip
+                            tooltip = {
+                                "html": "<b>Stop #{stop_number}</b><br/><b>{order_id}</b><br/>{customer}<br/>{address}",
+                                "style": {
+                                    "backgroundColor": "rgba(0,0,0,0.8)",
+                                    "color": "white",
+                                    "fontSize": "12px",
+                                    "padding": "10px"
+                                }
+                            }
+
+                            # Render map
+                            r = pdk.Deck(
+                                layers=layers,
+                                initial_view_state=view_state,
+                                tooltip=tooltip,
+                                map_style='mapbox://styles/mapbox/dark-v10',
+                            )
+
+                            st.pydeck_chart(r, use_container_width=True)
+
+                            # Route summary
+                            st.markdown(f"""
+                            <div style="margin-top: 0.5rem; padding: 1rem; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.3);">
+                                <strong>Route Summary:</strong> {len(waypoints)} stops for {run_row.get('driver_name', 'Driver')} in {run_row.get('zone', 'Unknown Zone')}
+                            </div>
+                            """, unsafe_allow_html=True)
+                        else:
+                            st.warning("Unable to geocode addresses for this run.")
+                    else:
+                        st.info(f"No valid stops found for this run. Make sure orders have valid addresses.")
+                else:
+                    st.info("No orders allocated to this run yet.")
+
+            st.markdown("<br>", unsafe_allow_html=True)
 
     col1, col2 = st.columns([2, 1])
 

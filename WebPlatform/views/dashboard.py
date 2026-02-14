@@ -1,8 +1,10 @@
 import streamlit as st
 import pandas as pd
+import pydeck as pdk
 from datetime import datetime
 
 from config.constants import ZONE_MAPPING, SUBURB_COORDS
+from utils.google_maps import geocode_address, get_route_polyline, decode_polyline
 
 
 def render(orders_df, drivers_df, runs_df, data_manager=None):
@@ -69,19 +71,108 @@ def render(orders_df, drivers_df, runs_df, data_manager=None):
     with col_left:
         st.markdown('<div class="section-header">Delivery Map</div>', unsafe_allow_html=True)
 
-        # Build map data from actual orders
-        if not orders_df.empty and 'suburb' in orders_df.columns:
+        # Build map data from actual orders with geocoding
+        if not orders_df.empty:
             active_orders = orders_df[orders_df['status'].isin(['pending', 'allocated', 'in_transit'])]
-            map_points = []
-            for _, order in active_orders.iterrows():
-                suburb = order.get('suburb', '')
-                if suburb in SUBURB_COORDS:
-                    lat, lng = SUBURB_COORDS[suburb]
-                    map_points.append({'lat': lat, 'lon': lng})
 
-            if map_points:
-                map_df = pd.DataFrame(map_points)
-                st.map(map_df, use_container_width=True)
+            if not active_orders.empty:
+                map_data = []
+
+                # Geocode each active order
+                for _, order in active_orders.iterrows():
+                    address = order.get('address', '')
+                    suburb = order.get('suburb', '')
+                    state = order.get('state', 'NSW')
+                    postcode = order.get('postcode', '')
+
+                    # Try geocoding first
+                    coords = geocode_address(address, suburb, state, postcode)
+
+                    # Fallback to suburb coordinates if geocoding fails
+                    if not coords and suburb in SUBURB_COORDS:
+                        coords = SUBURB_COORDS[suburb]
+
+                    if coords:
+                        lat, lng = coords
+
+                        # Color code by status
+                        status = order.get('status', 'pending')
+                        if status == 'pending':
+                            color = [255, 165, 0, 180]  # Orange
+                        elif status == 'allocated':
+                            color = [59, 130, 246, 180]  # Blue
+                        else:  # in_transit
+                            color = [16, 185, 129, 180]  # Green
+
+                        map_data.append({
+                            'lat': lat,
+                            'lng': lng,
+                            'order_id': order.get('order_id', ''),
+                            'customer': order.get('customer', ''),
+                            'address': f"{address}, {suburb} {postcode}",
+                            'status': status,
+                            'color': color,
+                            'size': 100
+                        })
+
+                if map_data:
+                    # Create DataFrame
+                    map_df = pd.DataFrame(map_data)
+
+                    # Calculate center point
+                    center_lat = map_df['lat'].mean()
+                    center_lng = map_df['lng'].mean()
+
+                    # Create pydeck layer for markers
+                    layer = pdk.Layer(
+                        'ScatterplotLayer',
+                        data=map_df,
+                        get_position='[lng, lat]',
+                        get_color='color',
+                        get_radius='size',
+                        pickable=True,
+                        auto_highlight=True,
+                    )
+
+                    # Define view state
+                    view_state = pdk.ViewState(
+                        latitude=center_lat,
+                        longitude=center_lng,
+                        zoom=11,
+                        pitch=0,
+                    )
+
+                    # Tooltip
+                    tooltip = {
+                        "html": "<b>{order_id}</b><br/>{customer}<br/>{address}<br/>Status: {status}",
+                        "style": {
+                            "backgroundColor": "rgba(0,0,0,0.8)",
+                            "color": "white",
+                            "fontSize": "12px",
+                            "padding": "10px"
+                        }
+                    }
+
+                    # Render the map
+                    r = pdk.Deck(
+                        layers=[layer],
+                        initial_view_state=view_state,
+                        tooltip=tooltip,
+                        map_style='mapbox://styles/mapbox/dark-v10',
+                    )
+
+                    st.pydeck_chart(r, use_container_width=True)
+
+                    # Legend
+                    st.markdown("""
+                    <div style="display: flex; gap: 1rem; margin-top: 0.5rem; font-size: 0.85rem;">
+                        <div><span style="color: #ffa500;">●</span> Pending</div>
+                        <div><span style="color: #3b82f6;">●</span> Allocated</div>
+                        <div><span style="color: #10b981;">●</span> In Transit</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.info("Unable to geocode any addresses. Check your Google API key.")
             else:
                 st.info("No active orders to display on map.")
         else:
@@ -96,24 +187,24 @@ def render(orders_df, drivers_df, runs_df, data_manager=None):
             "Inner City": ("#8b5cf6", "rgba(139, 92, 246, 0.2)", "rgba(139, 92, 246, 0.3)"),
         }
 
-        zone_names = list(ZONE_MAPPING.keys())
-        zone_cols = st.columns(len(zone_names))
-        for idx, zone_name in enumerate(zone_names):
-            suburbs = ZONE_MAPPING[zone_name]
-            active_count = 0
-            if not orders_df.empty and 'suburb' in orders_df.columns:
-                active_count = len(orders_df[
-                    (orders_df['suburb'].isin(suburbs)) &
-                    (orders_df['status'].isin(['pending', 'allocated', 'in_transit']))
-                ])
-            color, bg, border = zone_colors.get(zone_name, ("#667eea", "rgba(102, 126, 234, 0.2)", "rgba(102, 126, 234, 0.3)"))
-            with zone_cols[idx]:
-                st.markdown(f"""
-                <div style="background: {bg}; padding: 0.75rem 1.25rem; border-radius: 8px; border: 1px solid {border}; text-align: center;">
-                    <div style="font-family: 'Space Mono', monospace; color: {color}; font-weight: 700; font-size: 0.85rem;">{zone_name}</div>
-                    <div style="font-family: 'DM Sans', sans-serif; color: rgba(255,255,255,0.6); font-size: 0.8rem;">{active_count} active</div>
-                </div>
-                """, unsafe_allow_html=True)
+        # zone_names = list(ZONE_MAPPING.keys())
+        # zone_cols = st.columns(len(zone_names))
+        # for idx, zone_name in enumerate(zone_names):
+        #     suburbs = ZONE_MAPPING[zone_name]
+        #     active_count = 0
+        #     if not orders_df.empty and 'suburb' in orders_df.columns:
+        #         active_count = len(orders_df[
+        #             (orders_df['suburb'].isin(suburbs)) &
+        #             (orders_df['status'].isin(['pending', 'allocated', 'in_transit']))
+        #         ])
+        #     color, bg, border = zone_colors.get(zone_name, ("#667eea", "rgba(102, 126, 234, 0.2)", "rgba(102, 126, 234, 0.3)"))
+        #     with zone_cols[idx]:
+        #         st.markdown(f"""
+        #         <div style="background: {bg}; padding: 0.75rem 1.25rem; border-radius: 8px; border: 1px solid {border}; text-align: center;">
+        #             <div style="font-family: 'Space Mono', monospace; color: {color}; font-weight: 700; font-size: 0.85rem;">{zone_name}</div>
+        #             <div style="font-family: 'DM Sans', sans-serif; color: rgba(255,255,255,0.6); font-size: 0.8rem;">{active_count} active</div>
+        #         </div>
+        #         """, unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
 

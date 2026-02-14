@@ -117,7 +117,6 @@ with st.sidebar:
             "📋 Orders",
             "🚚 Drivers",
             "🗺️ Route Planning",
-            "📦 Inventory",
             "📈 Analytics",
             "⚙️ Settings",
         ],
@@ -241,7 +240,7 @@ elif page == "⚙️ Settings":
 st.markdown(f"""
 <div style="text-align: center; padding: 2rem; margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1);">
     <div style="font-family: 'Space Mono', monospace; font-size: 0.75rem; color: rgba(255,255,255,0.3);">
-        {company_name} v2.0 &bull; Powered by Thomax .wms API &bull; Built with Streamlit
+        {company_name}
     </div>
 </div>
 """, unsafe_allow_html=True)

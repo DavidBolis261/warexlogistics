@@ -1,7 +1,10 @@
 import streamlit as st
 from datetime import datetime
+import os
 
 from config.constants import ZONE_MAPPING, ZONES
+from streamlit_searchbox import st_searchbox
+from utils.address_autocomplete import search_addresses, get_place_id_from_description, get_address_details, parse_simple_address
 
 ITEMS_PER_PAGE = 20
 
@@ -264,36 +267,126 @@ def _render_all_orders(orders_df, drivers_df, data_manager):
 def _render_new_order_form(data_manager):
     st.markdown('<div class="section-header">Create New Order</div>', unsafe_allow_html=True)
 
-    with st.form("new_order_form"):
-        st.markdown("### Pickup Address")
+    # Address autocomplete OUTSIDE the form (interactive components can't be in forms)
+    has_api_key = bool(os.environ.get('GOOGLE_PLACES_API_KEY'))
+
+    if has_api_key:
+        st.markdown("### 📍 Address Autocomplete")
         col1, col2 = st.columns(2)
 
         with col1:
-            pickup_address = st.text_input("Pickup Address *")
-            pickup_suburb = st.text_input("Pickup Suburb *")
+            st.caption("Pickup Address - Start typing to see suggestions")
+            selected_pickup = st_searchbox(
+                search_addresses,
+                key="pickup_address_search",
+                placeholder="Search pickup address...",
+                clear_on_submit=False,
+            )
+
+            if selected_pickup:
+                # Try to get full details with postcode from Google API
+                place_id = get_place_id_from_description(selected_pickup)
+                if place_id:
+                    details = get_address_details(place_id)
+                    if details:
+                        st.session_state['pickup_parsed'] = details
+                        st.success("✓ Pickup address selected")
+                    else:
+                        # Fallback to simple parsing
+                        parsed = parse_simple_address(selected_pickup)
+                        if parsed:
+                            st.session_state['pickup_parsed'] = parsed
+                            st.success("✓ Pickup address selected")
+                else:
+                    # Fallback to simple parsing
+                    parsed = parse_simple_address(selected_pickup)
+                    if parsed:
+                        st.session_state['pickup_parsed'] = parsed
+                        st.success("✓ Pickup address selected")
+
+        with col2:
+            st.caption("Delivery Address - Start typing to see suggestions")
+            selected_delivery = st_searchbox(
+                search_addresses,
+                key="delivery_address_search",
+                placeholder="Search delivery address...",
+                clear_on_submit=False,
+            )
+
+            if selected_delivery:
+                # Try to get full details with postcode from Google API
+                place_id = get_place_id_from_description(selected_delivery)
+                if place_id:
+                    details = get_address_details(place_id)
+                    if details:
+                        st.session_state['address_parsed'] = details
+                        st.success("✓ Delivery address selected")
+                    else:
+                        # Fallback to simple parsing
+                        parsed = parse_simple_address(selected_delivery)
+                        if parsed:
+                            st.session_state['address_parsed'] = parsed
+                            st.success("✓ Delivery address selected")
+                else:
+                    # Fallback to simple parsing
+                    parsed = parse_simple_address(selected_delivery)
+                    if parsed:
+                        st.session_state['address_parsed'] = parsed
+                        st.success("✓ Delivery address selected")
+
+        st.markdown("---")
+
+    with st.form("new_order_form"):
+        st.markdown("### Pickup Address")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            default_pickup_address = st.session_state.get('pickup_parsed', {}).get('address', '')
+            pickup_address = st.text_input("Pickup Address *", value=default_pickup_address)
+
+            default_pickup_suburb = st.session_state.get('pickup_parsed', {}).get('suburb', '')
+            pickup_suburb = st.text_input("Pickup Suburb *", value=default_pickup_suburb)
+
             pickup_contact = st.text_input("Pickup Contact Name")
 
         with col2:
-            pickup_state = st.selectbox("Pickup State", ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"], key="pickup_state")
-            pickup_postcode = st.text_input("Pickup Postcode *")
+            default_pickup_state = st.session_state.get('pickup_parsed', {}).get('state', 'NSW')
+            pickup_state_idx = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"].index(default_pickup_state) if default_pickup_state in ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"] else 0
+            pickup_state = st.selectbox("Pickup State", ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"], index=pickup_state_idx, key="pickup_state")
+
+            default_pickup_postcode = st.session_state.get('pickup_parsed', {}).get('postcode', '')
+            pickup_postcode = st.text_input("Pickup Postcode *", value=default_pickup_postcode)
+
             pickup_phone = st.text_input("Pickup Phone")
 
         st.markdown("### Delivery Address")
+
         col1, col2 = st.columns(2)
 
         with col1:
             customer_name = st.text_input("Customer Name *")
             delivery_company = st.text_input("Company (optional)")
-            address1 = st.text_input("Address Line 1 *")
+
+            # Pre-fill if we have parsed address
+            default_address = st.session_state.get('address_parsed', {}).get('address', '')
+            address1 = st.text_input("Address Line 1 *", value=default_address)
             address2 = st.text_input("Address Line 2")
-            suburb = st.text_input("Suburb *")
+
+            default_suburb = st.session_state.get('address_parsed', {}).get('suburb', '')
+            suburb = st.text_input("Suburb *", value=default_suburb)
 
         with col2:
-            state = st.selectbox("State", ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"], key="delivery_state")
-            postcode = st.text_input("Postcode *")
+            default_state = st.session_state.get('address_parsed', {}).get('state', 'NSW')
+            state_idx = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"].index(default_state) if default_state in ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"] else 0
+            state = st.selectbox("State", ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"], index=state_idx, key="delivery_state")
+
+            default_postcode = st.session_state.get('address_parsed', {}).get('postcode', '')
+            postcode = st.text_input("Postcode *", value=default_postcode)
+
             country = st.text_input("Country", value="Australia")
-            email = st.text_input("Email")
-            phone = st.text_input("Phone")
+            email = st.text_input("Email *")
+            phone = st.text_input("Phone *")
 
         st.markdown("### Order Details")
         col1, col2, col3 = st.columns(3)
@@ -310,7 +403,7 @@ def _render_new_order_form(data_manager):
         submitted = st.form_submit_button("Create Order", use_container_width=True, type="primary")
 
         if submitted:
-            if not customer_name or not address1 or not suburb or not postcode:
+            if not customer_name or not address1 or not suburb or not postcode or not email or not phone:
                 st.error("Please fill in all required fields (marked with *)")
             elif not pickup_address or not pickup_suburb or not pickup_postcode:
                 st.error("Please fill in all required pickup address fields (marked with *)")
@@ -346,6 +439,9 @@ def _render_new_order_form(data_manager):
                         st.info("Order pushed to .wms")
                     if result.get('email_sent'):
                         st.info(f"📧 Confirmation email sent to {order_data.get('email', '')}")
+                    # Clear parsed addresses
+                    st.session_state.pop('address_parsed', None)
+                    st.session_state.pop('pickup_parsed', None)
                     st.session_state['show_new_order_form'] = False
                     st.rerun()
                 else:

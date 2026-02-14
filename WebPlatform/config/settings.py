@@ -81,12 +81,28 @@ class WmsConfig:
 
     def save_to_env_file(self, cluster, instance_code, tenant_code, warehouse_code, api_key):
         env_path = os.path.join(os.path.dirname(__file__), '..', '.env')
+
+        # Read existing env file to preserve other variables like GOOGLE_PLACES_API_KEY
+        existing_vars = {}
+        if os.path.exists(env_path):
+            with open(env_path, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        key, value = line.split('=', 1)
+                        existing_vars[key] = value
+
+        # Update WMS variables
+        existing_vars['WMS_CLUSTER'] = cluster
+        existing_vars['WMS_INSTANCE_CODE'] = instance_code
+        existing_vars['WMS_TENANT_CODE'] = tenant_code
+        existing_vars['WMS_WAREHOUSE_CODE'] = warehouse_code
+        existing_vars['WMS_API_KEY'] = api_key
+
+        # Write back all variables
         with open(env_path, 'w') as f:
-            f.write(f"WMS_CLUSTER={cluster}\n")
-            f.write(f"WMS_INSTANCE_CODE={instance_code}\n")
-            f.write(f"WMS_TENANT_CODE={tenant_code}\n")
-            f.write(f"WMS_WAREHOUSE_CODE={warehouse_code}\n")
-            f.write(f"WMS_API_KEY={api_key}\n")
+            for key, value in existing_vars.items():
+                f.write(f"{key}={value}\n")
 
 
 wms_config = WmsConfig()

@@ -427,38 +427,38 @@ def _render_zones(data_manager):
                 st.rerun()
 
     st.markdown("---")
-    st.markdown("### Routing Preferences")
+    # st.markdown("### Routing Preferences")
 
-    with st.form("routing_prefs_form"):
-        max_stops = st.slider(
-            "Default max stops per run",
-            5, 30,
-            int(data_manager.get_setting('max_stops_per_run', '15')),
-        )
-        max_duration = st.slider(
-            "Max run duration (hours)",
-            2, 8,
-            int(data_manager.get_setting('max_run_duration', '4')),
-        )
-        avoid_tolls = st.checkbox(
-            "Avoid toll roads",
-            value=data_manager.get_setting('avoid_tolls', 'False') == 'True',
-        )
-        express_priority = st.checkbox(
-            "Prioritize express deliveries",
-            value=data_manager.get_setting('express_priority', 'True') == 'True',
-        )
+    # with st.form("routing_prefs_form"):
+    #     max_stops = st.slider(
+    #         "Default max stops per run",
+    #         5, 30,
+    #         int(data_manager.get_setting('max_stops_per_run', '15')),
+    #     )
+    #     # max_duration = st.slider(
+    #     #     "Max run duration (hours)",
+    #     #     2, 8,
+    #     #     int(data_manager.get_setting('max_run_duration', '4')),
+    #     # )
+    #     avoid_tolls = st.checkbox(
+    #         "Avoid toll roads",
+    #         value=data_manager.get_setting('avoid_tolls', 'False') == 'True',
+    #     )
+    #     express_priority = st.checkbox(
+    #         "Prioritize express deliveries",
+    #         value=data_manager.get_setting('express_priority', 'True') == 'True',
+    #     )
 
-        submitted = st.form_submit_button("Save Routing Preferences", use_container_width=True)
+    #     submitted = st.form_submit_button("Save Routing Preferences", use_container_width=True)
 
-        if submitted:
-            data_manager.save_settings({
-                'max_stops_per_run': str(max_stops),
-                'max_run_duration': str(max_duration),
-                'avoid_tolls': str(avoid_tolls),
-                'express_priority': str(express_priority),
-            })
-            st.success("Routing preferences saved!")
+    #     if submitted:
+    #         data_manager.save_settings({
+    #             'max_stops_per_run': str(max_stops),
+    #             'max_run_duration': str(max_duration),
+    #             'avoid_tolls': str(avoid_tolls),
+    #             'express_priority': str(express_priority),
+    #         })
+    #         st.success("Routing preferences saved!")
 
 
 def _render_api_log(data_manager):

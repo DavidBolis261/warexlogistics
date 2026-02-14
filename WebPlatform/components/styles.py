@@ -439,5 +439,22 @@ def apply_styles():
     .tracking-failed:hover {
         border-color: rgba(239, 68, 68, 0.5);
     }
+
+    /* Hide Streamlit branding */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+
+    /* Hide "Deploy" button */
+    .stDeployButton {display: none;}
+
+    /* Hide Streamlit header toolbar */
+    [data-testid="stToolbar"] {display: none;}
+
+    /* Hide "Made with Streamlit" footer */
+    footer:after {
+        content: '';
+        display: none;
+    }
 </style>
 """, unsafe_allow_html=True)
