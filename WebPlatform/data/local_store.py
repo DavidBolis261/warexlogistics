@@ -392,7 +392,54 @@ class LocalStore:
         self.conn.commit()
 
     def get_drivers(self):
-        return pd.read_sql_query("SELECT * FROM drivers ORDER BY name", self.conn)
+        """Get all drivers with real-time calculated statistics from orders."""
+        drivers_df = pd.read_sql_query("SELECT * FROM drivers ORDER BY name", self.conn)
+
+        if drivers_df.empty:
+            return drivers_df
+
+        # Calculate real statistics for each driver
+        for idx, driver in drivers_df.iterrows():
+            driver_id = driver['driver_id']
+
+            # Get all orders for this driver
+            orders = pd.read_sql_query(
+                "SELECT * FROM orders WHERE driver_id = ?",
+                self.conn,
+                params=(driver_id,)
+            )
+
+            if not orders.empty:
+                # Calculate deliveries today
+                today = datetime.now().strftime('%Y-%m-%d')
+                deliveries_today = len(orders[
+                    (orders['status'] == 'delivered') &
+                    (orders['order_date'] == today)
+                ])
+
+                # Calculate active orders (allocated or in_transit)
+                active_orders = len(orders[
+                    orders['status'].isin(['allocated', 'in_transit'])
+                ])
+
+                # Calculate success rate (delivered / total completed)
+                completed_orders = orders[orders['status'].isin(['delivered', 'failed'])]
+                if len(completed_orders) > 0:
+                    delivered_count = len(completed_orders[completed_orders['status'] == 'delivered'])
+                    success_rate = delivered_count / len(completed_orders)
+                else:
+                    success_rate = driver['success_rate']  # Keep existing if no data
+
+                # Update the dataframe
+                drivers_df.at[idx, 'deliveries_today'] = deliveries_today
+                drivers_df.at[idx, 'active_orders'] = active_orders
+                drivers_df.at[idx, 'success_rate'] = success_rate
+            else:
+                # No orders - set to 0
+                drivers_df.at[idx, 'deliveries_today'] = 0
+                drivers_df.at[idx, 'active_orders'] = 0
+
+        return drivers_df
 
     # === Runs ===
 
