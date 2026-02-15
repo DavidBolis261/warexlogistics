@@ -206,6 +206,13 @@ def create_driver_api(app: Flask, data_manager):
             elif order['status'] == 'allocated':
                 stop_status = 'pending'
 
+            # Get optional fields, convert empty strings to None
+            instructions = order.get('instructions', '')
+            special_instructions = instructions if instructions else None
+
+            email = order.get('email', '')
+            customer_email = email if email else None
+
             stops_list.append({
                 'id': order['order_id'],
                 'sequenceNumber': idx,
@@ -217,7 +224,7 @@ def create_driver_api(app: Flask, data_manager):
                         'id': f"C-{idx}",
                         'name': order.get('customer', 'Customer'),
                         'phone': order.get('phone', ''),
-                        'email': order.get('email', '')
+                        'email': customer_email
                     },
                     'address': {
                         'street': order.get('address', ''),
@@ -229,7 +236,7 @@ def create_driver_api(app: Flask, data_manager):
                     },
                     'parcels': int(order.get('parcels', 1)),
                     'serviceLevel': order.get('service_level', 'standard'),
-                    'specialInstructions': order.get('instructions', ''),
+                    'specialInstructions': special_instructions,
                     'createdAt': order.get('created_at', datetime.now().isoformat())
                 }
             })
