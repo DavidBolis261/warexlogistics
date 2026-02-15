@@ -74,9 +74,9 @@ class DataManager:
         return self.store.get_orders()
 
     def create_order(self, order_data):
-        order_id = f"SMC-{random.randint(10000, 99999)}"
+        # Use tracking number as order ID
         tracking_number = self._generate_tracking_number()
-        order_data['order_id'] = order_id
+        order_data['order_id'] = tracking_number
         order_data['tracking_number'] = tracking_number
         order_data['status'] = 'pending'
         order_data['created_at'] = datetime.now().isoformat()
