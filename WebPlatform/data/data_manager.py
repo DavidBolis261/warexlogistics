@@ -92,7 +92,7 @@ class DataManager:
             self.store.log_api_call(
                 operation='UpsertFulfilmentRequest',
                 endpoint=f"{wms_config.base_url}/UpsertFulfilmentRequest/",
-                request_summary=f"Order {order_id} for {order_data['customer']}",
+                request_summary=f"Order {tracking_number} for {order_data['customer']}",
                 success=pushed,
                 status_code=wms_result.get('status_code'),
                 response_body=json.dumps(wms_result.get('response', '')),
@@ -109,7 +109,7 @@ class DataManager:
 
         return {
             'success': True,
-            'order_id': order_id,
+            'order_id': tracking_number,
             'tracking_number': tracking_number,
             'wms_pushed': pushed,
             'email_sent': email_sent,
