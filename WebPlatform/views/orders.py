@@ -398,7 +398,23 @@ def _render_new_order_form(data_manager):
             quantity = st.number_input("Quantity", min_value=1, value=1)
         with col3:
             carrier_service = st.text_input("Carrier Service Code (optional)")
-            special_instructions = st.text_area("Special Instructions", height=68)
+            zone = st.text_input("Zone (optional)", help="Delivery zone or area")
+
+        st.markdown("### Assignment & Instructions")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            # Get list of drivers for dropdown
+            drivers_list = data_manager.get_drivers()
+            driver_options = [""] + [f"{d['name']} ({d['driver_id']})" for _, d in drivers_list.iterrows()]
+            selected_driver = st.selectbox("Assign to Driver (optional)", driver_options)
+            # Extract driver_id from selection
+            driver_id = ""
+            if selected_driver and selected_driver != "":
+                driver_id = selected_driver.split("(")[1].strip(")")
+
+        with col2:
+            special_instructions = st.text_area("Special Instructions", height=100)
 
         submitted = st.form_submit_button("Create Order", use_container_width=True, type="primary")
 
@@ -424,6 +440,9 @@ def _render_new_order_form(data_manager):
                     'parcels': quantity,
                     'carrier_service': carrier_service,
                     'special_instructions': special_instructions,
+                    'instructions': special_instructions,  # Map to instructions field
+                    'zone': zone,
+                    'driver_id': driver_id,
                     'pickup_address': pickup_address,
                     'pickup_suburb': pickup_suburb,
                     'pickup_state': pickup_state,
