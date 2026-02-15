@@ -288,9 +288,24 @@ def create_driver_api(app: Flask, data_manager):
         # Update order status
         data_manager.update_order(stop_id, status=backend_status)
 
+        # Send status update email to customer
+        from utils.email_service import send_status_update_email, is_email_configured
+
+        email_sent = False
+        if is_email_configured(data_manager):
+            # Get order details to send email
+            orders_df = data_manager.get_orders()
+            order = orders_df[orders_df['order_id'] == stop_id]
+
+            if not order.empty and order.iloc[0].get('email'):
+                order_data = order.iloc[0].to_dict()
+                result = send_status_update_email(data_manager, order_data)
+                email_sent = result.get('success', False)
+
         return jsonify({
             'success': True,
-            'message': f'Stop {stop_id} updated to {new_status}'
+            'message': f'Stop {stop_id} updated to {new_status}',
+            'email_sent': email_sent
         }), 200
 
     @app.route('/api/driver/profile', methods=['GET'])
