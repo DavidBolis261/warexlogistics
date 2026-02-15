@@ -2,6 +2,7 @@ import random
 import json
 import hashlib
 import secrets
+import os
 from datetime import datetime, timedelta
 
 import pandas as pd
@@ -22,13 +23,25 @@ class DataManager:
     """Unified data access layer.
 
     Decides between:
-    - Live mode: push to .wms API + save to local store
-    - Local mode: save to local SQLite only
+    - PostgreSQL (Production): when DATABASE_URL is set
+    - SQLite (Development): local file-based database
     - Demo mode: use mock data generators
     """
 
     def __init__(self):
-        self.store = LocalStore()
+        # Auto-detect database type
+        database_url = os.environ.get('DATABASE_URL')
+
+        if database_url:
+            # Use PostgreSQL for production
+            from data.postgres_store import PostgresStore
+            self.store = PostgresStore(database_url)
+            print("✅ Using PostgreSQL database (Production)")
+        else:
+            # Use SQLite for local development
+            self.store = LocalStore()
+            print("✅ Using SQLite database (Development)")
+
         self._client = None
         # Seed default zones on first init
         self.store.seed_default_zones()
