@@ -81,23 +81,32 @@ def api_docs():
 
 
 if __name__ == '__main__':
-    port = int(os.environ.get('API_PORT', 5000))
+    # Railway provides PORT environment variable
+    port = int(os.environ.get('PORT', os.environ.get('API_PORT', 5000)))
     host = os.environ.get('API_HOST', '0.0.0.0')
+
+    # Detect if running on Railway
+    is_production = os.environ.get('RAILWAY_ENVIRONMENT') is not None
 
     print("=" * 60)
     print("🚚 Sydney Metro Courier - Driver API Server")
     print("=" * 60)
     print(f"\n✅ Server starting on http://{host}:{port}")
-    print(f"📱 Mobile app can connect to: http://localhost:{port}/api/driver/...")
-    print(f"📚 API docs available at: http://localhost:{port}/api/driver/docs")
-    print(f"💚 Health check at: http://localhost:{port}/health\n")
-    print("=" * 60)
+
+    if is_production:
+        print(f"🌐 Production mode - Railway deployment")
+    else:
+        print(f"📱 Mobile app can connect to: http://localhost:{port}/api/driver/...")
+        print(f"📚 API docs available at: http://localhost:{port}/api/driver/docs")
+        print(f"💚 Health check at: http://localhost:{port}/health")
+
+    print("\n" + "=" * 60)
     print("\nPress CTRL+C to stop the server\n")
 
     # Run Flask app
     app.run(
         host=host,
         port=port,
-        debug=True,
-        use_reloader=True
+        debug=not is_production,  # Disable debug in production
+        use_reloader=not is_production  # Disable reloader in production
     )

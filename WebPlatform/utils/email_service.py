@@ -124,7 +124,7 @@ def _build_email_template(company_name, tracking_number, content_html, tracking_
         '<p style="margin: 0 0 8px; font-size: 14px; font-weight: 700; color: #3730a3;">💬 Just ask us!</p>'
         '<p style="margin: 0; font-size: 13px; line-height: 1.6; color: #312e81;">'
         'Want to find out more about the broad range of services we can offer you or your business?<br>'
-        'Just ask our knowledgeable team on <a href="mailto:info@warexlogistics.com.au" style="color: #667eea; text-decoration: none; font-weight: 600;">info@warexlogistics.com.au</a>.'
+        'Just ask our knowledgeable team on <a href="mailto:admin@warexlogistics.com.au" style="color: #667eea; text-decoration: none; font-weight: 600;">info@warexlogistics.com.au</a>.'
         '</p></div></td></tr>'
         # Footer
         '<tr><td style="background-color: #f4f4f7; padding: 20px 40px; text-align: center;">'
@@ -173,8 +173,7 @@ def send_order_confirmation(data_manager, order):
         '<div style="background-color: #f0f9ff; border-left: 4px solid #3b82f6; padding: 12px 16px; margin-bottom: 20px; border-radius: 4px;">'
         '<p style="color: #1e40af; font-size: 13px; line-height: 1.6; margin: 0;">'
         '<strong>Authority to Leave:</strong> The sender has chosen our Authority to Leave delivery service for your parcel. '
-        'This means we will leave the parcel in a safe place at the delivery address if available. '
-        'If there isn\'t a safe place, the parcel will be taken to your nearest collection point or back to the local depot.'
+        'This means we will leave the parcel in a safe place at the delivery address. '
         '</p>'
         '</div>'
         '<p style="color: #8e8ea0; font-size: 13px; line-height: 1.5;">'
