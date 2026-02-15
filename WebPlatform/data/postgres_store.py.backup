@@ -197,14 +197,6 @@ class PostgresStore:
 
     def save_order(self, order_data, wms_response=None, pushed=False):
         """Save an order."""
-        # Ensure zone is set (default to empty string if not provided)
-        if 'zone' not in order_data:
-            order_data['zone'] = ''
-
-        # Ensure driver_id is set (default to empty string if not provided)
-        if 'driver_id' not in order_data:
-            order_data['driver_id'] = ''
-
         with self.engine.connect() as conn:
             conn.execute(text("""
                 INSERT INTO orders (
@@ -240,12 +232,12 @@ class PostgresStore:
             if driver_id:
                 conn.execute(text("""
                     UPDATE orders SET status = :status, driver_id = :driver_id, updated_at = CURRENT_TIMESTAMP
-                    WHERE order_id = :order_id
+                    WHERE order_id = %(order_id)s
                 """), {'order_id': order_id, 'status': status, 'driver_id': driver_id})
             else:
                 conn.execute(text("""
                     UPDATE orders SET status = :status, updated_at = CURRENT_TIMESTAMP
-                    WHERE order_id = :order_id
+                    WHERE order_id = %(order_id)s
                 """), {'order_id': order_id, 'status': status})
             conn.commit()
 
@@ -260,7 +252,7 @@ class PostgresStore:
         with self.engine.connect() as conn:
             conn.execute(text(f"""
                 UPDATE orders SET {set_clause}, updated_at = CURRENT_TIMESTAMP
-                WHERE order_id = :order_id
+                WHERE order_id = %(order_id)s
             """), fields)
             conn.commit()
 
@@ -286,7 +278,7 @@ class PostgresStore:
         """Check if tracking number exists."""
         with self.engine.connect() as conn:
             result = conn.execute(text("""
-                SELECT COUNT(*) as count FROM orders WHERE tracking_number = :tracking
+                SELECT COUNT(*) as count FROM orders WHERE tracking_number = %(tracking)s
             """), {'tracking': tracking_number})
             return result.fetchone()[0] > 0
 
@@ -382,14 +374,14 @@ class PostgresStore:
 
         with self.engine.connect() as conn:
             conn.execute(text(f"""
-                UPDATE drivers SET {set_clause} WHERE driver_id = :driver_id
+                UPDATE drivers SET {set_clause} WHERE driver_id = %(driver_id)s
             """), fields)
             conn.commit()
 
     def delete_driver(self, driver_id):
         """Delete driver."""
         with self.engine.connect() as conn:
-            conn.execute(text("DELETE FROM drivers WHERE driver_id = :driver_id"), {'driver_id': driver_id})
+            conn.execute(text("DELETE FROM drivers WHERE driver_id = %(driver_id)s"), {'driver_id': driver_id})
             conn.commit()
 
     # Runs
@@ -456,7 +448,7 @@ class PostgresStore:
         with self.engine.connect() as conn:
             conn.execute(text("""
                 UPDATE runs SET status = :status, updated_at = CURRENT_TIMESTAMP
-                WHERE run_id = :run_id
+                WHERE run_id = %(run_id)s
             """), {'run_id': run_id, 'status': status})
             conn.commit()
 
@@ -465,7 +457,7 @@ class PostgresStore:
         with self.engine.connect() as conn:
             conn.execute(text("""
                 UPDATE runs SET completed = :completed, updated_at = CURRENT_TIMESTAMP
-                WHERE run_id = :run_id
+                WHERE run_id = %(run_id)s
             """), {'run_id': run_id, 'completed': completed})
             conn.commit()
 
@@ -530,7 +522,7 @@ class PostgresStore:
     def delete_zone(self, zone_name):
         """Delete a zone."""
         with self.engine.connect() as conn:
-            conn.execute(text("DELETE FROM zones WHERE zone_name = :zone_name"), {'zone_name': zone_name})
+            conn.execute(text("DELETE FROM zones WHERE zone_name = %(zone_name)s"), {'zone_name': zone_name})
             conn.commit()
 
     def seed_default_zones(self):
@@ -596,7 +588,7 @@ class PostgresStore:
     def delete_session_token(self, token):
         """Delete session token."""
         with self.engine.connect() as conn:
-            conn.execute(text("DELETE FROM session_tokens WHERE token = :token"), {'token': token})
+            conn.execute(text("DELETE FROM session_tokens WHERE token = %(token)s"), {'token': token})
             conn.commit()
 
     # API log
@@ -703,5 +695,5 @@ class PostgresStore:
     def delete_item(self, item_code):
         """Delete an item."""
         with self.engine.connect() as conn:
-            conn.execute(text("DELETE FROM items WHERE item_code = :item_code"), {'item_code': item_code})
+            conn.execute(text("DELETE FROM items WHERE item_code = %(item_code)s"), {'item_code': item_code})
             conn.commit()
