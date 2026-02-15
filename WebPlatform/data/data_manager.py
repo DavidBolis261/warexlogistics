@@ -80,6 +80,7 @@ class DataManager:
         order_data['tracking_number'] = tracking_number
         order_data['status'] = 'pending'
         order_data['created_at'] = datetime.now().isoformat()
+        order_data['updated_at'] = datetime.now().isoformat()
         order_data['order_date'] = datetime.now().strftime('%Y-%m-%d')
 
         wms_result = None
