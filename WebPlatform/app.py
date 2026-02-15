@@ -117,6 +117,7 @@ with st.sidebar:
             "📋 Orders",
             "🚚 Drivers",
             "🗺️ Route Planning",
+            "🖨️ Print Labels",
             "📈 Analytics",
             "⚙️ Settings",
         ],
@@ -222,6 +223,10 @@ elif page == "🚚 Drivers":
 elif page == "🗺️ Route Planning":
     from views.route_planning import render
     render(orders_df, drivers_df, runs_df, dm)
+
+elif page == "🖨️ Print Labels":
+    from views.print_labels import render
+    render(dm)
 
 elif page == "📦 Inventory":
     from views.inventory import render

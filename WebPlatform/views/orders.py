@@ -186,6 +186,16 @@ def _render_all_orders(orders_df, drivers_df, data_manager):
                 <span class="status-badge status-{order['service_level']}">{order['service_level']}</span>
                 """, unsafe_allow_html=True)
 
+                # Display QR Code
+                from utils.qr_code import generate_qr_code
+                qr_code_img = generate_qr_code(order_id, size=120)
+                st.markdown(f"""
+                <div style="text-align: center; margin-top: 15px;">
+                    <img src="{qr_code_img}" style="width: 120px; height: 120px;">
+                    <p style="font-size: 10px; margin: 5px 0;">Scan to pickup</p>
+                </div>
+                """, unsafe_allow_html=True)
+
             # --- Update Controls ---
             st.markdown("---")
             st.markdown("**Update Order**")
