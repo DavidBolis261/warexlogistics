@@ -111,66 +111,66 @@ def create_driver_api(app: Flask, data_manager):
     @require_auth
     def get_driver_runs():
         """
-        Get all delivery runs assigned to the authenticated driver.
-
-        Query params:
-        - status: filter by status (active, pending, completed)
-        - date: filter by date (YYYY-MM-DD)
+        Get delivery run for the authenticated driver.
+        A "run" is simply all orders assigned to that driver.
 
         Response:
         {
-            "runs": [ ... ],
-            "total": 5
+            "runs": [ { ... } ],
+            "total": 1
         }
         """
         driver_id = request.driver_id
 
-        # Get all runs
-        runs_df = data_manager.get_runs()
+        # Get all orders for this driver
+        orders_df = data_manager.get_orders()
 
-        if runs_df.empty:
+        if orders_df.empty:
             return jsonify({'runs': [], 'total': 0}), 200
 
-        # Filter by driver
-        driver_runs = runs_df[runs_df['driver_id'] == driver_id]
+        # Filter orders by driver_id
+        driver_orders = orders_df[orders_df['driver_id'] == driver_id]
 
-        # Apply filters
-        status_filter = request.args.get('status')
-        if status_filter and 'status' in driver_runs.columns:
-            driver_runs = driver_runs[driver_runs['status'] == status_filter]
+        if driver_orders.empty:
+            return jsonify({'runs': [], 'total': 0}), 200
 
-        # Convert to list of dicts
-        runs_list = []
-        for _, run in driver_runs.iterrows():
-            # Get orders for this run
-            orders_df = data_manager.get_orders()
-            run_orders = orders_df[
-                (orders_df['driver_id'] == driver_id) &
-                (orders_df['status'].isin(['allocated', 'in_transit', 'delivered']))
-            ] if not orders_df.empty else pd.DataFrame()
+        # Calculate stats from orders
+        total_stops = len(driver_orders)
+        completed = len(driver_orders[driver_orders['status'].isin(['delivered', 'completed'])])
 
-            runs_list.append({
-                'id': run['run_id'],
-                'runNumber': run['run_id'],
-                'zone': run.get('zone', ''),
-                'date': run.get('created_at', datetime.now().isoformat()),
-                'status': run.get('status', 'pending'),
-                'totalStops': int(run.get('total_stops', 0)),
-                'completedStops': int(run.get('completed', 0)),
-                'estimatedDuration': 7200,  # Default 2 hours
-                'totalDistance': 15.5,  # Default distance
-            })
+        # Determine status
+        if completed == 0:
+            status = 'Pending'
+        elif completed < total_stops:
+            status = 'Active'
+        else:
+            status = 'Completed'
+
+        # Create a single run with all driver's orders
+        today = datetime.now().strftime("%Y%m%d")
+        run = {
+            'id': f'RUN-{driver_id}-{today}',
+            'runNumber': f'RUN-{today}',
+            'zone': 'Today\'s Deliveries',
+            'date': datetime.now().isoformat(),
+            'status': status,
+            'totalStops': total_stops,
+            'completedStops': completed,
+            'estimatedDuration': total_stops * 600,  # 10 min per stop
+            'totalDistance': total_stops * 2.5,  # 2.5km per stop estimate
+        }
 
         return jsonify({
-            'runs': runs_list,
-            'total': len(runs_list)
+            'runs': [run],
+            'total': 1
         }), 200
 
     @app.route('/api/driver/runs/<run_id>/stops', methods=['GET'])
     @require_auth
     def get_run_stops(run_id):
         """
-        Get all delivery stops for a specific run.
+        Get all delivery stops (orders) for the driver.
+        Run ID is ignored - we just return all orders for this driver.
 
         Response:
         {
@@ -180,28 +180,22 @@ def create_driver_api(app: Flask, data_manager):
         """
         driver_id = request.driver_id
 
-        # Verify run belongs to driver
-        runs_df = data_manager.get_runs()
-        if runs_df.empty:
-            return jsonify({'error': 'Run not found'}), 404
-
-        run = runs_df[runs_df['run_id'] == run_id]
-        if run.empty:
-            return jsonify({'error': 'Run not found'}), 404
-
-        if run.iloc[0]['driver_id'] != driver_id:
-            return jsonify({'error': 'Unauthorized', 'message': 'This run is not assigned to you'}), 403
-
-        # Get orders for this run
+        # Get all orders for this driver
         orders_df = data_manager.get_orders()
-        run_orders = orders_df[
-            (orders_df['driver_id'] == driver_id) &
-            (orders_df['status'].isin(['allocated', 'in_transit', 'delivered', 'failed']))
-        ] if not orders_df.empty else pd.DataFrame()
+
+        if orders_df.empty:
+            return jsonify({'stops': [], 'total': 0}), 200
+
+        # Filter by driver_id
+        driver_orders = orders_df[orders_df['driver_id'] == driver_id]
+
+        if driver_orders.empty:
+            return jsonify({'stops': [], 'total': 0}), 200
 
         # Convert to stops format
         stops_list = []
-        for idx, order in run_orders.iterrows():
+        for idx, (_, order) in enumerate(driver_orders.iterrows(), start=1):
+            # Map order status to stop status
             stop_status = 'pending'
             if order['status'] == 'in_transit':
                 stop_status = 'inProgress'
@@ -209,10 +203,12 @@ def create_driver_api(app: Flask, data_manager):
                 stop_status = 'delivered'
             elif order['status'] == 'failed':
                 stop_status = 'failed'
+            elif order['status'] == 'allocated':
+                stop_status = 'pending'
 
             stops_list.append({
                 'id': order['order_id'],
-                'sequenceNumber': idx + 1,
+                'sequenceNumber': idx,
                 'status': stop_status,
                 'order': {
                     'id': order['order_id'],
@@ -228,7 +224,7 @@ def create_driver_api(app: Flask, data_manager):
                         'suburb': order.get('suburb', ''),
                         'postcode': order.get('postcode', ''),
                         'state': order.get('state', 'NSW'),
-                        'latitude': -33.8688,
+                        'latitude': -33.8688,  # TODO: geocode real lat/lng
                         'longitude': 151.2093
                     },
                     'parcels': int(order.get('parcels', 1)),
