@@ -259,7 +259,7 @@ class PostgresStore:
     def get_order_by_id(self, order_id):
         """Get order by ID."""
         result = pd.read_sql(
-            "SELECT * FROM orders WHERE order_id = :order_id",
+            "SELECT * FROM orders WHERE order_id = %(order_id)s",
             self.engine,
             params={'order_id': order_id}
         )
@@ -268,7 +268,7 @@ class PostgresStore:
     def get_order_by_tracking(self, tracking_number):
         """Get order by tracking number."""
         result = pd.read_sql(
-            "SELECT * FROM orders WHERE tracking_number = :tracking",
+            "SELECT * FROM orders WHERE tracking_number = %(tracking)s",
             self.engine,
             params={'tracking': tracking_number}
         )
@@ -296,7 +296,7 @@ class PostgresStore:
 
             # Get all orders for this driver
             orders = pd.read_sql(
-                "SELECT * FROM orders WHERE driver_id = :driver_id",
+                "SELECT * FROM orders WHERE driver_id = %(driver_id)s",
                 self.engine,
                 params={'driver_id': driver_id}
             )
@@ -475,7 +475,7 @@ class PostgresStore:
     def get_setting(self, key, default=None):
         """Get a setting."""
         result = pd.read_sql(
-            "SELECT value FROM settings WHERE key = :key",
+            "SELECT value FROM settings WHERE key = %(key)s",
             self.engine,
             params={'key': key}
         )
@@ -542,7 +542,7 @@ class PostgresStore:
     def get_admin_user(self, username):
         """Get admin user."""
         result = pd.read_sql(
-            "SELECT * FROM admin_users WHERE username = :username",
+            "SELECT * FROM admin_users WHERE username = %(username)s",
             self.engine,
             params={'username': username}
         )
@@ -578,7 +578,7 @@ class PostgresStore:
         result = pd.read_sql(
             """
             SELECT * FROM session_tokens
-            WHERE token = :token AND expires_at > CURRENT_TIMESTAMP
+            WHERE token = %(token)s AND expires_at > CURRENT_TIMESTAMP
             """,
             self.engine,
             params={'token': token}
