@@ -3,6 +3,7 @@ Print shipping labels view.
 """
 
 import streamlit as st
+import streamlit.components.v1 as components
 from utils.qr_code import generate_shipping_label_html
 
 
@@ -67,7 +68,21 @@ def render(data_manager):
     st.markdown("### Preview")
     preview_order = filtered_df.iloc[0].to_dict()
     preview_html = generate_shipping_label_html(preview_order)
-    st.markdown(preview_html, unsafe_allow_html=True)
+
+    # Use components.html to render the label properly
+    components.html(f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{ margin: 0; padding: 20px; background: #f5f5f5; }}
+        </style>
+    </head>
+    <body>
+        {preview_html}
+    </body>
+    </html>
+    """, height=600)
 
     # Print button
     if st.button("🖨️ Print All Labels", type="primary", use_container_width=True):
