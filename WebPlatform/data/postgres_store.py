@@ -197,13 +197,13 @@ class PostgresStore:
 
     def save_order(self, order_data, wms_response=None, pushed=False):
         """Save an order."""
-        # Ensure zone is set (default to empty string if not provided)
+        # Ensure all required fields have defaults if not provided
         if 'zone' not in order_data:
             order_data['zone'] = ''
-
-        # Ensure driver_id is set (default to empty string if not provided)
         if 'driver_id' not in order_data:
             order_data['driver_id'] = ''
+        if 'instructions' not in order_data:
+            order_data['instructions'] = ''
 
         with self.engine.connect() as conn:
             conn.execute(text("""
