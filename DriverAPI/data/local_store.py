@@ -181,6 +181,8 @@ class LocalStore:
             'pickup_phone': 'TEXT',
             'tracking_number': 'TEXT',
             'zone': 'TEXT',
+            'signature': 'TEXT',
+            'photo': 'TEXT',
         }
         for col, col_type in new_cols.items():
             if col not in existing:

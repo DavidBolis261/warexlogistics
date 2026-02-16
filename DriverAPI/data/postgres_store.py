@@ -55,10 +55,24 @@ class PostgresStore:
                     instructions TEXT,
                     tracking_number TEXT,
                     order_date TEXT,
+                    signature TEXT,
+                    photo TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """))
+
+            # Add signature and photo columns if they don't exist (for existing databases)
+            try:
+                conn.execute(text("""
+                    ALTER TABLE orders ADD COLUMN IF NOT EXISTS signature TEXT
+                """))
+                conn.execute(text("""
+                    ALTER TABLE orders ADD COLUMN IF NOT EXISTS photo TEXT
+                """))
+                conn.commit()
+            except Exception as e:
+                logger.warning(f"Could not add signature/photo columns (may already exist): {e}")
 
             # Drivers table
             conn.execute(text("""

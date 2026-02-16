@@ -256,7 +256,9 @@ def create_driver_api(app: Flask, data_manager):
         {
             "status": "delivered" | "failed" | "inProgress",
             "failureReason": "notHome" (optional, required if status is failed),
-            "notes": "..." (optional)
+            "notes": "..." (optional),
+            "signature": "base64_encoded_image" (optional),
+            "photo": "base64_encoded_image" (optional)
         }
 
         Response:
@@ -271,6 +273,8 @@ def create_driver_api(app: Flask, data_manager):
         new_status = data.get('status')
         failure_reason = data.get('failureReason')
         notes = data.get('notes', '')
+        signature_base64 = data.get('signature')
+        photo_base64 = data.get('photo')
 
         if not new_status:
             return jsonify({'error': 'Status is required'}), 400
@@ -285,8 +289,18 @@ def create_driver_api(app: Flask, data_manager):
 
         backend_status = status_map.get(new_status, 'allocated')
 
-        # Update order status
-        data_manager.update_order(stop_id, status=backend_status)
+        # Prepare update data
+        update_data = {'status': backend_status}
+
+        # Save signature and photo as base64 data URLs for display
+        if signature_base64:
+            update_data['signature'] = f"data:image/png;base64,{signature_base64}"
+
+        if photo_base64:
+            update_data['photo'] = f"data:image/jpeg;base64,{photo_base64}"
+
+        # Update order status and proof of delivery
+        data_manager.update_order(stop_id, **update_data)
 
         # Send status update email to customer
         from utils.email_service import send_status_update_email, is_email_configured

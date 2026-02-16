@@ -637,18 +637,47 @@ def _render_completed(orders_df):
 
     for _, order in completed.iterrows():
         status_class = "status-delivered" if order['status'] == 'delivered' else "status-failed"
-        st.markdown(f"""
-        <div class="order-card">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div>
-                    <div class="order-id">{order['order_id']}</div>
-                    <div class="order-customer">{order['customer']}</div>
-                    <div class="order-address">{order['address']}, {order.get('suburb', '')}</div>
-                </div>
-                <span class="status-badge {status_class}">{order['status']}</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        order_id = order['order_id']
+
+        with st.expander(f"{order_id} - {order['customer']} - {order.get('suburb', '')}", expanded=False):
+            col1, col2 = st.columns([2, 1])
+
+            with col1:
+                if order.get('tracking_number'):
+                    st.markdown(f"**Tracking:** `{order['tracking_number']}`")
+
+                st.markdown(f"""
+                **Customer:** {order['customer']}
+                **Deliver to:** {order['address']}, {order.get('suburb', '')} {order.get('postcode', '')}
+                **Parcels:** {order.get('parcels', 1)}
+                """)
+
+                if order.get('driver_id'):
+                    st.markdown(f"**Driver:** {order['driver_id']}")
+
+            with col2:
+                st.markdown(f"""
+                <span class="status-badge {status_class}">{order['status'].replace('_', ' ')}</span>
+                <br><br>
+                <span class="status-badge status-{order['service_level']}">{order['service_level']}</span>
+                """, unsafe_allow_html=True)
+
+            # Proof of Delivery section
+            if order.get('signature') or order.get('photo'):
+                st.markdown("---")
+                st.markdown("### 📸 Proof of Delivery")
+
+                pod_col1, pod_col2 = st.columns(2)
+
+                with pod_col1:
+                    if order.get('signature'):
+                        st.markdown("**Customer Signature:**")
+                        st.markdown(f'<img src="{order["signature"]}" style="max-width: 100%; border: 1px solid #ddd; border-radius: 8px; background: white; padding: 10px;">', unsafe_allow_html=True)
+
+                with pod_col2:
+                    if order.get('photo'):
+                        st.markdown("**Delivery Photo:**")
+                        st.markdown(f'<img src="{order["photo"]}" style="max-width: 100%; border: 1px solid #ddd; border-radius: 8px;">', unsafe_allow_html=True)
 
 
 def _render_inbound_receipts(data_manager):
