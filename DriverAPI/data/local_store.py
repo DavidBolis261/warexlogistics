@@ -171,6 +171,7 @@ class LocalStore:
 
     def _migrate(self):
         """Add columns that may not exist in older databases."""
+        # Migrate orders table
         existing = {row[1] for row in self.conn.execute("PRAGMA table_info(orders)").fetchall()}
         new_cols = {
             'pickup_address': 'TEXT',
@@ -187,6 +188,17 @@ class LocalStore:
         for col, col_type in new_cols.items():
             if col not in existing:
                 self.conn.execute(f"ALTER TABLE orders ADD COLUMN {col} {col_type}")
+
+        # Migrate drivers table for location tracking
+        existing_drivers = {row[1] for row in self.conn.execute("PRAGMA table_info(drivers)").fetchall()}
+        driver_cols = {
+            'latitude': 'REAL',
+            'longitude': 'REAL',
+            'location_updated_at': 'TIMESTAMP',
+        }
+        for col, col_type in driver_cols.items():
+            if col not in existing_drivers:
+                self.conn.execute(f"ALTER TABLE drivers ADD COLUMN {col} {col_type}")
 
         # Add unique index on tracking_number if column was just added
         if 'tracking_number' not in existing:
@@ -391,6 +403,22 @@ class LocalStore:
 
     def delete_driver(self, driver_id):
         self.conn.execute("DELETE FROM drivers WHERE driver_id=?", (driver_id,))
+        self.conn.commit()
+
+    def update_driver_location(self, driver_id, latitude, longitude, timestamp=None):
+        """Update driver's current location for real-time tracking."""
+        from datetime import datetime as dt
+
+        if timestamp is None:
+            timestamp = dt.now().isoformat()
+
+        self.conn.execute('''
+            UPDATE drivers
+            SET latitude = ?,
+                longitude = ?,
+                location_updated_at = ?
+            WHERE driver_id = ?
+        ''', (latitude, longitude, timestamp, driver_id))
         self.conn.commit()
 
     def get_drivers(self):

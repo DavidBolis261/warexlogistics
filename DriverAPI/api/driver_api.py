@@ -376,6 +376,48 @@ def create_driver_api(app: Flask, data_manager):
             }
         }), 200
 
+    @app.route('/api/driver/location', methods=['POST'])
+    @require_auth
+    def update_driver_location():
+        """
+        Update driver's current location for real-time tracking.
+
+        Request body:
+        {
+            "latitude": -33.8688,
+            "longitude": 151.2093,
+            "timestamp": "2024-01-01T12:00:00Z"
+        }
+
+        Response:
+        {
+            "success": true,
+            "message": "Location updated"
+        }
+        """
+        driver_id = request.driver_id
+        data = request.get_json()
+
+        latitude = data.get('latitude')
+        longitude = data.get('longitude')
+        timestamp = data.get('timestamp')
+
+        if latitude is None or longitude is None:
+            return jsonify({'error': 'Latitude and longitude are required'}), 400
+
+        # Update driver location in database
+        data_manager.update_driver_location(
+            driver_id=driver_id,
+            latitude=latitude,
+            longitude=longitude,
+            timestamp=timestamp
+        )
+
+        return jsonify({
+            'success': True,
+            'message': 'Location updated'
+        }), 200
+
     @app.route('/api/driver/logout', methods=['POST'])
     @require_auth
     def driver_logout():

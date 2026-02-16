@@ -187,6 +187,11 @@ class DataManager:
         self.store.delete_driver(driver_id)
         return {'success': True}
 
+    def update_driver_location(self, driver_id, latitude, longitude, timestamp=None):
+        """Update driver's current location for real-time tracking."""
+        self.store.update_driver_location(driver_id, latitude, longitude, timestamp)
+        return {'success': True}
+
     # === Runs ===
 
     def get_runs(self):

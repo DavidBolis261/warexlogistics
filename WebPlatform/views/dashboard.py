@@ -69,50 +69,51 @@ def render(orders_df, drivers_df, runs_df, data_manager=None):
     col_left, col_right = st.columns([2, 1])
 
     with col_left:
-        st.markdown('<div class="section-header">Delivery Map</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header">Driver Location Map</div>', unsafe_allow_html=True)
 
-        # Build map data from actual orders with geocoding
-        if not orders_df.empty:
-            active_orders = orders_df[orders_df['status'].isin(['pending', 'allocated', 'in_transit'])]
+        # Build map data from driver locations instead of orders
+        if not drivers_df.empty:
+            # Filter drivers with location data
+            drivers_with_location = drivers_df[
+                (drivers_df['latitude'].notna()) &
+                (drivers_df['longitude'].notna())
+            ]
 
-            if not active_orders.empty:
+            if not drivers_with_location.empty:
                 map_data = []
 
-                # Geocode each active order
-                for _, order in active_orders.iterrows():
-                    address = order.get('address', '')
-                    suburb = order.get('suburb', '')
-                    state = order.get('state', 'NSW')
-                    postcode = order.get('postcode', '')
+                # Add each driver's location to the map
+                for _, driver in drivers_with_location.iterrows():
+                    lat = driver.get('latitude')
+                    lng = driver.get('longitude')
 
-                    # Try geocoding first
-                    coords = geocode_address(address, suburb, state, postcode)
+                    if lat and lng:
+                        # Color code by driver status
+                        status = driver.get('status', 'available')
+                        if status == 'available':
+                            color = [16, 185, 129, 200]  # Green - available
+                        elif status == 'on_route':
+                            color = [59, 130, 246, 200]  # Blue - on route
+                        elif status == 'busy':
+                            color = [255, 165, 0, 200]  # Orange - busy
+                        else:
+                            color = [156, 163, 175, 200]  # Gray - offline
 
-                    # Fallback to suburb coordinates if geocoding fails
-                    if not coords and suburb in SUBURB_COORDS:
-                        coords = SUBURB_COORDS[suburb]
-
-                    if coords:
-                        lat, lng = coords
-
-                        # Color code by status
-                        status = order.get('status', 'pending')
-                        if status == 'pending':
-                            color = [255, 165, 0, 180]  # Orange
-                        elif status == 'allocated':
-                            color = [59, 130, 246, 180]  # Blue
-                        else:  # in_transit
-                            color = [16, 185, 129, 180]  # Green
+                        # Get driver stats
+                        active_orders = driver.get('active_orders', 0)
+                        deliveries_today = driver.get('deliveries_today', 0)
 
                         map_data.append({
                             'lat': lat,
                             'lng': lng,
-                            'order_id': order.get('order_id', ''),
-                            'customer': order.get('customer', ''),
-                            'address': f"{address}, {suburb} {postcode}",
+                            'driver_id': driver.get('driver_id', ''),
+                            'driver_name': driver.get('name', 'Unknown'),
+                            'vehicle': f"{driver.get('vehicle_type', '')} - {driver.get('plate', '')}",
                             'status': status,
+                            'active_orders': active_orders,
+                            'deliveries_today': deliveries_today,
                             'color': color,
-                            'size': 100
+                            'size': 150
                         })
 
                 if map_data:
@@ -142,9 +143,9 @@ def render(orders_df, drivers_df, runs_df, data_manager=None):
                         pitch=0,
                     )
 
-                    # Tooltip
+                    # Tooltip for drivers
                     tooltip = {
-                        "html": "<b>{order_id}</b><br/>{customer}<br/>{address}<br/>Status: {status}",
+                        "html": "<b>🚚 {driver_name}</b><br/>{vehicle}<br/>Status: {status}<br/>Active Orders: {active_orders}<br/>Deliveries Today: {deliveries_today}",
                         "style": {
                             "backgroundColor": "rgba(0,0,0,0.8)",
                             "color": "white",
@@ -166,17 +167,18 @@ def render(orders_df, drivers_df, runs_df, data_manager=None):
                     # Legend
                     st.markdown("""
                     <div style="display: flex; gap: 1rem; margin-top: 0.5rem; font-size: 0.85rem;">
-                        <div><span style="color: #ffa500;">●</span> Pending</div>
-                        <div><span style="color: #3b82f6;">●</span> Allocated</div>
-                        <div><span style="color: #10b981;">●</span> In Transit</div>
+                        <div><span style="color: #10b981;">●</span> Available</div>
+                        <div><span style="color: #3b82f6;">●</span> On Route</div>
+                        <div><span style="color: #ffa500;">●</span> Busy</div>
+                        <div><span style="color: #9ca3af;">●</span> Offline</div>
                     </div>
                     """, unsafe_allow_html=True)
                 else:
-                    st.info("Unable to geocode any addresses. Check your Google API key.")
+                    st.info("No driver location data available.")
             else:
-                st.info("No active orders to display on map.")
+                st.info("No drivers currently sharing their location.")
         else:
-            st.info("No orders yet. Create your first order to see them on the map.")
+            st.info("No drivers registered. Add drivers to see their locations on the map.")
 
         # Zone summary cards with real data
         zone_colors = {

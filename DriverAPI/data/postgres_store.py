@@ -88,9 +88,27 @@ class PostgresStore:
                     success_rate REAL DEFAULT 0.95,
                     rating REAL DEFAULT 4.5,
                     active_orders INTEGER DEFAULT 0,
+                    latitude REAL,
+                    longitude REAL,
+                    location_updated_at TIMESTAMP,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """))
+
+            # Add location columns if they don't exist (for existing databases)
+            try:
+                conn.execute(text("""
+                    ALTER TABLE drivers ADD COLUMN IF NOT EXISTS latitude REAL
+                """))
+                conn.execute(text("""
+                    ALTER TABLE drivers ADD COLUMN IF NOT EXISTS longitude REAL
+                """))
+                conn.execute(text("""
+                    ALTER TABLE drivers ADD COLUMN IF NOT EXISTS location_updated_at TIMESTAMP
+                """))
+                conn.commit()
+            except Exception as e:
+                logger.warning(f"Could not add location columns to drivers (may already exist): {e}")
 
             # Runs table
             conn.execute(text("""
@@ -404,6 +422,28 @@ class PostgresStore:
         """Delete driver."""
         with self.engine.connect() as conn:
             conn.execute(text("DELETE FROM drivers WHERE driver_id = :driver_id"), {'driver_id': driver_id})
+            conn.commit()
+
+    def update_driver_location(self, driver_id, latitude, longitude, timestamp=None):
+        """Update driver's current location for real-time tracking."""
+        from datetime import datetime as dt
+
+        if timestamp is None:
+            timestamp = dt.now().isoformat()
+
+        with self.engine.connect() as conn:
+            conn.execute(text("""
+                UPDATE drivers
+                SET latitude = :latitude,
+                    longitude = :longitude,
+                    location_updated_at = :timestamp
+                WHERE driver_id = :driver_id
+            """), {
+                'driver_id': driver_id,
+                'latitude': latitude,
+                'longitude': longitude,
+                'timestamp': timestamp
+            })
             conn.commit()
 
     # Runs
