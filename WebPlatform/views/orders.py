@@ -21,8 +21,8 @@ STATUS_LABELS = {
 def render(orders_df, drivers_df, data_manager, zone_filter, service_filter, status_filter):
     st.markdown('<div class="section-header">Order Management</div>', unsafe_allow_html=True)
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "All Orders", "Pending Allocation", "In Transit", "Completed", "Inbound Receipts",
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "Pending", "In Transit", "Completed", "Inbound Receipts",
     ])
 
     if not orders_df.empty:
@@ -45,18 +45,15 @@ def render(orders_df, drivers_df, data_manager, zone_filter, service_filter, sta
         filtered_df = orders_df
 
     with tab1:
-        _render_all_orders(filtered_df, drivers_df, data_manager)
-
-    with tab2:
         _render_pending(filtered_df, drivers_df, data_manager)
 
-    with tab3:
+    with tab2:
         _render_in_transit(filtered_df)
 
-    with tab4:
+    with tab3:
         _render_completed(filtered_df)
 
-    with tab5:
+    with tab4:
         _render_inbound_receipts(data_manager)
 
 
@@ -478,11 +475,37 @@ def _render_new_order_form(data_manager):
 
 
 def _render_pending(orders_df, drivers_df, data_manager):
+    # Add search field and New Order button
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        search = st.text_input("Search pending orders...", placeholder="Order ID, customer name, tracking number, or address", key="pending_search")
+    with col2:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("New Order", use_container_width=True, key="pending_new_order"):
+            st.session_state['show_new_order_form'] = True
+
+    # New order form
+    if st.session_state.get('show_new_order_form'):
+        _render_new_order_form(data_manager)
+
     if orders_df.empty:
         st.info("No orders to display.")
         return
 
-    pending = orders_df[orders_df['status'] == 'pending']
+    # Filter for pending orders (status='pending' or no driver allocated)
+    pending = orders_df[(orders_df['status'] == 'pending') | (orders_df['driver_id'].isna()) | (orders_df['driver_id'] == '')]
+
+    # Apply search filter
+    if search:
+        mask = (
+            pending['order_id'].str.contains(search, case=False, na=False) |
+            pending['customer'].str.contains(search, case=False, na=False) |
+            pending['address'].str.contains(search, case=False, na=False)
+        )
+        if 'tracking_number' in pending.columns:
+            mask = mask | pending['tracking_number'].str.contains(search, case=False, na=False)
+        pending = pending[mask]
+
     st.info(f"{len(pending)} orders awaiting allocation")
 
     if pending.empty:
@@ -493,7 +516,8 @@ def _render_pending(orders_df, drivers_df, data_manager):
     with col1:
         selected_orders = st.multiselect(
             "Select orders for bulk allocation",
-            pending['order_id'].tolist()
+            pending['order_id'].tolist(),
+            key="pending_bulk_select"
         )
     with col2:
         if not drivers_df.empty:
@@ -502,9 +526,9 @@ def _render_pending(orders_df, drivers_df, data_manager):
                 driver_options = drivers_df['name'].tolist()
         else:
             driver_options = []
-        assigned_driver = st.selectbox("Assign to driver", ["Select driver..."] + driver_options)
+        assigned_driver = st.selectbox("Assign to driver", ["Select driver..."] + driver_options, key="pending_driver_select")
 
-    if st.button("Allocate Selected Orders", disabled=not selected_orders or assigned_driver == "Select driver..."):
+    if st.button("Allocate Selected Orders", disabled=not selected_orders or assigned_driver == "Select driver...", key="pending_allocate_btn"):
         for oid in selected_orders:
             data_manager.allocate_order(oid, assigned_driver)
         st.success(f"{len(selected_orders)} orders allocated to {assigned_driver}")
@@ -528,11 +552,26 @@ def _render_pending(orders_df, drivers_df, data_manager):
 
 
 def _render_in_transit(orders_df):
+    # Add search field
+    search = st.text_input("Search in transit orders...", placeholder="Order ID, customer name, tracking number, or address", key="transit_search")
+
     if orders_df.empty:
         st.info("No orders to display.")
         return
 
     in_transit = orders_df[orders_df['status'] == 'in_transit']
+
+    # Apply search filter
+    if search:
+        mask = (
+            in_transit['order_id'].str.contains(search, case=False, na=False) |
+            in_transit['customer'].str.contains(search, case=False, na=False) |
+            in_transit['address'].str.contains(search, case=False, na=False)
+        )
+        if 'tracking_number' in in_transit.columns:
+            mask = mask | in_transit['tracking_number'].str.contains(search, case=False, na=False)
+        in_transit = in_transit[mask]
+
     st.info(f"{len(in_transit)} orders currently in transit")
 
     if in_transit.empty:
@@ -563,11 +602,25 @@ def _render_in_transit(orders_df):
 
 
 def _render_completed(orders_df):
+    # Add search field
+    search = st.text_input("Search completed orders...", placeholder="Order ID, customer name, tracking number, or address", key="completed_search")
+
     if orders_df.empty:
         st.info("No orders to display.")
         return
 
     completed = orders_df[orders_df['status'].isin(['delivered', 'failed'])]
+
+    # Apply search filter
+    if search:
+        mask = (
+            completed['order_id'].str.contains(search, case=False, na=False) |
+            completed['customer'].str.contains(search, case=False, na=False) |
+            completed['address'].str.contains(search, case=False, na=False)
+        )
+        if 'tracking_number' in completed.columns:
+            mask = mask | completed['tracking_number'].str.contains(search, case=False, na=False)
+        completed = completed[mask]
 
     if completed.empty:
         st.info("No completed orders yet.")
