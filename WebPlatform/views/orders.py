@@ -1,12 +1,29 @@
 import streamlit as st
 from datetime import datetime
 import os
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
 
 from config.constants import ZONE_MAPPING, ZONES
 from streamlit_searchbox import st_searchbox
 from utils.address_autocomplete import search_addresses, get_place_id_from_description, get_address_details, parse_simple_address
 
 ITEMS_PER_PAGE = 20
+SYDNEY_TZ = ZoneInfo("Australia/Sydney")
+
+
+def _fmt_sydney(ts):
+    """Format a timestamp in Sydney local time."""
+    if ts is None:
+        return ''
+    try:
+        if hasattr(ts, 'tzinfo') and ts.tzinfo is None:
+            ts = ts.replace(tzinfo=ZoneInfo("UTC"))
+        return ts.astimezone(SYDNEY_TZ).strftime('%d/%m/%Y %H:%M')
+    except Exception:
+        return str(ts)
 
 STATUS_OPTIONS = ['pending', 'allocated', 'in_transit', 'delivered', 'failed']
 STATUS_LABELS = {
@@ -535,20 +552,110 @@ def _render_pending(orders_df, drivers_df, data_manager):
         st.rerun()
 
     for _, order in pending.iterrows():
-        st.markdown(f"""
-        <div class="order-card priority-{order['service_level']}">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div>
-                    <div class="order-id">{order['order_id']}</div>
-                    <div class="order-customer">{order['customer']}</div>
-                    <div class="order-address">{order['address']}, {order.get('suburb', '')} {order.get('postcode', '')}</div>
-                    <div style="margin-top: 0.5rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; color: rgba(255,255,255,0.5);">
-                        {order.get('parcels', 1)} parcel(s) &bull; {order['service_level'].upper()}
-                    </div>
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        order_id = order['order_id']
+        current_status = order['status']
+        current_zone = order.get('zone', '') or ''
+        current_driver = order.get('driver_id', '') or ''
+        created_str = _fmt_sydney(order.get('created_at'))
+
+        with st.expander(f"{order_id} — {order['customer']} — {order.get('suburb', '')}  [{order['service_level'].upper()}]", expanded=False):
+            col1, col2 = st.columns([2, 1])
+
+            with col1:
+                if order.get('tracking_number'):
+                    st.markdown(f"**Tracking:** `{order['tracking_number']}`")
+                if order.get('pickup_address'):
+                    pickup_line = f"{order['pickup_address']}, {order.get('pickup_suburb', '')} {order.get('pickup_state', '')} {order.get('pickup_postcode', '')}"
+                    st.markdown(f"**Pickup:** {pickup_line}")
+                st.markdown(f"""
+**Customer:** {order['customer']}
+**Deliver to:** {order['address']}, {order.get('suburb', '')} {order.get('postcode', '')}
+**Parcels:** {order.get('parcels', 1)}
+**Created:** {created_str}
+                """)
+                if current_driver:
+                    st.markdown(f"**Assigned Driver:** {current_driver}")
+                if current_zone:
+                    st.markdown(f"**Zone:** {current_zone}")
+                if order.get('special_instructions'):
+                    st.markdown(f"**Instructions:** {order['special_instructions']}")
+
+            with col2:
+                status_class = f"status-{current_status.replace('_', '-')}"
+                st.markdown(f"""
+<span class="status-badge {status_class}">{current_status.replace('_', ' ')}</span>
+<br><br>
+<span class="status-badge status-{order['service_level']}">{order['service_level']}</span>
+                """, unsafe_allow_html=True)
+                from utils.qr_code import generate_qr_code
+                qr_code_img = generate_qr_code(order_id, size=120)
+                st.markdown(f"""
+<div style="text-align: center; margin-top: 15px;">
+    <img src="{qr_code_img}" style="width: 120px; height: 120px;">
+    <p style="font-size: 10px; margin: 5px 0;">Scan to pickup</p>
+</div>
+                """, unsafe_allow_html=True)
+
+            # Update controls
+            st.markdown("---")
+            st.markdown("**Update Order**")
+            uc1, uc2, uc3 = st.columns(3)
+            with uc1:
+                status_idx = STATUS_OPTIONS.index(current_status) if current_status in STATUS_OPTIONS else 0
+                new_status = st.selectbox(
+                    "Status", STATUS_OPTIONS, index=status_idx,
+                    format_func=lambda s: STATUS_LABELS.get(s, s),
+                    key=f"pend_status_{order_id}",
+                )
+            with uc2:
+                zone_options = ["None"] + ZONES
+                zone_idx = ZONES.index(current_zone) + 1 if current_zone in ZONES else 0
+                new_zone = st.selectbox("Zone", zone_options, index=zone_idx, key=f"pend_zone_{order_id}")
+            with uc3:
+                if not drivers_df.empty:
+                    drv_opts = drivers_df[drivers_df['status'] == 'available']['name'].tolist() or drivers_df['name'].tolist()
+                else:
+                    drv_opts = []
+                driver_list = ["None"] + drv_opts
+                driver_idx = drv_opts.index(current_driver) + 1 if current_driver in drv_opts else 0
+                new_driver = st.selectbox("Driver", driver_list, index=driver_idx, key=f"pend_driver_{order_id}")
+
+            updates = {}
+            resolved_driver = new_driver if new_driver != "None" else ''
+            resolved_zone = new_zone if new_zone != "None" else ''
+            if new_status != current_status:
+                updates['status'] = new_status
+            if resolved_zone != current_zone:
+                updates['zone'] = resolved_zone
+            if resolved_driver != current_driver:
+                updates['driver_id'] = resolved_driver
+                # When assigning a driver, move to in_transit automatically
+                if resolved_driver and 'status' not in updates:
+                    updates['status'] = 'in_transit'
+
+            bc1, bc2, bc3 = st.columns(3)
+            with bc1:
+                if st.button("💾 Save Changes", key=f"pend_save_{order_id}", use_container_width=True, disabled=not updates):
+                    data_manager.update_order(order_id, **updates)
+                    st.success("Order updated!")
+                    st.rerun()
+            with bc2:
+                if st.button("📤 Push to WMS", key=f"pend_push_{order_id}", use_container_width=True):
+                    result = data_manager.push_order_to_wms(order.to_dict())
+                    if result.get('success'):
+                        st.success("Pushed to .wms successfully")
+                    elif result.get('mock'):
+                        st.info("Demo mode - order saved locally")
+                    else:
+                        st.error(f"Failed: {result.get('error', 'Unknown error')}")
+            with bc3:
+                if st.button("❌ Cancel Order", key=f"pend_cancel_{order_id}", use_container_width=True):
+                    result = data_manager.cancel_order(order_id)
+                    if result.get('success'):
+                        st.success("Order cancelled")
+                        st.rerun()
+                    else:
+                        st.error(f"Failed: {result.get('error', 'Unknown error')}")
 
 
 def _render_in_transit(orders_df):
@@ -556,10 +663,11 @@ def _render_in_transit(orders_df):
     search = st.text_input("Search in transit orders...", placeholder="Order ID, customer name, tracking number, or address", key="transit_search")
 
     if orders_df.empty:
-        st.info("No orders to display.")
+        st.info("No orders in transit.")
         return
 
-    in_transit = orders_df[orders_df['status'] == 'in_transit']
+    # Show both in_transit AND allocated orders (allocated means assigned to driver but not yet picked up)
+    in_transit = orders_df[orders_df['status'].isin(['in_transit', 'allocated'])]
 
     # Apply search filter
     if search:
@@ -572,30 +680,42 @@ def _render_in_transit(orders_df):
             mask = mask | in_transit['tracking_number'].str.contains(search, case=False, na=False)
         in_transit = in_transit[mask]
 
-    st.info(f"{len(in_transit)} orders currently in transit")
+    st.info(f"{len(in_transit)} orders assigned / in transit")
 
     if in_transit.empty:
         st.info("No orders in transit.")
         return
 
     for _, order in in_transit.iterrows():
+        driver_line = f"Driver: {order['driver_id']}" if order.get('driver_id') else ''
+        eta_line = f"ETA {order['eta']}" if order.get('eta') else ''
+        status_label = "In Transit" if order['status'] == 'in_transit' else "Assigned"
+        badge_class = "status-in-transit" if order['status'] == 'in_transit' else "status-allocated"
+        tracking = order.get('tracking_number', '')
+        tracking_line = f"<div style='font-family: monospace; font-size: 0.75rem; color: rgba(255,255,255,0.4);'>#{tracking}</div>" if tracking else ''
+        created_str = _fmt_sydney(order.get('created_at'))
+
         st.markdown(f"""
         <div class="order-card">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div>
                     <div class="order-id">{order['order_id']}</div>
+                    {tracking_line}
                     <div class="order-customer">{order['customer']}</div>
                     <div class="order-address">{order['address']}, {order.get('suburb', '')} {order.get('postcode', '')}</div>
+                    <div style="margin-top: 0.5rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; color: rgba(255,255,255,0.5);">
+                        {order.get('parcels', 1)} parcel(s) &bull; {order['service_level'].upper()} &bull; Created {created_str}
+                    </div>
                 </div>
                 <div style="text-align: right;">
-                    <span class="status-badge status-in-transit">In Transit</span>
+                    <span class="status-badge {badge_class}">{status_label}</span>
                     <div style="margin-top: 0.5rem; font-family: 'Space Mono', monospace; font-size: 0.9rem; color: #667eea;">
-                        {f"ETA {order['eta']}" if order.get('eta') else ''}
+                        {eta_line}
                     </div>
                 </div>
             </div>
             <div style="margin-top: 0.75rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; color: rgba(255,255,255,0.5);">
-                {f"Driver: {order['driver_id']}" if order.get('driver_id') else ''}
+                {driver_line}
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -646,11 +766,18 @@ def _render_completed(orders_df):
                 if order.get('tracking_number'):
                     st.markdown(f"**Tracking:** `{order['tracking_number']}`")
 
+                delivered_at_str = _fmt_sydney(order.get('delivered_at')) if order.get('delivered_at') else ''
+                created_str = _fmt_sydney(order.get('created_at'))
+
                 st.markdown(f"""
-                **Customer:** {order['customer']}
-                **Deliver to:** {order['address']}, {order.get('suburb', '')} {order.get('postcode', '')}
-                **Parcels:** {order.get('parcels', 1)}
+**Customer:** {order['customer']}
+**Deliver to:** {order['address']}, {order.get('suburb', '')} {order.get('postcode', '')}
+**Parcels:** {order.get('parcels', 1)}
+**Created:** {created_str}
                 """)
+
+                if delivered_at_str:
+                    st.markdown(f"**⏱️ Delivered at:** {delivered_at_str}")
 
                 if order.get('driver_id'):
                     st.markdown(f"**Driver:** {order['driver_id']}")

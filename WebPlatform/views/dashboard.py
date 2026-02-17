@@ -173,6 +173,38 @@ def render(orders_df, drivers_df, runs_df, data_manager=None):
                         <div><span style="color: #9ca3af;">●</span> Offline</div>
                     </div>
                     """, unsafe_allow_html=True)
+
+                    # Driver location detail — click a driver to see their location
+                    st.markdown("---")
+                    st.markdown("**📍 View Driver Location**")
+                    driver_names = [d['driver_name'] for d in map_data]
+                    selected_driver_name = st.selectbox(
+                        "Select a driver to view their location",
+                        ["— select —"] + driver_names,
+                        key="dashboard_driver_select",
+                        label_visibility="collapsed",
+                    )
+                    if selected_driver_name and selected_driver_name != "— select —":
+                        selected = next((d for d in map_data if d['driver_name'] == selected_driver_name), None)
+                        if selected:
+                            lat = selected['lat']
+                            lng = selected['lng']
+                            maps_url = f"https://www.google.com/maps?q={lat},{lng}"
+                            updated_at = drivers_with_location[
+                                drivers_with_location['name'] == selected_driver_name
+                            ]['location_updated_at'].values
+                            updated_str = str(updated_at[0])[:19].replace('T', ' ') if len(updated_at) > 0 else 'Unknown'
+                            st.markdown(f"""
+<div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 14px; margin-top: 8px;">
+    <b>🚚 {selected['driver_name']}</b><br>
+    <span style="color: rgba(255,255,255,0.6);">{selected['vehicle']}</span><br><br>
+    📍 <b>Coordinates:</b> {lat:.5f}, {lng:.5f}<br>
+    🕐 <b>Last updated:</b> {updated_str}<br><br>
+    <a href="{maps_url}" target="_blank" style="background:#667eea; color:white; padding:6px 14px; border-radius:6px; text-decoration:none; font-size:0.85rem;">
+        Open in Google Maps →
+    </a>
+</div>
+                            """, unsafe_allow_html=True)
                 else:
                     st.info("No driver location data available.")
             else:

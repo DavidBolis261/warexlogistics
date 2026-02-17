@@ -62,7 +62,7 @@ class PostgresStore:
                 )
             """))
 
-            # Add signature and photo columns if they don't exist (for existing databases)
+            # Add signature, photo, and delivered_at columns if they don't exist (for existing databases)
             try:
                 conn.execute(text("""
                     ALTER TABLE orders ADD COLUMN IF NOT EXISTS signature TEXT
@@ -70,9 +70,12 @@ class PostgresStore:
                 conn.execute(text("""
                     ALTER TABLE orders ADD COLUMN IF NOT EXISTS photo TEXT
                 """))
+                conn.execute(text("""
+                    ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivered_at TIMESTAMP
+                """))
                 conn.commit()
             except Exception as e:
-                logger.warning(f"Could not add signature/photo columns (may already exist): {e}")
+                logger.warning(f"Could not add signature/photo/delivered_at columns (may already exist): {e}")
 
             # Drivers table
             conn.execute(text("""

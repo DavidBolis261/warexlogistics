@@ -64,27 +64,33 @@ def render(data_manager):
         st.warning("No orders match the selected filters.")
         return
 
-    # Preview
-    st.markdown("### Preview")
-    preview_order = filtered_df.iloc[0].to_dict()
-    preview_html = generate_shipping_label_html(preview_order)
+    # Show ALL labels on screen (not just a single preview)
+    st.markdown("### All Labels")
 
-    # Use components.html to render the label properly
+    all_labels_inner_html = ""
+    for _, order in filtered_df.iterrows():
+        order_dict = order.to_dict()
+        all_labels_inner_html += generate_shipping_label_html(order_dict)
+
+    # Render all labels in an iframe with scroll
+    label_height = min(800, len(filtered_df) * 350)
     components.html(f"""
     <!DOCTYPE html>
     <html>
     <head>
         <style>
-            body {{ margin: 0; padding: 20px; background: #f5f5f5; }}
+            body {{ margin: 0; padding: 20px; background: #f5f5f5; font-family: sans-serif; }}
+            .label-count {{ font-size: 14px; color: #555; margin-bottom: 16px; }}
         </style>
     </head>
     <body>
-        {preview_html}
+        <div class="label-count">{len(filtered_df)} label(s) shown below</div>
+        {all_labels_inner_html}
     </body>
     </html>
-    """, height=600)
+    """, height=max(400, label_height), scrolling=True)
 
-    # Print button
+    # Print / Download button
     if st.button("🖨️ Print All Labels", type="primary", use_container_width=True):
         # Generate all labels
         all_labels_html = """

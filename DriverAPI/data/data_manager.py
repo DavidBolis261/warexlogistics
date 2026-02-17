@@ -154,7 +154,13 @@ class DataManager:
         return {'success': True}
 
     def allocate_order(self, order_id, driver_name):
-        self.store.update_order_status(order_id, 'allocated', driver_id=driver_name)
+        """Assign a driver to an order and move it to in_transit."""
+        self.store.update_order_status(order_id, 'in_transit', driver_id=driver_name)
+        # Send in_transit email notification to customer
+        if is_email_configured(self):
+            order = self.store.get_order_by_id(order_id)
+            if order and order.get('email'):
+                send_status_update(self, dict(order), 'in_transit')
 
     def update_order(self, order_id, **fields):
         """Update order fields (status, zone, driver_id, etc.)."""

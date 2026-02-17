@@ -184,6 +184,7 @@ class LocalStore:
             'zone': 'TEXT',
             'signature': 'TEXT',
             'photo': 'TEXT',
+            'delivered_at': 'TIMESTAMP',
         }
         for col, col_type in new_cols.items():
             if col not in existing:

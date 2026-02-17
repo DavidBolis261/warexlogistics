@@ -128,8 +128,16 @@ def create_driver_api(app: Flask, data_manager):
         if orders_df.empty:
             return jsonify({'runs': [], 'total': 0}), 200
 
-        # Filter orders by driver_id
-        driver_orders = orders_df[orders_df['driver_id'] == driver_id]
+        # Get driver name so we can match orders assigned by name OR by ID
+        # (web UI stores driver NAME in the driver_id field of orders)
+        drivers_df = data_manager.get_drivers()
+        driver_match = drivers_df[drivers_df['driver_id'] == driver_id]
+        driver_name = driver_match.iloc[0]['name'] if not driver_match.empty else None
+
+        mask = orders_df['driver_id'] == driver_id
+        if driver_name:
+            mask = mask | (orders_df['driver_id'] == driver_name)
+        driver_orders = orders_df[mask]
 
         if driver_orders.empty:
             return jsonify({'runs': [], 'total': 0}), 200
@@ -186,8 +194,15 @@ def create_driver_api(app: Flask, data_manager):
         if orders_df.empty:
             return jsonify({'stops': [], 'total': 0}), 200
 
-        # Filter by driver_id
-        driver_orders = orders_df[orders_df['driver_id'] == driver_id]
+        # Match by driver_id OR driver name (web UI stores name in driver_id field)
+        drivers_df = data_manager.get_drivers()
+        driver_match = drivers_df[drivers_df['driver_id'] == driver_id]
+        driver_name = driver_match.iloc[0]['name'] if not driver_match.empty else None
+
+        mask = orders_df['driver_id'] == driver_id
+        if driver_name:
+            mask = mask | (orders_df['driver_id'] == driver_name)
+        driver_orders = orders_df[mask]
 
         if driver_orders.empty:
             return jsonify({'stops': [], 'total': 0}), 200
@@ -292,6 +307,10 @@ def create_driver_api(app: Flask, data_manager):
         # Prepare update data
         update_data = {'status': backend_status}
 
+        # Record delivery timestamp for completed/failed stops
+        if backend_status in ('delivered', 'failed'):
+            update_data['delivered_at'] = datetime.now().isoformat()
+
         # Save signature and photo as base64 data URLs for display
         if signature_base64:
             update_data['signature'] = f"data:image/png;base64,{signature_base64}"
@@ -303,18 +322,19 @@ def create_driver_api(app: Flask, data_manager):
         data_manager.update_order(stop_id, **update_data)
 
         # Send status update email to customer
-        from utils.email_service import send_status_update_email, is_email_configured
+        from utils.email_service import send_status_update, is_email_configured
 
         email_sent = False
         if is_email_configured(data_manager):
-            # Get order details to send email
+            # Get fresh order details after update to send email
             orders_df = data_manager.get_orders()
-            order = orders_df[orders_df['order_id'] == stop_id]
+            order_match = orders_df[orders_df['order_id'] == stop_id]
 
-            if not order.empty and order.iloc[0].get('email'):
-                order_data = order.iloc[0].to_dict()
-                result = send_status_update_email(data_manager, order_data)
-                email_sent = result.get('success', False)
+            if not order_match.empty:
+                order_data = order_match.iloc[0].to_dict()
+                if order_data.get('email'):
+                    result = send_status_update(data_manager, order_data, backend_status)
+                    email_sent = result.get('success', False)
 
         return jsonify({
             'success': True,
