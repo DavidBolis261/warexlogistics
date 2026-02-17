@@ -696,29 +696,25 @@ def _render_in_transit(orders_df):
         created_str = _fmt_sydney(order.get('created_at'))
 
         st.markdown(f"""
-        <div class="order-card">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div>
-                    <div class="order-id">{order['order_id']}</div>
-                    {tracking_line}
-                    <div class="order-customer">{order['customer']}</div>
-                    <div class="order-address">{order['address']}, {order.get('suburb', '')} {order.get('postcode', '')}</div>
-                    <div style="margin-top: 0.5rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; color: rgba(255,255,255,0.5);">
-                        {order.get('parcels', 1)} parcel(s) &bull; {order['service_level'].upper()} &bull; Created {created_str}
-                    </div>
-                </div>
-                <div style="text-align: right;">
-                    <span class="status-badge {badge_class}">{status_label}</span>
-                    <div style="margin-top: 0.5rem; font-family: 'Space Mono', monospace; font-size: 0.9rem; color: #667eea;">
-                        {eta_line}
-                    </div>
-                </div>
-            </div>
-            <div style="margin-top: 0.75rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; color: rgba(255,255,255,0.5);">
-                {driver_line}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+<div class="order-card">
+<div style="display: flex; justify-content: space-between; align-items: flex-start;">
+<div>
+<div class="order-id">{order['order_id']}</div>
+{tracking_line}
+<div class="order-customer">{order['customer']}</div>
+<div class="order-address">{order['address']}, {order.get('suburb', '')} {order.get('postcode', '')}</div>
+<div style="margin-top: 0.5rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; color: rgba(255,255,255,0.5);">
+{order.get('parcels', 1)} parcel(s) &bull; {order['service_level'].upper()} &bull; Created {created_str}
+</div>
+</div>
+<div style="text-align: right;">
+<span class="status-badge {badge_class}">{status_label}</span>
+<div style="margin-top: 0.5rem; font-family: 'Space Mono', monospace; font-size: 0.9rem; color: #667eea;">{eta_line}</div>
+</div>
+</div>
+<div style="margin-top: 0.75rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; color: rgba(255,255,255,0.5);">{driver_line}</div>
+</div>
+""", unsafe_allow_html=True)
 
 
 def _render_completed(orders_df):
@@ -859,15 +855,15 @@ def _render_inbound_receipts(data_manager):
         st.markdown("### Recent Receipts")
         for _, receipt in receipts.iterrows():
             st.markdown(f"""
-            <div class="order-card">
-                <div style="display: flex; justify-content: space-between;">
-                    <div>
-                        <div class="order-id">{receipt.get('shipment_number', 'N/A')}</div>
-                        <div class="order-customer">{receipt.get('supplier_name', 'Unknown')}</div>
-                    </div>
-                    <span class="status-badge status-pending">{receipt.get('status', 'pending')}</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+<div class="order-card">
+<div style="display: flex; justify-content: space-between;">
+<div>
+<div class="order-id">{receipt.get('shipment_number', 'N/A')}</div>
+<div class="order-customer">{receipt.get('supplier_name', 'Unknown')}</div>
+</div>
+<span class="status-badge status-pending">{receipt.get('status', 'pending')}</span>
+</div>
+</div>
+""", unsafe_allow_html=True)
     else:
         st.caption("No receipts yet. Create one above.")
