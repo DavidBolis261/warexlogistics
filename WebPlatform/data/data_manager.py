@@ -22,6 +22,15 @@ from utils.email_service import send_order_confirmation, send_status_update, is_
 from api.logistics import create_kitting_job as api_create_kitting_job
 
 
+def _streamlit_has_context() -> bool:
+    """Return True only when called from a live Streamlit script thread."""
+    try:
+        from streamlit.runtime.scriptrunner import get_script_run_ctx
+        return get_script_run_ctx() is not None
+    except Exception:
+        return False
+
+
 class DataManager:
     """Unified data access layer.
 
@@ -61,10 +70,13 @@ class DataManager:
 
     @property
     def data_mode(self):
-        # Streamlit session_state only exists when running inside a Streamlit process.
-        # The Flask driver API runs as a standalone server with no Streamlit context,
-        # so we fall back to 'local' (SQLite) or 'live' (Postgres) based on the store type.
-        try:
+        # Only access Streamlit session_state when actually running inside Streamlit.
+        # The Flask driver API is a separate process — importing Streamlit there
+        # produces noisy "missing ScriptRunContext" warnings and the session_state
+        # returns defaults rather than raising, making the fallback unreachable.
+        import sys
+        in_streamlit = 'streamlit' in sys.modules and _streamlit_has_context()
+        if in_streamlit:
             import streamlit as st
             mode = st.session_state.get('data_mode', 'Local Only (SQLite)')
             if 'Live' in mode and self.is_live:
@@ -72,12 +84,9 @@ class DataManager:
             elif 'Local' in mode:
                 return 'local'
             return 'demo'
-        except Exception:
-            # Outside Streamlit — infer mode from store type
-            from data.postgres_store import PostgresStore
-            if isinstance(self.store, PostgresStore):
-                return 'live'
-            return 'local'
+        # Flask / standalone process — infer from store type
+        from data.postgres_store import PostgresStore
+        return 'live' if isinstance(self.store, PostgresStore) else 'local'
 
     # === Orders ===
 

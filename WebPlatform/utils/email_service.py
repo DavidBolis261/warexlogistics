@@ -21,10 +21,19 @@ STATUS_LABELS = {
 
 
 def _get_email_config(data_manager):
-    """Load email settings from environment and database."""
-    api_key = os.environ.get('RESEND_API_KEY', '') or data_manager.get_setting('resend_api_key', '')
-    from_email = data_manager.get_setting('email_from_address', '')
-    enabled = data_manager.get_setting('email_notifications_enabled', 'false').lower() == 'true'
+    """Load email settings — env vars take priority over DB settings."""
+    # Env vars are the authoritative source in production (Railway).
+    # DB settings are the fallback for local / dashboard-configured installs.
+    api_key = (
+        os.environ.get('RESEND_API_KEY', '').strip()
+        or data_manager.get_setting('resend_api_key', '')
+    )
+    from_email = (
+        os.environ.get('EMAIL_FROM_ADDRESS', '').strip()
+        or data_manager.get_setting('email_from_address', '')
+    )
+    db_enabled = data_manager.get_setting('email_notifications_enabled', 'false')
+    enabled = str(db_enabled).lower() == 'true'
     return {
         'api_key': api_key,
         'from_email': from_email,
