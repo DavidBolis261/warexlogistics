@@ -18,8 +18,11 @@ def render(orders_df, drivers_df, runs_df, data_manager):
             st.markdown("### Active Routes Map")
 
             # Select a run to visualize
-            run_options = [f"{run['run_id']} - {run.get('driver_name', 'Unassigned')} ({run.get('zone', '')})"
-                          for _, run in active_runs.iterrows()]
+            run_options = (
+                active_runs['run_id'].astype(str) + ' - ' +
+                active_runs['driver_name'].fillna('Unassigned') + ' (' +
+                active_runs['zone'].fillna('') + ')'
+            ).tolist()
 
             selected_run_display = st.selectbox("Select Run to Visualize", run_options, key="route_viz_select")
 

@@ -80,41 +80,29 @@ def render(orders_df, drivers_df, runs_df, data_manager=None):
             ]
 
             if not drivers_with_location.empty:
-                map_data = []
+                # Vectorized color coding by status
+                status_color_map = {
+                    'available': [16, 185, 129, 200],
+                    'on_route': [59, 130, 246, 200],
+                    'busy': [255, 165, 0, 200],
+                }
+                default_color = [156, 163, 175, 200]
 
-                # Add each driver's location to the map
-                for _, driver in drivers_with_location.iterrows():
-                    lat = driver.get('latitude')
-                    lng = driver.get('longitude')
+                d = drivers_with_location.copy()
+                d['color'] = d['status'].map(status_color_map).apply(
+                    lambda c: c if isinstance(c, list) else default_color
+                )
+                d['vehicle'] = d['vehicle_type'].fillna('') + ' - ' + d['plate'].fillna('')
+                d['driver_name'] = d['name'].fillna('Unknown')
+                d['active_orders'] = d['active_orders'].fillna(0)
+                d['deliveries_today'] = d['deliveries_today'].fillna(0)
+                d['size'] = 150
 
-                    if lat and lng:
-                        # Color code by driver status
-                        status = driver.get('status', 'available')
-                        if status == 'available':
-                            color = [16, 185, 129, 200]  # Green - available
-                        elif status == 'on_route':
-                            color = [59, 130, 246, 200]  # Blue - on route
-                        elif status == 'busy':
-                            color = [255, 165, 0, 200]  # Orange - busy
-                        else:
-                            color = [156, 163, 175, 200]  # Gray - offline
-
-                        # Get driver stats
-                        active_orders = driver.get('active_orders', 0)
-                        deliveries_today = driver.get('deliveries_today', 0)
-
-                        map_data.append({
-                            'lat': lat,
-                            'lng': lng,
-                            'driver_id': driver.get('driver_id', ''),
-                            'driver_name': driver.get('name', 'Unknown'),
-                            'vehicle': f"{driver.get('vehicle_type', '')} - {driver.get('plate', '')}",
-                            'status': status,
-                            'active_orders': active_orders,
-                            'deliveries_today': deliveries_today,
-                            'color': color,
-                            'size': 150
-                        })
+                map_data = d[['latitude', 'longitude', 'driver_id', 'driver_name',
+                              'vehicle', 'status', 'active_orders', 'deliveries_today',
+                              'color', 'size']].rename(
+                    columns={'latitude': 'lat', 'longitude': 'lng'}
+                ).to_dict('records')
 
                 if map_data:
                     # Create DataFrame

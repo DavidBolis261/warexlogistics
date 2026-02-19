@@ -298,46 +298,46 @@ class PostgresStore:
         if drivers_df.empty:
             return drivers_df
 
-        # Calculate real statistics for each driver
-        for idx, driver in drivers_df.iterrows():
-            driver_id = driver['driver_id']
+        today = datetime.now().strftime('%Y-%m-%d')
 
-            # Get all orders for this driver
-            orders = pd.read_sql(
-                "SELECT * FROM orders WHERE driver_id = %(driver_id)s",
-                self.engine,
-                params={'driver_id': driver_id}
-            )
+        # Single aggregation query replaces N+1 per-driver queries
+        stats_df = pd.read_sql(
+            """
+            SELECT
+                driver_id,
+                SUM(CASE WHEN status IN ('allocated', 'in_transit') THEN 1 ELSE 0 END) AS active_orders,
+                SUM(CASE WHEN status = 'delivered' AND created_at::date = %(today)s::date THEN 1 ELSE 0 END) AS deliveries_today,
+                SUM(CASE WHEN status IN ('delivered', 'failed') THEN 1 ELSE 0 END) AS total_completed,
+                SUM(CASE WHEN status = 'delivered' THEN 1 ELSE 0 END) AS total_delivered
+            FROM orders
+            WHERE driver_id IS NOT NULL
+            GROUP BY driver_id
+            """,
+            self.engine,
+            params={'today': today}
+        )
 
-            if not orders.empty:
-                # Calculate deliveries today
-                today = datetime.now().strftime('%Y-%m-%d')
-                deliveries_today = len(orders[
-                    (orders['status'] == 'delivered') &
-                    (orders['order_date'] == today)
-                ])
+        if stats_df.empty:
+            drivers_df['deliveries_today'] = 0
+            drivers_df['active_orders'] = 0
+            return drivers_df
 
-                # Calculate active orders
-                active_orders = len(orders[
-                    orders['status'].isin(['allocated', 'in_transit'])
-                ])
+        drivers_df = drivers_df.merge(stats_df, on='driver_id', how='left')
 
-                # Calculate success rate
-                completed_orders = orders[orders['status'].isin(['delivered', 'failed'])]
-                if len(completed_orders) > 0:
-                    delivered_count = len(completed_orders[completed_orders['status'] == 'delivered'])
-                    success_rate = delivered_count / len(completed_orders)
-                else:
-                    success_rate = driver['success_rate']
+        # Fill NaN for drivers with no orders
+        drivers_df['active_orders'] = drivers_df['active_orders'].fillna(0).astype(int)
+        drivers_df['deliveries_today'] = drivers_df['deliveries_today'].fillna(0).astype(int)
+        drivers_df['total_completed'] = drivers_df['total_completed'].fillna(0)
+        drivers_df['total_delivered'] = drivers_df['total_delivered'].fillna(0)
 
-                # Update the dataframe
-                drivers_df.at[idx, 'deliveries_today'] = deliveries_today
-                drivers_df.at[idx, 'active_orders'] = active_orders
-                drivers_df.at[idx, 'success_rate'] = success_rate
-            else:
-                drivers_df.at[idx, 'deliveries_today'] = 0
-                drivers_df.at[idx, 'active_orders'] = 0
+        # Vectorized success rate calculation
+        has_completed = drivers_df['total_completed'] > 0
+        drivers_df.loc[has_completed, 'success_rate'] = (
+            drivers_df.loc[has_completed, 'total_delivered'] /
+            drivers_df.loc[has_completed, 'total_completed']
+        )
 
+        drivers_df = drivers_df.drop(columns=['total_completed', 'total_delivered'])
         return drivers_df
 
     def save_driver(self, driver_data):

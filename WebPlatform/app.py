@@ -175,6 +175,7 @@ with st.sidebar:
     st.caption(f"Last updated: {datetime.now().strftime('%H:%M:%S')}")
 
     if st.button("🔄 Refresh Data", use_container_width=True):
+        st.cache_data.clear()
         st.rerun()
 
     st.markdown("---")
@@ -188,10 +189,23 @@ with st.sidebar:
         st.rerun()
 
 
-# LOAD DATA
-orders_df = dm.get_orders()
-drivers_df = dm.get_drivers()
-runs_df = dm.get_runs()
+# LOAD DATA — cached with 30-second TTL to avoid redundant DB queries on every rerun
+@st.cache_data(ttl=30, show_spinner=False)
+def _cached_get_orders(_dm_id):
+    return dm.get_orders()
+
+@st.cache_data(ttl=30, show_spinner=False)
+def _cached_get_drivers(_dm_id):
+    return dm.get_drivers()
+
+@st.cache_data(ttl=30, show_spinner=False)
+def _cached_get_runs(_dm_id):
+    return dm.get_runs()
+
+_dm_id = id(dm)
+orders_df = _cached_get_orders(_dm_id)
+drivers_df = _cached_get_drivers(_dm_id)
+runs_df = _cached_get_runs(_dm_id)
 
 
 # HEADER
