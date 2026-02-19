@@ -175,15 +175,37 @@ class DataManager:
         self.store.update_order_fields(order_id, **fields)
 
         # Send status update email if status changed
-        if 'status' in fields and is_email_configured(self):
-            try:
-                order = self.store.get_order_by_id(order_id)
-                if order and order.get('email'):
-                    result = send_status_update(self, dict(order), fields['status'])
-                    if not result.get('success'):
-                        logger.warning(f"Email not sent for order {order_id}: {result.get('error')}")
-            except Exception as exc:
-                logger.error(f"Email send failed for order {order_id}: {exc}")
+        if 'status' not in fields:
+            return
+
+        new_status = fields['status']
+        logger.info(f"[email] order {order_id} status → {new_status}")
+
+        if not is_email_configured(self):
+            logger.warning(
+                f"[email] skipped for order {order_id}: email not configured "
+                f"(check RESEND_API_KEY env var, email_from_address and "
+                f"email_notifications_enabled settings in the dashboard)"
+            )
+            return
+
+        try:
+            order = self.store.get_order_by_id(order_id)
+            if not order:
+                logger.warning(f"[email] skipped for order {order_id}: order not found in DB")
+                return
+            to_email = order.get('email', '')
+            if not to_email:
+                logger.warning(f"[email] skipped for order {order_id}: no customer email on record")
+                return
+            logger.info(f"[email] sending '{new_status}' notification to {to_email}")
+            result = send_status_update(self, dict(order), new_status)
+            if result.get('success'):
+                logger.info(f"[email] sent successfully to {to_email}")
+            else:
+                logger.warning(f"[email] send failed for order {order_id}: {result.get('error')}")
+        except Exception as exc:
+            logger.error(f"[email] exception for order {order_id}: {exc}", exc_info=True)
 
     # === Drivers ===
 

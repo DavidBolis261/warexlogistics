@@ -8,11 +8,20 @@ Usage:
 The API will be available at http://localhost:5000/api/driver/...
 """
 
+import logging
+import os
+
 from flask import Flask
 from flask_cors import CORS
 from data.data_manager import DataManager
 from api.driver_api import create_driver_api
-import os
+
+# Configure logging so every [email] line appears in stdout / Railway logs
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -31,6 +40,19 @@ data_manager = DataManager()
 
 # Register driver API routes
 create_driver_api(app, data_manager)
+
+# ── Email configuration check (printed once at startup) ──────────────────────
+from utils.email_service import is_email_configured, _get_email_config
+_ecfg = _get_email_config(data_manager)
+_env_key = bool(os.environ.get('RESEND_API_KEY', '').strip())
+print("=" * 60)
+print("📧 Email configuration:")
+print(f"   RESEND_API_KEY env var : {'✅ set' if _env_key else '❌ NOT SET'}")
+print(f"   resend_api_key (DB)    : {'✅ set' if _ecfg.get('api_key') else '❌ not set'}")
+print(f"   email_from_address     : {_ecfg.get('from_email') or '❌ not set'}")
+print(f"   email_notifications_enabled (DB): {_ecfg.get('enabled')}")
+print(f"   → Will send emails     : {'✅ YES' if is_email_configured(data_manager) else '❌ NO'}")
+print("=" * 60)
 
 # Health check endpoint
 @app.route('/health', methods=['GET'])

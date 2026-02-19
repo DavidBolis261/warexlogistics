@@ -33,9 +33,20 @@ def _get_email_config(data_manager):
 
 
 def is_email_configured(data_manager):
-    """Check if email is properly configured."""
+    """Check if email is properly configured.
+
+    Enabled when:
+    - RESEND_API_KEY env var is set (always treated as enabled), OR
+    - email_notifications_enabled is 'true' in DB settings
+    AND api_key + from_email are present in either source.
+    """
     config = _get_email_config(data_manager)
-    return config['enabled'] and config['api_key'] and config['from_email']
+    # If the API key comes from the environment variable, treat notifications
+    # as enabled regardless of the DB toggle — the env var being set is
+    # sufficient intent.
+    env_key_present = bool(os.environ.get('RESEND_API_KEY', '').strip())
+    enabled = config['enabled'] or env_key_present
+    return enabled and bool(config['api_key']) and bool(config['from_email'])
 
 
 def _send_email(config, to_email, subject, html_body):
