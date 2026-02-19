@@ -192,47 +192,42 @@ def create_driver_api(app: Flask, data_manager):
         if driver_orders.empty:
             return jsonify({'stops': [], 'total': 0}), 200
 
-        # Convert to stops format
-        stops_list = []
-        for idx, (_, order) in enumerate(driver_orders.iterrows(), start=1):
-            # Map order status to stop status
-            stop_status = 'pending'
-            if order['status'] == 'in_transit':
-                stop_status = 'inProgress'
-            elif order['status'] == 'delivered':
-                stop_status = 'delivered'
-            elif order['status'] == 'failed':
-                stop_status = 'failed'
-            elif order['status'] == 'allocated':
-                stop_status = 'pending'
+        # Map backend statuses to mobile app stop statuses (vectorized)
+        status_map = {'in_transit': 'inProgress', 'delivered': 'delivered', 'failed': 'failed'}
+        driver_orders = driver_orders.reset_index(drop=True)
+        driver_orders['stop_status'] = driver_orders['status'].map(status_map).fillna('pending')
 
-            stops_list.append({
-                'id': order['order_id'],
-                'sequenceNumber': idx,
-                'status': stop_status,
+        # Build stops list without iterrows
+        stops_list = [
+            {
+                'id': row['order_id'],
+                'sequenceNumber': seq,
+                'status': row['stop_status'],
                 'order': {
-                    'id': order['order_id'],
-                    'orderNumber': order['order_id'],
+                    'id': row['order_id'],
+                    'orderNumber': row['order_id'],
                     'customer': {
-                        'id': f"C-{idx}",
-                        'name': order.get('customer', 'Customer'),
-                        'phone': order.get('phone', ''),
-                        'email': order.get('email', '')
+                        'id': f"C-{seq}",
+                        'name': row.get('customer') or 'Customer',
+                        'phone': row.get('phone') or '',
+                        'email': row.get('email') or '',
                     },
                     'address': {
-                        'street': order.get('address', ''),
-                        'suburb': order.get('suburb', ''),
-                        'postcode': order.get('postcode', ''),
-                        'state': order.get('state', 'NSW'),
-                        'latitude': -33.8688,  # TODO: geocode real lat/lng
-                        'longitude': 151.2093
+                        'street': row.get('address') or '',
+                        'suburb': row.get('suburb') or '',
+                        'postcode': row.get('postcode') or '',
+                        'state': row.get('state') or 'NSW',
+                        'latitude': -33.8688,
+                        'longitude': 151.2093,
                     },
-                    'parcels': int(order.get('parcels', 1)),
-                    'serviceLevel': order.get('service_level', 'standard'),
-                    'specialInstructions': order.get('instructions', ''),
-                    'createdAt': order.get('created_at', datetime.now().isoformat())
-                }
-            })
+                    'parcels': int(row.get('parcels') or 1),
+                    'serviceLevel': row.get('service_level') or 'standard',
+                    'specialInstructions': row.get('special_instructions') or '',
+                    'createdAt': row.get('created_at') or datetime.now().isoformat(),
+                },
+            }
+            for seq, row in enumerate(driver_orders.to_dict('records'), start=1)
+        ]
 
         return jsonify({
             'stops': stops_list,

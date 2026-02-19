@@ -61,13 +61,23 @@ class DataManager:
 
     @property
     def data_mode(self):
-        import streamlit as st
-        mode = st.session_state.get('data_mode', 'Local Only (SQLite)')
-        if 'Live' in mode and self.is_live:
-            return 'live'
-        elif 'Local' in mode:
+        # Streamlit session_state only exists when running inside a Streamlit process.
+        # The Flask driver API runs as a standalone server with no Streamlit context,
+        # so we fall back to 'local' (SQLite) or 'live' (Postgres) based on the store type.
+        try:
+            import streamlit as st
+            mode = st.session_state.get('data_mode', 'Local Only (SQLite)')
+            if 'Live' in mode and self.is_live:
+                return 'live'
+            elif 'Local' in mode:
+                return 'local'
+            return 'demo'
+        except Exception:
+            # Outside Streamlit — infer mode from store type
+            from data.postgres_store import PostgresStore
+            if isinstance(self.store, PostgresStore):
+                return 'live'
             return 'local'
-        return 'demo'
 
     # === Orders ===
 
