@@ -1,9 +1,12 @@
 import random
 import json
 import hashlib
+import logging
 import secrets
 import os
 from datetime import datetime, timedelta
+
+logger = logging.getLogger(__name__)
 
 import pandas as pd
 
@@ -163,9 +166,14 @@ class DataManager:
 
         # Send status update email if status changed
         if 'status' in fields and is_email_configured(self):
-            order = self.store.get_order_by_id(order_id)
-            if order and order.get('email'):
-                send_status_update(self, dict(order), fields['status'])
+            try:
+                order = self.store.get_order_by_id(order_id)
+                if order and order.get('email'):
+                    result = send_status_update(self, dict(order), fields['status'])
+                    if not result.get('success'):
+                        logger.warning(f"Email not sent for order {order_id}: {result.get('error')}")
+            except Exception as exc:
+                logger.error(f"Email send failed for order {order_id}: {exc}")
 
     # === Drivers ===
 

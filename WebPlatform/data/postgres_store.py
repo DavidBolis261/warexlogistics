@@ -271,7 +271,8 @@ class PostgresStore:
             self.engine,
             params={'order_id': order_id}
         )
-        return result.iloc[0] if not result.empty else None
+        # Return a plain dict (like local_store does) so callers can use .get()
+        return result.iloc[0].to_dict() if not result.empty else None
 
     def get_order_by_tracking(self, tracking_number):
         """Get order by tracking number."""

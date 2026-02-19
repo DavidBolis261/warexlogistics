@@ -46,6 +46,7 @@ def _send_email(config, to_email, subject, html_body):
             headers={
                 'Authorization': f"Bearer {config['api_key']}",
                 'Content-Type': 'application/json',
+                'Resend-API-Version': '2023-06-1',
             },
             json={
                 'from': config['from_email'],
@@ -56,7 +57,7 @@ def _send_email(config, to_email, subject, html_body):
             timeout=15,
         )
 
-        if response.status_code == 200:
+        if response.status_code in (200, 201):
             logger.info(f"Email sent to {to_email}: {subject}")
             return {'success': True}
         else:
