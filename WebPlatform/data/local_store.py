@@ -427,14 +427,22 @@ class LocalStore:
             params=(today,)
         )
 
+        # Drop stale stat columns from the drivers table so the merge never
+        # produces _x / _y suffixes and the columns are always present.
+        stat_cols = ['active_orders', 'deliveries_today', 'total_completed', 'total_delivered']
+        drivers_df = drivers_df.drop(
+            columns=[c for c in stat_cols if c in drivers_df.columns],
+            errors='ignore',
+        )
+
         if stats_df.empty:
-            drivers_df['deliveries_today'] = 0
             drivers_df['active_orders'] = 0
+            drivers_df['deliveries_today'] = 0
             return drivers_df
 
         drivers_df = drivers_df.merge(stats_df, on='driver_id', how='left')
 
-        # Fill NaN for drivers with no orders
+        # Fill NaN for drivers that have no matching orders
         drivers_df['active_orders'] = drivers_df['active_orders'].fillna(0).astype(int)
         drivers_df['deliveries_today'] = drivers_df['deliveries_today'].fillna(0).astype(int)
         drivers_df['total_completed'] = drivers_df['total_completed'].fillna(0)
