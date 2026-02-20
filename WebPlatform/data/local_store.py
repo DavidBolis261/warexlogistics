@@ -217,6 +217,21 @@ class LocalStore:
 
         self.conn.commit()
 
+        # Migrate drivers table — add location columns if missing
+        driver_existing = {row[1] for row in self.conn.execute("PRAGMA table_info(drivers)").fetchall()}
+        driver_new_cols = {
+            'latitude': 'REAL',
+            'longitude': 'REAL',
+            'location_updated_at': 'TEXT',
+        }
+        for col, col_type in driver_new_cols.items():
+            if col not in driver_existing:
+                try:
+                    self.conn.execute(f"ALTER TABLE drivers ADD COLUMN {col} {col_type}")
+                except Exception:
+                    pass
+        self.conn.commit()
+
         # Backfill tracking numbers for existing orders that don't have one
         null_orders = self.conn.execute(
             "SELECT order_id FROM orders WHERE tracking_number IS NULL"

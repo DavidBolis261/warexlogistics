@@ -23,11 +23,15 @@ class PostgresStore:
         if not self.database_url:
             raise ValueError("DATABASE_URL environment variable not set")
 
-        # Create SQLAlchemy engine
+        # Create SQLAlchemy engine with connection timeouts for Railway
         self.engine = create_engine(
             self.database_url,
-            poolclass=NullPool,  # Railway recommendation
-            echo=False
+            poolclass=NullPool,  # Railway recommendation — no pool, fresh connection each time
+            echo=False,
+            connect_args={
+                'connect_timeout': 10,         # 10s to establish connection
+                'options': '-c statement_timeout=30000',  # 30s max query time
+            },
         )
 
         # Create tables on first run
@@ -216,6 +220,9 @@ class PostgresStore:
             ('orders', 'proof_signature',      'TEXT'),
             ('orders', 'delivery_notes',       'TEXT'),
             ('orders', 'special_instructions', 'TEXT'),
+            ('drivers', 'latitude',            'DOUBLE PRECISION'),
+            ('drivers', 'longitude',           'DOUBLE PRECISION'),
+            ('drivers', 'location_updated_at', 'TIMESTAMP'),
         ]
         for table, col, col_def in migrations:
             try:

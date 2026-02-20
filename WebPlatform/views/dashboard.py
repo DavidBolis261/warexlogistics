@@ -72,7 +72,7 @@ def render(orders_df, drivers_df, runs_df, data_manager=None):
         st.markdown('<div class="section-header">Driver Location Map</div>', unsafe_allow_html=True)
 
         # Build map data from driver locations instead of orders
-        if not drivers_df.empty:
+        if not drivers_df.empty and 'latitude' in drivers_df.columns and 'longitude' in drivers_df.columns:
             # Filter drivers with location data
             drivers_with_location = drivers_df[
                 (drivers_df['latitude'].notna()) &
@@ -178,10 +178,12 @@ def render(orders_df, drivers_df, runs_df, data_manager=None):
                             lat = selected['lat']
                             lng = selected['lng']
                             maps_url = f"https://www.google.com/maps?q={lat},{lng}"
-                            updated_at = drivers_with_location[
-                                drivers_with_location['name'] == selected_driver_name
-                            ]['location_updated_at'].values
-                            updated_str = str(updated_at[0])[:19].replace('T', ' ') if len(updated_at) > 0 else 'Unknown'
+                            updated_str = 'Unknown'
+                            if 'location_updated_at' in drivers_with_location.columns:
+                                updated_at = drivers_with_location[
+                                    drivers_with_location['name'] == selected_driver_name
+                                ]['location_updated_at'].values
+                                updated_str = str(updated_at[0])[:19].replace('T', ' ') if len(updated_at) > 0 and pd.notna(updated_at[0]) else 'Unknown'
                             st.markdown(f"""
 <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 14px; margin-top: 8px;">
     <b>🚚 {selected['driver_name']}</b><br>
@@ -197,8 +199,10 @@ def render(orders_df, drivers_df, runs_df, data_manager=None):
                     st.info("No driver location data available.")
             else:
                 st.info("No drivers currently sharing their location.")
-        else:
+        elif drivers_df.empty:
             st.info("No drivers registered. Add drivers to see their locations on the map.")
+        else:
+            st.info("No driver location data available yet.")
 
         # Zone summary cards with real data
         zone_colors = {
