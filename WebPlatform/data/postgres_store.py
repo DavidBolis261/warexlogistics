@@ -60,14 +60,6 @@ class PostgresStore:
                 )
             """))
 
-            # Add proof-of-delivery columns to orders if they don't exist yet
-            for col in ('proof_photo TEXT', 'proof_signature TEXT', 'delivery_notes TEXT', 'special_instructions TEXT'):
-                try:
-                    conn.execute(text(f"ALTER TABLE orders ADD COLUMN {col}"))
-                    conn.commit()
-                except Exception:
-                    pass  # Column already exists
-
             # Drivers table
             conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS drivers (
@@ -208,6 +200,33 @@ class PostgresStore:
             conn.commit()
 
         logger.info("✅ PostgreSQL tables created/verified")
+        # Run column migrations in isolated transactions (safe to re-run)
+        self._migrate_columns()
+
+    def _migrate_columns(self):
+        """Add new columns to existing tables.
+
+        Each ALTER TABLE runs in its own autocommit connection so that
+        "column already exists" errors don't abort the surrounding transaction.
+        PostgreSQL raises DuplicateColumn (42701) when a column already exists;
+        we silently ignore that and move on.
+        """
+        migrations = [
+            # (table, column_name, column_definition)
+            ('orders', 'proof_photo',          'TEXT'),
+            ('orders', 'proof_signature',      'TEXT'),
+            ('orders', 'delivery_notes',       'TEXT'),
+            ('orders', 'special_instructions', 'TEXT'),
+        ]
+        for table, col, col_def in migrations:
+            # Use a fresh autocommit connection so each attempt is isolated
+            with self.engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+                try:
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} {col_def}"))
+                    logger.debug(f"Migration: added column {table}.{col}")
+                except Exception as exc:
+                    # psycopg2.errors.DuplicateColumn → column already exists, skip
+                    logger.debug(f"Migration: column {table}.{col} already exists ({exc!r})")
 
     # Delegate all methods to use SQL queries
     def get_orders(self):
