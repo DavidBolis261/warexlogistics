@@ -261,7 +261,22 @@ def create_driver_api(app: Flask, data_manager):
 
         At least one of status or media must be present.
         """
-        data = request.get_json() or {}
+        raw_data = request.get_json(force=True, silent=True)
+        if raw_data is None:
+            # JSON parsing failed — log details for debugging
+            content_len = request.content_length or 0
+            content_type = request.content_type or 'unknown'
+            logger.error(
+                f"[stop] {stop_id} update — JSON parse failed. "
+                f"content_type={content_type} content_length={content_len}"
+            )
+            return jsonify({
+                'error': 'Invalid JSON body',
+                'content_type': content_type,
+                'content_length': content_len,
+            }), 400
+
+        data = raw_data
 
         new_status = data.get('status')
         failure_reason = data.get('failureReason')
@@ -273,6 +288,10 @@ def create_driver_api(app: Flask, data_manager):
         has_media = bool(photo_b64 or signature_b64)
 
         if not has_status and not has_media:
+            logger.warning(
+                f"[stop] {stop_id} update — 400: no status and no media. "
+                f"Keys received: {list(data.keys())}"
+            )
             return jsonify({'error': 'At least one of status or media must be provided'}), 400
 
         update_fields = {}

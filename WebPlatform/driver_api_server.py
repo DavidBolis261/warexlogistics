@@ -26,6 +26,9 @@ logging.basicConfig(
 # Initialize Flask app
 app = Flask(__name__)
 
+# Allow large request bodies (driver photo uploads can be several MB as base64)
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB
+
 # Enable CORS for mobile app access
 CORS(app, resources={
     r"/api/driver/*": {
