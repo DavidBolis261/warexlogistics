@@ -155,6 +155,14 @@ class LocalStore:
                 expires_at TIMESTAMP NOT NULL
             );
 
+            CREATE TABLE IF NOT EXISTS driver_tokens (
+                token TEXT PRIMARY KEY,
+                driver_id TEXT NOT NULL,
+                phone TEXT NOT NULL,
+                expires_at TIMESTAMP NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+
             CREATE TABLE IF NOT EXISTS api_log (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -191,6 +199,10 @@ class LocalStore:
             'pickup_phone': 'TEXT',
             'tracking_number': 'TEXT',
             'zone': 'TEXT',
+            # Proof-of-delivery fields written by the driver mobile app
+            'proof_photo': 'TEXT',
+            'proof_signature': 'TEXT',
+            'delivery_notes': 'TEXT',
         }
         for col, col_type in new_cols.items():
             if col not in existing:
@@ -645,6 +657,31 @@ class LocalStore:
 
     def cleanup_expired_tokens(self):
         self.conn.execute("DELETE FROM session_tokens WHERE expires_at < ?", (datetime.now().isoformat(),))
+        self.conn.commit()
+
+    # Driver auth tokens
+    def save_driver_token(self, token, driver_id, phone, expires_at):
+        self.conn.execute(
+            "INSERT OR IGNORE INTO driver_tokens (token, driver_id, phone, expires_at) VALUES (?, ?, ?, ?)",
+            (token, driver_id, phone, expires_at),
+        )
+        self.conn.commit()
+
+    def get_driver_token(self, token):
+        row = self.conn.execute(
+            "SELECT driver_id, phone, expires_at FROM driver_tokens WHERE token = ? AND expires_at > ?",
+            (token, datetime.now().isoformat()),
+        ).fetchone()
+        if row is None:
+            return None
+        return {'driver_id': row['driver_id'], 'phone': row['phone'], 'expires': row['expires_at']}
+
+    def delete_driver_token(self, token):
+        self.conn.execute("DELETE FROM driver_tokens WHERE token = ?", (token,))
+        self.conn.commit()
+
+    def purge_expired_driver_tokens(self):
+        self.conn.execute("DELETE FROM driver_tokens WHERE expires_at <= ?", (datetime.now().isoformat(),))
         self.conn.commit()
 
     # === Tracking ===

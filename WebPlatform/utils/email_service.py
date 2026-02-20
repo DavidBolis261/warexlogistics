@@ -158,7 +158,9 @@ def _build_email_template(company_name, tracking_number, content_html, tracking_
 def send_order_confirmation(data_manager, order):
     """Send order confirmation email when a new order is created."""
     config = _get_email_config(data_manager)
-    if not config['enabled'] or not config['api_key'] or not config['from_email']:
+    env_key_present = bool(os.environ.get('RESEND_API_KEY', '').strip())
+    effective_enabled = config['enabled'] or env_key_present
+    if not effective_enabled or not config['api_key'] or not config['from_email']:
         return {'success': False, 'error': 'Email not configured'}
 
     to_email = order.get('email', '')
@@ -211,7 +213,10 @@ def send_order_confirmation(data_manager, order):
 def send_status_update(data_manager, order, new_status):
     """Send status update email when order status changes."""
     config = _get_email_config(data_manager)
-    if not config['enabled'] or not config['api_key'] or not config['from_email']:
+    # Mirror is_email_configured: env var presence implies enabled
+    env_key_present = bool(os.environ.get('RESEND_API_KEY', '').strip())
+    effective_enabled = config['enabled'] or env_key_present
+    if not effective_enabled or not config['api_key'] or not config['from_email']:
         return {'success': False, 'error': 'Email not configured'}
 
     to_email = order.get('email', '')

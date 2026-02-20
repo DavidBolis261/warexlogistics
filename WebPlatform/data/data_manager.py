@@ -46,7 +46,7 @@ class DataManager:
         self._client = None
         # Optional override set by the Streamlit dashboard (e.g. 'demo').
         # Never set by the Flask API server — keeps Streamlit out of this class.
-        self._mode_override: str | None = None
+        self._mode_override = None  # type: str or None
         # Seed default zones on first init
         self.store.seed_default_zones()
 
@@ -167,10 +167,10 @@ class DataManager:
         self.store.update_order_status(order_id, 'allocated', driver_id=driver_name)
 
     def update_order(self, order_id, **fields):
-        """Update order fields (status, zone, driver_id, etc.)."""
+        """Update order fields (status, zone, driver_id, proof_photo, etc.)."""
         self.store.update_order_fields(order_id, **fields)
 
-        # Send status update email if status changed
+        # Only send email notification when the status field changes
         if 'status' not in fields:
             return
 
@@ -180,8 +180,8 @@ class DataManager:
         if not is_email_configured(self):
             logger.warning(
                 f"[email] skipped for order {order_id}: email not configured "
-                f"(check RESEND_API_KEY env var, email_from_address and "
-                f"email_notifications_enabled settings in the dashboard)"
+                f"(check RESEND_API_KEY env var, EMAIL_FROM_ADDRESS env var, and "
+                f"email_notifications_enabled setting in the dashboard)"
             )
             return
 
@@ -190,12 +190,14 @@ class DataManager:
             if not order:
                 logger.warning(f"[email] skipped for order {order_id}: order not found in DB")
                 return
-            to_email = order.get('email', '')
+            # get_order_by_id returns a dict from both stores
+            order_dict = dict(order)
+            to_email = order_dict.get('email', '')
             if not to_email:
                 logger.warning(f"[email] skipped for order {order_id}: no customer email on record")
                 return
             logger.info(f"[email] sending '{new_status}' notification to {to_email}")
-            result = send_status_update(self, dict(order), new_status)
+            result = send_status_update(self, order_dict, new_status)
             if result.get('success'):
                 logger.info(f"[email] sent successfully to {to_email}")
             else:

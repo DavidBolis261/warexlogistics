@@ -60,6 +60,14 @@ class PostgresStore:
                 )
             """))
 
+            # Add proof-of-delivery columns to orders if they don't exist yet
+            for col in ('proof_photo TEXT', 'proof_signature TEXT', 'delivery_notes TEXT', 'special_instructions TEXT'):
+                try:
+                    conn.execute(text(f"ALTER TABLE orders ADD COLUMN {col}"))
+                    conn.commit()
+                except Exception:
+                    pass  # Column already exists
+
             # Drivers table
             conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS drivers (
@@ -139,6 +147,17 @@ class PostgresStore:
                     token TEXT PRIMARY KEY,
                     username TEXT,
                     expires_at TIMESTAMP,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+
+            # Driver auth tokens (persisted so they survive server restarts)
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS driver_tokens (
+                    token TEXT PRIMARY KEY,
+                    driver_id TEXT NOT NULL,
+                    phone TEXT NOT NULL,
+                    expires_at TIMESTAMP NOT NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """))
@@ -606,6 +625,41 @@ class PostgresStore:
         """Delete session token."""
         with self.engine.connect() as conn:
             conn.execute(text("DELETE FROM session_tokens WHERE token = :token"), {'token': token})
+            conn.commit()
+
+    # Driver auth tokens (DB-backed so they survive server restarts)
+    def save_driver_token(self, token, driver_id, phone, expires_at):
+        """Persist a driver auth token to the database."""
+        with self.engine.connect() as conn:
+            conn.execute(text("""
+                INSERT INTO driver_tokens (token, driver_id, phone, expires_at)
+                VALUES (:token, :driver_id, :phone, :expires_at)
+                ON CONFLICT (token) DO NOTHING
+            """), {'token': token, 'driver_id': driver_id, 'phone': phone, 'expires_at': expires_at})
+            conn.commit()
+
+    def get_driver_token(self, token):
+        """Return token data if valid and not expired, else None."""
+        with self.engine.connect() as conn:
+            result = conn.execute(text("""
+                SELECT driver_id, phone, expires_at FROM driver_tokens
+                WHERE token = :token AND expires_at > CURRENT_TIMESTAMP
+            """), {'token': token})
+            row = result.fetchone()
+        if row is None:
+            return None
+        return {'driver_id': row[0], 'phone': row[1], 'expires': str(row[2])}
+
+    def delete_driver_token(self, token):
+        """Invalidate a driver token."""
+        with self.engine.connect() as conn:
+            conn.execute(text("DELETE FROM driver_tokens WHERE token = :token"), {'token': token})
+            conn.commit()
+
+    def purge_expired_driver_tokens(self):
+        """Remove expired tokens (called at login time to keep table lean)."""
+        with self.engine.connect() as conn:
+            conn.execute(text("DELETE FROM driver_tokens WHERE expires_at <= CURRENT_TIMESTAMP"))
             conn.commit()
 
     # API log

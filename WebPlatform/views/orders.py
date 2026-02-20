@@ -786,21 +786,33 @@ def _render_completed(orders_df):
                 """, unsafe_allow_html=True)
 
             # Proof of Delivery section
-            if order.get('signature') or order.get('photo'):
+            # Columns stored as proof_photo / proof_signature (raw base64 strings).
+            # Support both old (data-URL) and new (raw base64) formats.
+            def _as_data_url(b64_or_url, mime="image/jpeg"):
+                if not b64_or_url:
+                    return None
+                if b64_or_url.startswith("data:"):
+                    return b64_or_url  # already a data URL
+                return f"data:{mime};base64,{b64_or_url}"
+
+            pod_sig = _as_data_url(order.get('proof_signature') or order.get('signature'))
+            pod_photo = _as_data_url(order.get('proof_photo') or order.get('photo'))
+
+            if pod_sig or pod_photo:
                 st.markdown("---")
                 st.markdown("### 📸 Proof of Delivery")
 
                 pod_col1, pod_col2 = st.columns(2)
 
                 with pod_col1:
-                    if order.get('signature'):
+                    if pod_sig:
                         st.markdown("**Customer Signature:**")
-                        st.markdown(f'<img src="{order["signature"]}" style="max-width: 100%; border: 1px solid #ddd; border-radius: 8px; background: white; padding: 10px;">', unsafe_allow_html=True)
+                        st.markdown(f'<img src="{pod_sig}" style="max-width: 100%; border: 1px solid #ddd; border-radius: 8px; background: white; padding: 10px;">', unsafe_allow_html=True)
 
                 with pod_col2:
-                    if order.get('photo'):
+                    if pod_photo:
                         st.markdown("**Delivery Photo:**")
-                        st.markdown(f'<img src="{order["photo"]}" style="max-width: 100%; border: 1px solid #ddd; border-radius: 8px;">', unsafe_allow_html=True)
+                        st.markdown(f'<img src="{pod_photo}" style="max-width: 100%; border: 1px solid #ddd; border-radius: 8px;">', unsafe_allow_html=True)
 
 
 def _render_inbound_receipts(data_manager):
