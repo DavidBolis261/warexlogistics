@@ -789,14 +789,25 @@ def _render_completed(orders_df):
             # Columns stored as proof_photo / proof_signature (raw base64 strings).
             # Support both old (data-URL) and new (raw base64) formats.
             def _as_data_url(b64_or_url, mime="image/jpeg"):
-                if not b64_or_url:
+                # Guard: None, NaN, empty string, or non-string values
+                if not isinstance(b64_or_url, str) or not b64_or_url.strip():
                     return None
                 if b64_or_url.startswith("data:"):
                     return b64_or_url  # already a data URL
                 return f"data:{mime};base64,{b64_or_url}"
 
-            pod_sig = _as_data_url(order.get('proof_signature') or order.get('signature'))
-            pod_photo = _as_data_url(order.get('proof_photo') or order.get('photo'))
+            # Try new column names first, fall back to old names
+            def _pod_val(new_key, old_key):
+                v = order.get(new_key)
+                if isinstance(v, str) and v.strip():
+                    return v
+                v = order.get(old_key)
+                if isinstance(v, str) and v.strip():
+                    return v
+                return None
+
+            pod_sig = _as_data_url(_pod_val('proof_signature', 'signature'))
+            pod_photo = _as_data_url(_pod_val('proof_photo', 'photo'))
 
             if pod_sig or pod_photo:
                 st.markdown("---")

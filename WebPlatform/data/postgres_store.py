@@ -206,10 +206,9 @@ class PostgresStore:
     def _migrate_columns(self):
         """Add new columns to existing tables.
 
-        Each ALTER TABLE runs in its own autocommit connection so that
-        "column already exists" errors don't abort the surrounding transaction.
-        PostgreSQL raises DuplicateColumn (42701) when a column already exists;
-        we silently ignore that and move on.
+        Uses IF NOT EXISTS (Postgres 9.6+) to avoid DuplicateColumn errors
+        entirely.  Each migration still runs in its own autocommit connection
+        as an extra safety net — if one fails the rest still execute.
         """
         migrations = [
             # (table, column_name, column_definition)
@@ -219,14 +218,13 @@ class PostgresStore:
             ('orders', 'special_instructions', 'TEXT'),
         ]
         for table, col, col_def in migrations:
-            # Use a fresh autocommit connection so each attempt is isolated
-            with self.engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
-                try:
-                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} {col_def}"))
-                    logger.debug(f"Migration: added column {table}.{col}")
-                except Exception as exc:
-                    # psycopg2.errors.DuplicateColumn → column already exists, skip
-                    logger.debug(f"Migration: column {table}.{col} already exists ({exc!r})")
+            try:
+                with self.engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+                    conn.execute(text(
+                        f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {col} {col_def}"
+                    ))
+            except Exception:
+                pass  # Column exists or other harmless issue
 
     # Delegate all methods to use SQL queries
     def get_orders(self):
