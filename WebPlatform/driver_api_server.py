@@ -45,21 +45,24 @@ data_manager = DataManager()
 create_driver_api(app, data_manager)
 
 # ── Email configuration check (printed once at startup) ──────────────────────
-from utils.email_service import is_email_configured, _get_email_config
-_ecfg = _get_email_config(data_manager)
-_env_key  = bool(os.environ.get('RESEND_API_KEY', '').strip())
-_env_from = os.environ.get('EMAIL_FROM_ADDRESS', '').strip()
-print("=" * 60)
-print("📧 Email configuration:")
-print(f"   RESEND_API_KEY   (env) : {'✅ set' if _env_key else '❌ NOT SET — add this Railway env var'}")
-print(f"   EMAIL_FROM_ADDRESS (env): {_env_from or '❌ NOT SET — add this Railway env var'}")
-print(f"   resend_api_key   (DB)  : {'✅ set' if data_manager.get_setting('resend_api_key') else '⚠️  not in DB (env var used)'}")
-print(f"   email_from_address (DB): {data_manager.get_setting('email_from_address') or '⚠️  not in DB (env var used)'}")
-print(f"   email_notifications_enabled (DB): {data_manager.get_setting('email_notifications_enabled', 'false')}")
-print(f"   resolved api_key       : {'✅ present' if _ecfg.get('api_key') else '❌ MISSING'}")
-print(f"   resolved from_email    : {_ecfg.get('from_email') or '❌ MISSING'}")
-print(f"   → Will send emails     : {'✅ YES' if is_email_configured(data_manager) else '❌ NO — fix the items above'}")
-print("=" * 60)
+try:
+    from utils.email_service import is_email_configured, _get_email_config
+    _ecfg = _get_email_config(data_manager)
+    _env_key  = bool(os.environ.get('RESEND_API_KEY', '').strip())
+    _env_from = os.environ.get('EMAIL_FROM_ADDRESS', '').strip()
+    print("=" * 60)
+    print("📧 Email configuration:")
+    print(f"   RESEND_API_KEY   (env) : {'✅ set' if _env_key else '❌ NOT SET — add this Railway env var'}")
+    print(f"   EMAIL_FROM_ADDRESS (env): {_env_from or '❌ NOT SET — add this Railway env var'}")
+    print(f"   resend_api_key   (DB)  : {'✅ set' if data_manager.get_setting('resend_api_key') else '⚠️  not in DB (env var used)'}")
+    print(f"   email_from_address (DB): {data_manager.get_setting('email_from_address') or '⚠️  not in DB (env var used)'}")
+    print(f"   email_notifications_enabled (DB): {data_manager.get_setting('email_notifications_enabled', 'false')}")
+    print(f"   resolved api_key       : {'✅ present' if _ecfg.get('api_key') else '❌ MISSING'}")
+    print(f"   resolved from_email    : {_ecfg.get('from_email') or '❌ MISSING'}")
+    print(f"   → Will send emails     : {'✅ YES' if is_email_configured(data_manager) else '❌ NO — fix the items above'}")
+    print("=" * 60)
+except Exception as _e:
+    print(f"⚠️ Email config check skipped: {_e}")
 
 # Health check endpoint
 @app.route('/health', methods=['GET'])

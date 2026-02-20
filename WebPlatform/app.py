@@ -74,9 +74,21 @@ from views.tracking import render_tracking_page, render_login_page, render_first
 
 # Admin reset via environment variable (set RESET_ADMIN=true on Railway to wipe admin accounts)
 if os.environ.get('RESET_ADMIN', '').lower() == 'true':
-    dm.store.conn.execute("DELETE FROM admin_users")
-    dm.store.conn.execute("DELETE FROM session_tokens")
-    dm.store.conn.commit()
+    try:
+        if hasattr(dm.store, 'conn'):
+            # SQLite (LocalStore)
+            dm.store.conn.execute("DELETE FROM admin_users")
+            dm.store.conn.execute("DELETE FROM session_tokens")
+            dm.store.conn.commit()
+        elif hasattr(dm.store, 'engine'):
+            # PostgreSQL (PostgresStore)
+            from sqlalchemy import text as _text
+            with dm.store.engine.connect() as _conn:
+                _conn.execute(_text("DELETE FROM admin_users"))
+                _conn.execute(_text("DELETE FROM session_tokens"))
+                _conn.commit()
+    except Exception as _e:
+        print(f"⚠️ Admin reset failed: {_e}")
 
 # First-run setup — no admin exists yet
 if not dm.admin_exists():

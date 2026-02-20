@@ -219,10 +219,13 @@ class PostgresStore:
         ]
         for table, col, col_def in migrations:
             try:
-                with self.engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+                conn = self.engine.connect().execution_options(isolation_level="AUTOCOMMIT")
+                try:
                     conn.execute(text(
                         f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {col} {col_def}"
                     ))
+                finally:
+                    conn.close()
             except Exception:
                 pass  # Column exists or other harmless issue
 
