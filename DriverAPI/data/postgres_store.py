@@ -23,11 +23,15 @@ class PostgresStore:
         if not self.database_url:
             raise ValueError("DATABASE_URL environment variable not set")
 
-        # Create SQLAlchemy engine
+        # Create SQLAlchemy engine with connection timeouts for Railway
         self.engine = create_engine(
             self.database_url,
-            poolclass=NullPool,  # Railway recommendation
-            echo=False
+            poolclass=NullPool,  # Railway recommendation — no pool, fresh connection each time
+            echo=False,
+            connect_args={
+                'connect_timeout': 10,         # 10s to establish connection
+                'options': '-c statement_timeout=30000',  # 30s max query time
+            },
         )
 
         # Create tables on first run
@@ -55,27 +59,10 @@ class PostgresStore:
                     instructions TEXT,
                     tracking_number TEXT,
                     order_date TEXT,
-                    signature TEXT,
-                    photo TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """))
-
-            # Add signature, photo, and delivered_at columns if they don't exist (for existing databases)
-            try:
-                conn.execute(text("""
-                    ALTER TABLE orders ADD COLUMN IF NOT EXISTS signature TEXT
-                """))
-                conn.execute(text("""
-                    ALTER TABLE orders ADD COLUMN IF NOT EXISTS photo TEXT
-                """))
-                conn.execute(text("""
-                    ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivered_at TIMESTAMP
-                """))
-                conn.commit()
-            except Exception as e:
-                logger.warning(f"Could not add signature/photo/delivered_at columns (may already exist): {e}")
 
             # Drivers table
             conn.execute(text("""
@@ -91,27 +78,9 @@ class PostgresStore:
                     success_rate REAL DEFAULT 0.95,
                     rating REAL DEFAULT 4.5,
                     active_orders INTEGER DEFAULT 0,
-                    latitude REAL,
-                    longitude REAL,
-                    location_updated_at TIMESTAMP,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """))
-
-            # Add location columns if they don't exist (for existing databases)
-            try:
-                conn.execute(text("""
-                    ALTER TABLE drivers ADD COLUMN IF NOT EXISTS latitude REAL
-                """))
-                conn.execute(text("""
-                    ALTER TABLE drivers ADD COLUMN IF NOT EXISTS longitude REAL
-                """))
-                conn.execute(text("""
-                    ALTER TABLE drivers ADD COLUMN IF NOT EXISTS location_updated_at TIMESTAMP
-                """))
-                conn.commit()
-            except Exception as e:
-                logger.warning(f"Could not add location columns to drivers (may already exist): {e}")
 
             # Runs table
             conn.execute(text("""
@@ -178,6 +147,17 @@ class PostgresStore:
                 )
             """))
 
+            # Driver auth tokens (persisted so they survive server restarts)
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS driver_tokens (
+                    token TEXT PRIMARY KEY,
+                    driver_id TEXT NOT NULL,
+                    phone TEXT NOT NULL,
+                    expires_at TIMESTAMP NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+
             # API log table
             conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS api_log (
@@ -224,6 +204,37 @@ class PostgresStore:
             conn.commit()
 
         logger.info("✅ PostgreSQL tables created/verified")
+        # Run column migrations in isolated transactions (safe to re-run)
+        self._migrate_columns()
+
+    def _migrate_columns(self):
+        """Add new columns to existing tables.
+
+        Uses IF NOT EXISTS (Postgres 9.6+) to avoid DuplicateColumn errors
+        entirely.  Each migration still runs in its own autocommit connection
+        as an extra safety net — if one fails the rest still execute.
+        """
+        migrations = [
+            # (table, column_name, column_definition)
+            ('orders', 'proof_photo',          'TEXT'),
+            ('orders', 'proof_signature',      'TEXT'),
+            ('orders', 'delivery_notes',       'TEXT'),
+            ('orders', 'special_instructions', 'TEXT'),
+            ('drivers', 'latitude',            'DOUBLE PRECISION'),
+            ('drivers', 'longitude',           'DOUBLE PRECISION'),
+            ('drivers', 'location_updated_at', 'TIMESTAMP'),
+        ]
+        for table, col, col_def in migrations:
+            try:
+                conn = self.engine.connect().execution_options(isolation_level="AUTOCOMMIT")
+                try:
+                    conn.execute(text(
+                        f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {col} {col_def}"
+                    ))
+                finally:
+                    conn.close()
+            except Exception:
+                pass  # Column exists or other harmless issue
 
     # Delegate all methods to use SQL queries
     def get_orders(self):
@@ -306,7 +317,8 @@ class PostgresStore:
             self.engine,
             params={'order_id': order_id}
         )
-        return result.iloc[0] if not result.empty else None
+        # Return a plain dict (like local_store does) so callers can use .get()
+        return result.iloc[0].to_dict() if not result.empty else None
 
     def get_order_by_tracking(self, tracking_number):
         """Get order by tracking number."""
@@ -333,46 +345,54 @@ class PostgresStore:
         if drivers_df.empty:
             return drivers_df
 
-        # Calculate real statistics for each driver
-        for idx, driver in drivers_df.iterrows():
-            driver_id = driver['driver_id']
+        today = datetime.now().strftime('%Y-%m-%d')
 
-            # Get all orders for this driver
-            orders = pd.read_sql(
-                "SELECT * FROM orders WHERE driver_id = %(driver_id)s",
-                self.engine,
-                params={'driver_id': driver_id}
-            )
+        # Single aggregation query replaces N+1 per-driver queries
+        stats_df = pd.read_sql(
+            """
+            SELECT
+                driver_id,
+                SUM(CASE WHEN status IN ('allocated', 'in_transit') THEN 1 ELSE 0 END) AS active_orders,
+                SUM(CASE WHEN status = 'delivered' AND created_at::date = %(today)s::date THEN 1 ELSE 0 END) AS deliveries_today,
+                SUM(CASE WHEN status IN ('delivered', 'failed') THEN 1 ELSE 0 END) AS total_completed,
+                SUM(CASE WHEN status = 'delivered' THEN 1 ELSE 0 END) AS total_delivered
+            FROM orders
+            WHERE driver_id IS NOT NULL
+            GROUP BY driver_id
+            """,
+            self.engine,
+            params={'today': today}
+        )
 
-            if not orders.empty:
-                # Calculate deliveries today
-                today = datetime.now().strftime('%Y-%m-%d')
-                deliveries_today = len(orders[
-                    (orders['status'] == 'delivered') &
-                    (orders['order_date'] == today)
-                ])
+        # Drop stale stat columns from the drivers table so the merge never
+        # produces _x / _y suffixes and the columns are always present.
+        stat_cols = ['active_orders', 'deliveries_today', 'total_completed', 'total_delivered']
+        drivers_df = drivers_df.drop(
+            columns=[c for c in stat_cols if c in drivers_df.columns],
+            errors='ignore',
+        )
 
-                # Calculate active orders
-                active_orders = len(orders[
-                    orders['status'].isin(['allocated', 'in_transit'])
-                ])
+        if stats_df.empty:
+            drivers_df['active_orders'] = 0
+            drivers_df['deliveries_today'] = 0
+            return drivers_df
 
-                # Calculate success rate
-                completed_orders = orders[orders['status'].isin(['delivered', 'failed'])]
-                if len(completed_orders) > 0:
-                    delivered_count = len(completed_orders[completed_orders['status'] == 'delivered'])
-                    success_rate = delivered_count / len(completed_orders)
-                else:
-                    success_rate = driver['success_rate']
+        drivers_df = drivers_df.merge(stats_df, on='driver_id', how='left')
 
-                # Update the dataframe
-                drivers_df.at[idx, 'deliveries_today'] = deliveries_today
-                drivers_df.at[idx, 'active_orders'] = active_orders
-                drivers_df.at[idx, 'success_rate'] = success_rate
-            else:
-                drivers_df.at[idx, 'deliveries_today'] = 0
-                drivers_df.at[idx, 'active_orders'] = 0
+        # Fill NaN for drivers that have no matching orders
+        drivers_df['active_orders'] = drivers_df['active_orders'].fillna(0).astype(int)
+        drivers_df['deliveries_today'] = drivers_df['deliveries_today'].fillna(0).astype(int)
+        drivers_df['total_completed'] = drivers_df['total_completed'].fillna(0)
+        drivers_df['total_delivered'] = drivers_df['total_delivered'].fillna(0)
 
+        # Vectorized success rate calculation
+        has_completed = drivers_df['total_completed'] > 0
+        drivers_df.loc[has_completed, 'success_rate'] = (
+            drivers_df.loc[has_completed, 'total_delivered'] /
+            drivers_df.loc[has_completed, 'total_completed']
+        )
+
+        drivers_df = drivers_df.drop(columns=['total_completed', 'total_delivered'])
         return drivers_df
 
     def save_driver(self, driver_data):
@@ -654,6 +674,41 @@ class PostgresStore:
         """Delete session token."""
         with self.engine.connect() as conn:
             conn.execute(text("DELETE FROM session_tokens WHERE token = :token"), {'token': token})
+            conn.commit()
+
+    # Driver auth tokens (DB-backed so they survive server restarts)
+    def save_driver_token(self, token, driver_id, phone, expires_at):
+        """Persist a driver auth token to the database."""
+        with self.engine.connect() as conn:
+            conn.execute(text("""
+                INSERT INTO driver_tokens (token, driver_id, phone, expires_at)
+                VALUES (:token, :driver_id, :phone, :expires_at)
+                ON CONFLICT (token) DO NOTHING
+            """), {'token': token, 'driver_id': driver_id, 'phone': phone, 'expires_at': expires_at})
+            conn.commit()
+
+    def get_driver_token(self, token):
+        """Return token data if valid and not expired, else None."""
+        with self.engine.connect() as conn:
+            result = conn.execute(text("""
+                SELECT driver_id, phone, expires_at FROM driver_tokens
+                WHERE token = :token AND expires_at > CURRENT_TIMESTAMP
+            """), {'token': token})
+            row = result.fetchone()
+        if row is None:
+            return None
+        return {'driver_id': row[0], 'phone': row[1], 'expires': str(row[2])}
+
+    def delete_driver_token(self, token):
+        """Invalidate a driver token."""
+        with self.engine.connect() as conn:
+            conn.execute(text("DELETE FROM driver_tokens WHERE token = :token"), {'token': token})
+            conn.commit()
+
+    def purge_expired_driver_tokens(self):
+        """Remove expired tokens (called at login time to keep table lean)."""
+        with self.engine.connect() as conn:
+            conn.execute(text("DELETE FROM driver_tokens WHERE expires_at <= CURRENT_TIMESTAMP"))
             conn.commit()
 
     # API log

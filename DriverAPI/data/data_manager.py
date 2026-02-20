@@ -1,9 +1,16 @@
 import random
 import json
 import hashlib
+import logging
 import secrets
 import os
 from datetime import datetime, timedelta
+
+logger = logging.getLogger(__name__)
+
+# Build sentinel — if Railway is running this file, we'll see this in the logs.
+_BUILD_VERSION = "2026-02-21-v2"
+logger.info(f"[data_manager] loaded — build version {_BUILD_VERSION}")
 
 import pandas as pd
 
@@ -33,16 +40,17 @@ class DataManager:
         database_url = os.environ.get('DATABASE_URL')
 
         if database_url:
-            # Use PostgreSQL for production
             from data.postgres_store import PostgresStore
             self.store = PostgresStore(database_url)
             print("✅ Using PostgreSQL database (Production)")
         else:
-            # Use SQLite for local development
             self.store = LocalStore()
             print("✅ Using SQLite database (Development)")
 
         self._client = None
+        # Optional override set by the Streamlit dashboard (e.g. 'demo').
+        # Never set by the Flask API server — keeps Streamlit out of this class.
+        self._mode_override = None  # type: str or None
         # Seed default zones on first init
         self.store.seed_default_zones()
 
@@ -57,14 +65,19 @@ class DataManager:
         return wms_config.is_configured and self.client is not None
 
     @property
-    def data_mode(self):
-        import streamlit as st
-        mode = st.session_state.get('data_mode', 'Local Only (SQLite)')
-        if 'Live' in mode and self.is_live:
-            return 'live'
-        elif 'Local' in mode:
-            return 'local'
-        return 'demo'
+    def data_mode(self) -> str:
+        # Explicit override wins (set by app.py after reading st.session_state)
+        if self._mode_override:
+            return self._mode_override
+        # Otherwise infer from store type — works correctly in both Flask and Streamlit
+        from data.postgres_store import PostgresStore
+        if isinstance(self.store, PostgresStore):
+            return 'live' if self.is_live else 'local'
+        return 'local'
+
+    def set_mode(self, mode: str) -> None:
+        """Called by the Streamlit dashboard to set demo/live/local override."""
+        self._mode_override = mode if mode in ('demo', 'live', 'local') else None
 
     # === Orders ===
 
@@ -74,12 +87,13 @@ class DataManager:
         return self.store.get_orders()
 
     def create_order(self, order_data):
-        order_id = f"SMC-{random.randint(10000, 99999)}"
+        # Use tracking number as order ID
         tracking_number = self._generate_tracking_number()
-        order_data['order_id'] = order_id
+        order_data['order_id'] = tracking_number
         order_data['tracking_number'] = tracking_number
         order_data['status'] = 'pending'
         order_data['created_at'] = datetime.now().isoformat()
+        order_data['updated_at'] = datetime.now().isoformat()
         order_data['order_date'] = datetime.now().strftime('%Y-%m-%d')
 
         wms_result = None
@@ -91,7 +105,7 @@ class DataManager:
             self.store.log_api_call(
                 operation='UpsertFulfilmentRequest',
                 endpoint=f"{wms_config.base_url}/UpsertFulfilmentRequest/",
-                request_summary=f"Order {order_id} for {order_data['customer']}",
+                request_summary=f"Order {tracking_number} for {order_data['customer']}",
                 success=pushed,
                 status_code=wms_result.get('status_code'),
                 response_body=json.dumps(wms_result.get('response', '')),
@@ -108,7 +122,7 @@ class DataManager:
 
         return {
             'success': True,
-            'order_id': order_id,
+            'order_id': tracking_number,
             'tracking_number': tracking_number,
             'wms_pushed': pushed,
             'email_sent': email_sent,
@@ -154,23 +168,59 @@ class DataManager:
         return {'success': True}
 
     def allocate_order(self, order_id, driver_name):
-        """Assign a driver to an order and move it to in_transit."""
-        self.store.update_order_status(order_id, 'in_transit', driver_id=driver_name)
-        # Send in_transit email notification to customer
-        if is_email_configured(self):
-            order = self.store.get_order_by_id(order_id)
-            if order and order.get('email'):
-                send_status_update(self, dict(order), 'in_transit')
+        self.store.update_order_status(order_id, 'allocated', driver_id=driver_name)
 
     def update_order(self, order_id, **fields):
-        """Update order fields (status, zone, driver_id, etc.)."""
+        """Update order fields (status, zone, driver_id, proof_photo, etc.)."""
+        # Step 1 — always update the DB first.  This MUST succeed; any error
+        # here is a real problem and should propagate up to the caller.
         self.store.update_order_fields(order_id, **fields)
 
-        # Send status update email if status changed
-        if 'status' in fields and is_email_configured(self):
-            order = self.store.get_order_by_id(order_id)
-            if order and order.get('email'):
-                send_status_update(self, dict(order), fields['status'])
+        # Step 2 — attempt email notification (best-effort, never crashes
+        # the status update which already committed to the DB above).
+        if 'status' in fields:
+            try:
+                self._try_send_status_email(order_id, fields['status'])
+            except Exception as exc:
+                logger.error(f"[email] uncaught exception for order {order_id}: {exc}", exc_info=True)
+
+    def _try_send_status_email(self, order_id, new_status):
+        """Best-effort email notification.  Isolated so it can never crash the caller."""
+        logger.info(f"[email] order {order_id} status → {new_status}")
+
+        if not is_email_configured(self):
+            logger.warning(
+                f"[email] skipped for order {order_id}: email not configured "
+                f"(check RESEND_API_KEY env var, EMAIL_FROM_ADDRESS env var, and "
+                f"email_notifications_enabled setting in the dashboard)"
+            )
+            return
+
+        order_raw = self.store.get_order_by_id(order_id)
+
+        # Defensive: handle Series, dict, or None from any store version
+        if order_raw is None:
+            logger.warning(f"[email] skipped for order {order_id}: order not found in DB")
+            return
+
+        # Ensure we always work with a plain dict — older postgres_store
+        # versions returned a Pandas Series instead of a dict.
+        if hasattr(order_raw, 'to_dict') and callable(order_raw.to_dict):
+            order_dict = order_raw.to_dict()
+        else:
+            order_dict = dict(order_raw)
+
+        to_email = order_dict.get('email', '') or ''
+        if not to_email:
+            logger.warning(f"[email] skipped for order {order_id}: no customer email on record")
+            return
+
+        logger.info(f"[email] sending '{new_status}' notification to {to_email}")
+        result = send_status_update(self, order_dict, new_status)
+        if result.get('success'):
+            logger.info(f"[email] sent successfully to {to_email}")
+        else:
+            logger.warning(f"[email] send failed for order {order_id}: {result.get('error')}")
 
     # === Drivers ===
 

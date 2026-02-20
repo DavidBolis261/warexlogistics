@@ -21,10 +21,19 @@ STATUS_LABELS = {
 
 
 def _get_email_config(data_manager):
-    """Load email settings from environment and database."""
-    api_key = os.environ.get('RESEND_API_KEY', '') or data_manager.get_setting('resend_api_key', '')
-    from_email = data_manager.get_setting('email_from_address', '')
-    enabled = data_manager.get_setting('email_notifications_enabled', 'false').lower() == 'true'
+    """Load email settings — env vars take priority over DB settings."""
+    # Env vars are the authoritative source in production (Railway).
+    # DB settings are the fallback for local / dashboard-configured installs.
+    api_key = (
+        os.environ.get('RESEND_API_KEY', '').strip()
+        or data_manager.get_setting('resend_api_key', '')
+    )
+    from_email = (
+        os.environ.get('EMAIL_FROM_ADDRESS', '').strip()
+        or data_manager.get_setting('email_from_address', '')
+    )
+    db_enabled = data_manager.get_setting('email_notifications_enabled', 'false')
+    enabled = str(db_enabled).lower() == 'true'
     return {
         'api_key': api_key,
         'from_email': from_email,
@@ -33,9 +42,20 @@ def _get_email_config(data_manager):
 
 
 def is_email_configured(data_manager):
-    """Check if email is properly configured."""
+    """Check if email is properly configured.
+
+    Enabled when:
+    - RESEND_API_KEY env var is set (always treated as enabled), OR
+    - email_notifications_enabled is 'true' in DB settings
+    AND api_key + from_email are present in either source.
+    """
     config = _get_email_config(data_manager)
-    return config['enabled'] and config['api_key'] and config['from_email']
+    # If the API key comes from the environment variable, treat notifications
+    # as enabled regardless of the DB toggle — the env var being set is
+    # sufficient intent.
+    env_key_present = bool(os.environ.get('RESEND_API_KEY', '').strip())
+    enabled = config['enabled'] or env_key_present
+    return enabled and bool(config['api_key']) and bool(config['from_email'])
 
 
 def _send_email(config, to_email, subject, html_body):
@@ -46,6 +66,7 @@ def _send_email(config, to_email, subject, html_body):
             headers={
                 'Authorization': f"Bearer {config['api_key']}",
                 'Content-Type': 'application/json',
+                'Resend-API-Version': '2023-06-1',
             },
             json={
                 'from': config['from_email'],
@@ -56,7 +77,7 @@ def _send_email(config, to_email, subject, html_body):
             timeout=15,
         )
 
-        if response.status_code == 200:
+        if response.status_code in (200, 201):
             logger.info(f"Email sent to {to_email}: {subject}")
             return {'success': True}
         else:
@@ -137,7 +158,9 @@ def _build_email_template(company_name, tracking_number, content_html, tracking_
 def send_order_confirmation(data_manager, order):
     """Send order confirmation email when a new order is created."""
     config = _get_email_config(data_manager)
-    if not config['enabled'] or not config['api_key'] or not config['from_email']:
+    env_key_present = bool(os.environ.get('RESEND_API_KEY', '').strip())
+    effective_enabled = config['enabled'] or env_key_present
+    if not effective_enabled or not config['api_key'] or not config['from_email']:
         return {'success': False, 'error': 'Email not configured'}
 
     to_email = order.get('email', '')
@@ -190,7 +213,10 @@ def send_order_confirmation(data_manager, order):
 def send_status_update(data_manager, order, new_status):
     """Send status update email when order status changes."""
     config = _get_email_config(data_manager)
-    if not config['enabled'] or not config['api_key'] or not config['from_email']:
+    # Mirror is_email_configured: env var presence implies enabled
+    env_key_present = bool(os.environ.get('RESEND_API_KEY', '').strip())
+    effective_enabled = config['enabled'] or env_key_present
+    if not effective_enabled or not config['api_key'] or not config['from_email']:
         return {'success': False, 'error': 'Email not configured'}
 
     to_email = order.get('email', '')

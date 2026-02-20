@@ -447,6 +447,28 @@ class PostgresStore:
             conn.execute(text("DELETE FROM drivers WHERE driver_id = :driver_id"), {'driver_id': driver_id})
             conn.commit()
 
+    def update_driver_location(self, driver_id, latitude, longitude, timestamp=None):
+        """Update driver's current location for real-time tracking."""
+        from datetime import datetime as dt
+
+        if timestamp is None:
+            timestamp = dt.now().isoformat()
+
+        with self.engine.connect() as conn:
+            conn.execute(text("""
+                UPDATE drivers
+                SET latitude = :latitude,
+                    longitude = :longitude,
+                    location_updated_at = :timestamp
+                WHERE driver_id = :driver_id
+            """), {
+                'driver_id': driver_id,
+                'latitude': latitude,
+                'longitude': longitude,
+                'timestamp': timestamp
+            })
+            conn.commit()
+
     # Runs
     def get_runs(self):
         """Get all runs."""

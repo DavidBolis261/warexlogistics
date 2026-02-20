@@ -155,6 +155,14 @@ class LocalStore:
                 expires_at TIMESTAMP NOT NULL
             );
 
+            CREATE TABLE IF NOT EXISTS driver_tokens (
+                token TEXT PRIMARY KEY,
+                driver_id TEXT NOT NULL,
+                phone TEXT NOT NULL,
+                expires_at TIMESTAMP NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+
             CREATE TABLE IF NOT EXISTS api_log (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -166,12 +174,21 @@ class LocalStore:
                 response_body TEXT,
                 error_message TEXT
             );
+
+            CREATE INDEX IF NOT EXISTS idx_orders_driver_id ON orders(driver_id);
+            CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+            CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
+            CREATE INDEX IF NOT EXISTS idx_orders_zone ON orders(zone);
+            CREATE INDEX IF NOT EXISTS idx_run_orders_run_id ON run_orders(run_id);
+            CREATE INDEX IF NOT EXISTS idx_run_orders_order_id ON run_orders(order_id);
+            CREATE INDEX IF NOT EXISTS idx_runs_status ON runs(status);
+            CREATE INDEX IF NOT EXISTS idx_runs_driver_id ON runs(driver_id);
+            CREATE INDEX IF NOT EXISTS idx_session_tokens_expires_at ON session_tokens(expires_at);
         ''')
         self.conn.commit()
 
     def _migrate(self):
         """Add columns that may not exist in older databases."""
-        # Migrate orders table
         existing = {row[1] for row in self.conn.execute("PRAGMA table_info(orders)").fetchall()}
         new_cols = {
             'pickup_address': 'TEXT',
@@ -182,24 +199,14 @@ class LocalStore:
             'pickup_phone': 'TEXT',
             'tracking_number': 'TEXT',
             'zone': 'TEXT',
-            'signature': 'TEXT',
-            'photo': 'TEXT',
-            'delivered_at': 'TIMESTAMP',
+            # Proof-of-delivery fields written by the driver mobile app
+            'proof_photo': 'TEXT',
+            'proof_signature': 'TEXT',
+            'delivery_notes': 'TEXT',
         }
         for col, col_type in new_cols.items():
             if col not in existing:
                 self.conn.execute(f"ALTER TABLE orders ADD COLUMN {col} {col_type}")
-
-        # Migrate drivers table for location tracking
-        existing_drivers = {row[1] for row in self.conn.execute("PRAGMA table_info(drivers)").fetchall()}
-        driver_cols = {
-            'latitude': 'REAL',
-            'longitude': 'REAL',
-            'location_updated_at': 'TIMESTAMP',
-        }
-        for col, col_type in driver_cols.items():
-            if col not in existing_drivers:
-                self.conn.execute(f"ALTER TABLE drivers ADD COLUMN {col} {col_type}")
 
         # Add unique index on tracking_number if column was just added
         if 'tracking_number' not in existing:
@@ -208,6 +215,21 @@ class LocalStore:
             except sqlite3.OperationalError:
                 pass
 
+        self.conn.commit()
+
+        # Migrate drivers table — add location columns if missing
+        driver_existing = {row[1] for row in self.conn.execute("PRAGMA table_info(drivers)").fetchall()}
+        driver_new_cols = {
+            'latitude': 'REAL',
+            'longitude': 'REAL',
+            'location_updated_at': 'TEXT',
+        }
+        for col, col_type in driver_new_cols.items():
+            if col not in driver_existing:
+                try:
+                    self.conn.execute(f"ALTER TABLE drivers ADD COLUMN {col} {col_type}")
+                except Exception:
+                    pass
         self.conn.commit()
 
         # Backfill tracking numbers for existing orders that don't have one
@@ -429,47 +451,54 @@ class LocalStore:
         if drivers_df.empty:
             return drivers_df
 
-        # Calculate real statistics for each driver
-        for idx, driver in drivers_df.iterrows():
-            driver_id = driver['driver_id']
+        today = datetime.now().strftime('%Y-%m-%d')
 
-            # Get all orders for this driver
-            orders = pd.read_sql_query(
-                "SELECT * FROM orders WHERE driver_id = ?",
-                self.conn,
-                params=(driver_id,)
-            )
+        # Single aggregation query replaces N+1 per-driver queries
+        stats_df = pd.read_sql_query(
+            """
+            SELECT
+                driver_id,
+                SUM(CASE WHEN status IN ('allocated', 'in_transit') THEN 1 ELSE 0 END) AS active_orders,
+                SUM(CASE WHEN status = 'delivered' AND substr(created_at, 1, 10) = ? THEN 1 ELSE 0 END) AS deliveries_today,
+                SUM(CASE WHEN status IN ('delivered', 'failed') THEN 1 ELSE 0 END) AS total_completed,
+                SUM(CASE WHEN status = 'delivered' THEN 1 ELSE 0 END) AS total_delivered
+            FROM orders
+            WHERE driver_id IS NOT NULL
+            GROUP BY driver_id
+            """,
+            self.conn,
+            params=(today,)
+        )
 
-            if not orders.empty:
-                # Calculate deliveries today
-                today = datetime.now().strftime('%Y-%m-%d')
-                deliveries_today = len(orders[
-                    (orders['status'] == 'delivered') &
-                    (orders['order_date'] == today)
-                ])
+        # Drop stale stat columns from the drivers table so the merge never
+        # produces _x / _y suffixes and the columns are always present.
+        stat_cols = ['active_orders', 'deliveries_today', 'total_completed', 'total_delivered']
+        drivers_df = drivers_df.drop(
+            columns=[c for c in stat_cols if c in drivers_df.columns],
+            errors='ignore',
+        )
 
-                # Calculate active orders (allocated or in_transit)
-                active_orders = len(orders[
-                    orders['status'].isin(['allocated', 'in_transit'])
-                ])
+        if stats_df.empty:
+            drivers_df['active_orders'] = 0
+            drivers_df['deliveries_today'] = 0
+            return drivers_df
 
-                # Calculate success rate (delivered / total completed)
-                completed_orders = orders[orders['status'].isin(['delivered', 'failed'])]
-                if len(completed_orders) > 0:
-                    delivered_count = len(completed_orders[completed_orders['status'] == 'delivered'])
-                    success_rate = delivered_count / len(completed_orders)
-                else:
-                    success_rate = driver['success_rate']  # Keep existing if no data
+        drivers_df = drivers_df.merge(stats_df, on='driver_id', how='left')
 
-                # Update the dataframe
-                drivers_df.at[idx, 'deliveries_today'] = deliveries_today
-                drivers_df.at[idx, 'active_orders'] = active_orders
-                drivers_df.at[idx, 'success_rate'] = success_rate
-            else:
-                # No orders - set to 0
-                drivers_df.at[idx, 'deliveries_today'] = 0
-                drivers_df.at[idx, 'active_orders'] = 0
+        # Fill NaN for drivers that have no matching orders
+        drivers_df['active_orders'] = drivers_df['active_orders'].fillna(0).astype(int)
+        drivers_df['deliveries_today'] = drivers_df['deliveries_today'].fillna(0).astype(int)
+        drivers_df['total_completed'] = drivers_df['total_completed'].fillna(0)
+        drivers_df['total_delivered'] = drivers_df['total_delivered'].fillna(0)
 
+        # Vectorized success rate calculation
+        has_completed = drivers_df['total_completed'] > 0
+        drivers_df.loc[has_completed, 'success_rate'] = (
+            drivers_df.loc[has_completed, 'total_delivered'] /
+            drivers_df.loc[has_completed, 'total_completed']
+        )
+
+        drivers_df = drivers_df.drop(columns=['total_completed', 'total_delivered'])
         return drivers_df
 
     # === Runs ===
@@ -509,10 +538,11 @@ class LocalStore:
             df = pd.read_sql_query("SELECT * FROM runs ORDER BY created_at DESC", self.conn)
         if not df.empty:
             df['created_at'] = pd.to_datetime(df['created_at'])
-            # Calculate progress
-            df['progress'] = df.apply(
-                lambda r: (r['completed'] / r['total_stops'] * 100) if r['total_stops'] > 0 else 0,
-                axis=1,
+            # Vectorized progress calculation
+            df['progress'] = 0.0
+            has_stops = df['total_stops'] > 0
+            df.loc[has_stops, 'progress'] = (
+                df.loc[has_stops, 'completed'] / df.loc[has_stops, 'total_stops'] * 100
             )
         return df
 
@@ -658,6 +688,31 @@ class LocalStore:
 
     def cleanup_expired_tokens(self):
         self.conn.execute("DELETE FROM session_tokens WHERE expires_at < ?", (datetime.now().isoformat(),))
+        self.conn.commit()
+
+    # Driver auth tokens
+    def save_driver_token(self, token, driver_id, phone, expires_at):
+        self.conn.execute(
+            "INSERT OR IGNORE INTO driver_tokens (token, driver_id, phone, expires_at) VALUES (?, ?, ?, ?)",
+            (token, driver_id, phone, expires_at),
+        )
+        self.conn.commit()
+
+    def get_driver_token(self, token):
+        row = self.conn.execute(
+            "SELECT driver_id, phone, expires_at FROM driver_tokens WHERE token = ? AND expires_at > ?",
+            (token, datetime.now().isoformat()),
+        ).fetchone()
+        if row is None:
+            return None
+        return {'driver_id': row['driver_id'], 'phone': row['phone'], 'expires': row['expires_at']}
+
+    def delete_driver_token(self, token):
+        self.conn.execute("DELETE FROM driver_tokens WHERE token = ?", (token,))
+        self.conn.commit()
+
+    def purge_expired_driver_tokens(self):
+        self.conn.execute("DELETE FROM driver_tokens WHERE expires_at <= ?", (datetime.now().isoformat(),))
         self.conn.commit()
 
     # === Tracking ===

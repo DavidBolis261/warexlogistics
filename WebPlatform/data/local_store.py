@@ -428,6 +428,22 @@ class LocalStore:
         self.conn.execute("DELETE FROM drivers WHERE driver_id=?", (driver_id,))
         self.conn.commit()
 
+    def update_driver_location(self, driver_id, latitude, longitude, timestamp=None):
+        """Update driver's current location for real-time tracking."""
+        from datetime import datetime as dt
+
+        if timestamp is None:
+            timestamp = dt.now().isoformat()
+
+        self.conn.execute('''
+            UPDATE drivers
+            SET latitude = ?,
+                longitude = ?,
+                location_updated_at = ?
+            WHERE driver_id = ?
+        ''', (latitude, longitude, timestamp, driver_id))
+        self.conn.commit()
+
     def get_drivers(self):
         """Get all drivers with real-time calculated statistics from orders."""
         drivers_df = pd.read_sql_query("SELECT * FROM drivers ORDER BY name", self.conn)

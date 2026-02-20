@@ -7,14 +7,52 @@ from flask import Flask, request, jsonify
 from functools import wraps
 import secrets
 from datetime import datetime, timedelta
+import logging
 import pandas as pd
 
-# Simple token storage (in production, use Redis or database)
-_active_tokens = {}
+logger = logging.getLogger(__name__)
 
 
 def create_driver_api(app: Flask, data_manager):
     """Register driver API routes with the Flask app."""
+
+    # ── Token helpers ─────────────────────────────────────────────────────────
+
+    def _save_token(token, driver_id, phone, expires_at: datetime):
+        """Persist a driver token. Works with both Postgres and SQLite stores."""
+        store = data_manager.store
+        if hasattr(store, 'save_driver_token'):
+            store.save_driver_token(token, driver_id, phone, expires_at.isoformat())
+        # Legacy fallback: keep an in-memory copy for the lifetime of this process
+        _mem_tokens[token] = {
+            'driver_id': driver_id,
+            'phone': phone,
+            'expires': expires_at.isoformat(),
+        }
+
+    def _get_token(token):
+        """Look up a token — DB first, then in-memory cache."""
+        store = data_manager.store
+        if hasattr(store, 'get_driver_token'):
+            row = store.get_driver_token(token)
+            if row:
+                # Refresh memory cache
+                _mem_tokens[token] = row
+                return row
+        # Fallback to in-memory (dev/legacy)
+        return _mem_tokens.get(token)
+
+    def _delete_token(token):
+        store = data_manager.store
+        if hasattr(store, 'delete_driver_token'):
+            store.delete_driver_token(token)
+        _mem_tokens.pop(token, None)
+
+    # In-memory cache — used as a fast-path and fallback when store doesn't
+    # have driver_token methods (e.g. old schema).
+    _mem_tokens = {}
+
+    # ── Auth decorator ────────────────────────────────────────────────────────
 
     def require_auth(f):
         """Decorator to require valid authentication token."""
@@ -22,21 +60,29 @@ def create_driver_api(app: Flask, data_manager):
         def decorated_function(*args, **kwargs):
             token = request.headers.get('Authorization', '').replace('Bearer ', '')
 
-            if not token or token not in _active_tokens:
-                return jsonify({'error': 'Unauthorized', 'message': 'Invalid or missing token'}), 401
+            if not token:
+                return jsonify({'error': 'Unauthorized', 'message': 'Missing token'}), 401
 
-            # Check token expiration
-            token_data = _active_tokens[token]
-            if datetime.fromisoformat(token_data['expires']) < datetime.now():
-                del _active_tokens[token]
-                return jsonify({'error': 'Unauthorized', 'message': 'Token expired'}), 401
+            token_data = _get_token(token)
+            if not token_data:
+                return jsonify({'error': 'Unauthorized', 'message': 'Invalid or expired token'}), 401
 
-            # Add driver info to request context
+            # Check expiration
+            try:
+                expires = datetime.fromisoformat(str(token_data['expires']))
+                if expires < datetime.now():
+                    _delete_token(token)
+                    return jsonify({'error': 'Unauthorized', 'message': 'Token expired'}), 401
+            except (ValueError, KeyError):
+                _delete_token(token)
+                return jsonify({'error': 'Unauthorized', 'message': 'Invalid token data'}), 401
+
             request.driver_id = token_data['driver_id']
             request.driver_phone = token_data['phone']
-
             return f(*args, **kwargs)
         return decorated_function
+
+    # ── Login ─────────────────────────────────────────────────────────────────
 
     @app.route('/api/driver/login', methods=['POST'])
     def driver_login():
@@ -46,14 +92,6 @@ def create_driver_api(app: Flask, data_manager):
         Request body:
         {
             "phone": "0412345678"
-        }
-
-        Response:
-        {
-            "success": true,
-            "token": "...",
-            "driver": { ... },
-            "expires_at": "2024-01-01T12:00:00"
         }
         """
         data = request.get_json()
@@ -80,13 +118,15 @@ def create_driver_api(app: Flask, data_manager):
         token = secrets.token_urlsafe(32)
         expires = datetime.now() + timedelta(days=30)
 
-        _active_tokens[token] = {
-            'driver_id': driver['driver_id'],
-            'phone': driver['phone'],
-            'expires': expires.isoformat()
-        }
+        _save_token(token, driver['driver_id'], driver['phone'], expires)
 
-        # Format driver response
+        # Purge stale tokens periodically (on every login)
+        try:
+            if hasattr(data_manager.store, 'purge_expired_driver_tokens'):
+                data_manager.store.purge_expired_driver_tokens()
+        except Exception:
+            pass
+
         driver_response = {
             'id': driver['driver_id'],
             'name': driver['name'],
@@ -107,46 +147,27 @@ def create_driver_api(app: Flask, data_manager):
             'expires_at': expires.isoformat()
         }), 200
 
+    # ── Runs ──────────────────────────────────────────────────────────────────
+
     @app.route('/api/driver/runs', methods=['GET'])
     @require_auth
     def get_driver_runs():
-        """
-        Get delivery run for the authenticated driver.
-        A "run" is simply all orders assigned to that driver.
-
-        Response:
-        {
-            "runs": [ { ... } ],
-            "total": 1
-        }
-        """
+        """Get delivery run for the authenticated driver."""
         driver_id = request.driver_id
 
-        # Get all orders for this driver
         orders_df = data_manager.get_orders()
 
         if orders_df.empty:
             return jsonify({'runs': [], 'total': 0}), 200
 
-        # Get driver name so we can match orders assigned by name OR by ID
-        # (web UI stores driver NAME in the driver_id field of orders)
-        drivers_df = data_manager.get_drivers()
-        driver_match = drivers_df[drivers_df['driver_id'] == driver_id]
-        driver_name = driver_match.iloc[0]['name'] if not driver_match.empty else None
-
-        mask = orders_df['driver_id'] == driver_id
-        if driver_name:
-            mask = mask | (orders_df['driver_id'] == driver_name)
-        driver_orders = orders_df[mask]
+        driver_orders = orders_df[orders_df['driver_id'] == driver_id]
 
         if driver_orders.empty:
             return jsonify({'runs': [], 'total': 0}), 200
 
-        # Calculate stats from orders
         total_stops = len(driver_orders)
         completed = len(driver_orders[driver_orders['status'].isin(['delivered', 'completed'])])
 
-        # Determine status
         if completed == 0:
             status = 'Pending'
         elif completed < total_stops:
@@ -154,209 +175,170 @@ def create_driver_api(app: Flask, data_manager):
         else:
             status = 'Completed'
 
-        # Create a single run with all driver's orders
         today = datetime.now().strftime("%Y%m%d")
         run = {
             'id': f'RUN-{driver_id}-{today}',
             'runNumber': f'RUN-{today}',
-            'zone': 'Today\'s Deliveries',
+            'zone': "Today's Deliveries",
             'date': datetime.now().isoformat(),
             'status': status,
             'totalStops': total_stops,
             'completedStops': completed,
-            'estimatedDuration': total_stops * 600,  # 10 min per stop
-            'totalDistance': total_stops * 2.5,  # 2.5km per stop estimate
+            'estimatedDuration': total_stops * 600,
+            'totalDistance': total_stops * 2.5,
         }
 
-        return jsonify({
-            'runs': [run],
-            'total': 1
-        }), 200
+        return jsonify({'runs': [run], 'total': 1}), 200
+
+    # ── Stops ─────────────────────────────────────────────────────────────────
 
     @app.route('/api/driver/runs/<run_id>/stops', methods=['GET'])
     @require_auth
     def get_run_stops(run_id):
-        """
-        Get all delivery stops (orders) for the driver.
-        Run ID is ignored - we just return all orders for this driver.
-
-        Response:
-        {
-            "stops": [ ... ],
-            "total": 10
-        }
-        """
+        """Get all delivery stops (orders) for the driver."""
         driver_id = request.driver_id
 
-        # Get all orders for this driver
         orders_df = data_manager.get_orders()
 
         if orders_df.empty:
             return jsonify({'stops': [], 'total': 0}), 200
 
-        # Match by driver_id OR driver name (web UI stores name in driver_id field)
-        drivers_df = data_manager.get_drivers()
-        driver_match = drivers_df[drivers_df['driver_id'] == driver_id]
-        driver_name = driver_match.iloc[0]['name'] if not driver_match.empty else None
-
-        mask = orders_df['driver_id'] == driver_id
-        if driver_name:
-            mask = mask | (orders_df['driver_id'] == driver_name)
-        driver_orders = orders_df[mask]
+        driver_orders = orders_df[orders_df['driver_id'] == driver_id]
 
         if driver_orders.empty:
             return jsonify({'stops': [], 'total': 0}), 200
 
-        # Convert to stops format
-        stops_list = []
-        for idx, (_, order) in enumerate(driver_orders.iterrows(), start=1):
-            # Map order status to stop status
-            stop_status = 'pending'
-            if order['status'] == 'in_transit':
-                stop_status = 'inProgress'
-            elif order['status'] == 'delivered':
-                stop_status = 'delivered'
-            elif order['status'] == 'failed':
-                stop_status = 'failed'
-            elif order['status'] == 'allocated':
-                stop_status = 'pending'
+        # Map backend statuses to mobile app stop statuses (vectorized)
+        status_map = {'in_transit': 'inProgress', 'delivered': 'delivered', 'failed': 'failed'}
+        driver_orders = driver_orders.reset_index(drop=True)
+        driver_orders['stop_status'] = driver_orders['status'].map(status_map).fillna('pending')
 
-            # Get optional fields, convert empty strings to None
-            instructions = order.get('instructions', '')
-            special_instructions = instructions if instructions else None
-
-            email = order.get('email', '')
-            customer_email = email if email else None
-
-            stops_list.append({
-                'id': order['order_id'],
-                'sequenceNumber': idx,
-                'status': stop_status,
+        stops_list = [
+            {
+                'id': row['order_id'],
+                'sequenceNumber': seq,
+                'status': row['stop_status'],
                 'order': {
-                    'id': order['order_id'],
-                    'orderNumber': order['order_id'],
+                    'id': row['order_id'],
+                    'orderNumber': row['order_id'],
                     'customer': {
-                        'id': f"C-{idx}",
-                        'name': order.get('customer', 'Customer'),
-                        'phone': order.get('phone', ''),
-                        'email': customer_email
+                        'id': f"C-{seq}",
+                        'name': row.get('customer') or 'Customer',
+                        'phone': row.get('phone') or '',
+                        'email': row.get('email') or '',
                     },
                     'address': {
-                        'street': order.get('address', ''),
-                        'suburb': order.get('suburb', ''),
-                        'postcode': order.get('postcode', ''),
-                        'state': order.get('state', 'NSW'),
-                        'latitude': -33.8688,  # TODO: geocode real lat/lng
-                        'longitude': 151.2093
+                        'street': row.get('address') or '',
+                        'suburb': row.get('suburb') or '',
+                        'postcode': row.get('postcode') or '',
+                        'state': row.get('state') or 'NSW',
+                        'latitude': -33.8688,
+                        'longitude': 151.2093,
                     },
-                    'parcels': int(order.get('parcels', 1)),
-                    'serviceLevel': order.get('service_level', 'standard'),
-                    'specialInstructions': special_instructions,
-                    'createdAt': order.get('created_at', datetime.now().isoformat())
-                }
-            })
+                    'parcels': int(row.get('parcels') or 1),
+                    'serviceLevel': row.get('service_level') or 'standard',
+                    'specialInstructions': row.get('special_instructions') or '',
+                    'createdAt': row.get('created_at') or datetime.now().isoformat(),
+                },
+            }
+            for seq, row in enumerate(driver_orders.to_dict('records'), start=1)
+        ]
 
-        return jsonify({
-            'stops': stops_list,
-            'total': len(stops_list)
-        }), 200
+        return jsonify({'stops': stops_list, 'total': len(stops_list)}), 200
+
+    # ── Stop update (status + optional media) ─────────────────────────────────
 
     @app.route('/api/driver/stops/<stop_id>/update', methods=['POST'])
     @require_auth
     def update_stop_status(stop_id):
         """
-        Update the status of a delivery stop.
+        Update the status and/or proof-of-delivery media for a stop.
 
-        Request body:
-        {
-            "status": "delivered" | "failed" | "inProgress",
-            "failureReason": "notHome" (optional, required if status is failed),
-            "notes": "..." (optional),
-            "signature": "base64_encoded_image" (optional),
-            "photo": "base64_encoded_image" (optional)
-        }
+        Both `status` and media fields are optional independently:
+        - Status-only call: { "status": "delivered", "notes": "..." }
+        - Media-only call:  { "photo": "<base64>", "signature": "<base64>" }
+        - Combined call:    { "status": "delivered", "photo": "<base64>", ... }
 
-        Response:
-        {
-            "success": true,
-            "stop": { ... }
-        }
+        At least one of status or media must be present.
         """
-        driver_id = request.driver_id
-        data = request.get_json()
+        raw_data = request.get_json(force=True, silent=True)
+        if raw_data is None:
+            # JSON parsing failed — log details for debugging
+            content_len = request.content_length or 0
+            content_type = request.content_type or 'unknown'
+            logger.error(
+                f"[stop] {stop_id} update — JSON parse failed. "
+                f"content_type={content_type} content_length={content_len}"
+            )
+            return jsonify({
+                'error': 'Invalid JSON body',
+                'content_type': content_type,
+                'content_length': content_len,
+            }), 400
+
+        data = raw_data
 
         new_status = data.get('status')
         failure_reason = data.get('failureReason')
         notes = data.get('notes', '')
-        signature_base64 = data.get('signature')
-        photo_base64 = data.get('photo')
+        photo_b64 = data.get('photo')
+        signature_b64 = data.get('signature')
 
-        if not new_status:
-            return jsonify({'error': 'Status is required'}), 400
+        has_status = bool(new_status)
+        has_media = bool(photo_b64 or signature_b64)
 
-        # Map mobile statuses to backend statuses
-        status_map = {
-            'pending': 'allocated',
-            'inProgress': 'in_transit',
-            'delivered': 'delivered',
-            'failed': 'failed'
-        }
+        if not has_status and not has_media:
+            logger.warning(
+                f"[stop] {stop_id} update — 400: no status and no media. "
+                f"Keys received: {list(data.keys())}"
+            )
+            return jsonify({'error': 'At least one of status or media must be provided'}), 400
 
-        backend_status = status_map.get(new_status, 'allocated')
+        update_fields = {}
 
-        # Prepare update data
-        update_data = {'status': backend_status}
+        if has_status:
+            # Map mobile statuses to backend statuses
+            status_map = {
+                'pending': 'allocated',
+                'inProgress': 'in_transit',
+                'delivered': 'delivered',
+                'failed': 'failed',
+            }
+            backend_status = status_map.get(new_status, 'allocated')
+            update_fields['status'] = backend_status
+            if notes:
+                update_fields['delivery_notes'] = notes
 
-        # Record delivery timestamp for completed/failed stops
-        if backend_status in ('delivered', 'failed'):
-            update_data['delivered_at'] = datetime.now().isoformat()
+        if has_media:
+            if photo_b64:
+                update_fields['proof_photo'] = photo_b64
+            if signature_b64:
+                update_fields['proof_signature'] = signature_b64
 
-        # Save signature and photo as base64 data URLs for display
-        if signature_base64:
-            update_data['signature'] = f"data:image/png;base64,{signature_base64}"
+        try:
+            data_manager.update_order(stop_id, **update_fields)
+        except Exception as exc:
+            logger.error(f"update_stop_status error for {stop_id}: {exc}", exc_info=True)
+            return jsonify({'error': 'Failed to update stop', 'detail': str(exc)}), 500
 
-        if photo_base64:
-            update_data['photo'] = f"data:image/jpeg;base64,{photo_base64}"
-
-        # Update order status and proof of delivery
-        data_manager.update_order(stop_id, **update_data)
-
-        # Send status update email to customer
-        from utils.email_service import send_status_update, is_email_configured
-
-        email_sent = False
-        if is_email_configured(data_manager):
-            # Get fresh order details after update to send email
-            orders_df = data_manager.get_orders()
-            order_match = orders_df[orders_df['order_id'] == stop_id]
-
-            if not order_match.empty:
-                order_data = order_match.iloc[0].to_dict()
-                if order_data.get('email'):
-                    result = send_status_update(data_manager, order_data, backend_status)
-                    email_sent = result.get('success', False)
+        logger.info(
+            f"[stop] {stop_id} updated — status={new_status or '(none)'} "
+            f"photo={'yes' if photo_b64 else 'no'} sig={'yes' if signature_b64 else 'no'}"
+        )
 
         return jsonify({
             'success': True,
-            'message': f'Stop {stop_id} updated to {new_status}',
-            'email_sent': email_sent
+            'message': f'Stop {stop_id} updated',
         }), 200
+
+    # ── Profile ───────────────────────────────────────────────────────────────
 
     @app.route('/api/driver/profile', methods=['GET'])
     @require_auth
     def get_driver_profile():
-        """
-        Get the authenticated driver's profile information.
-
-        Response:
-        {
-            "driver": { ... },
-            "stats": { ... }
-        }
-        """
+        """Get the authenticated driver's profile information."""
         driver_id = request.driver_id
 
-        # Get driver info
         drivers_df = data_manager.get_drivers()
         driver_match = drivers_df[drivers_df['driver_id'] == driver_id]
 
@@ -365,7 +347,6 @@ def create_driver_api(app: Flask, data_manager):
 
         driver = driver_match.iloc[0].to_dict()
 
-        # Get driver stats
         orders_df = data_manager.get_orders()
         driver_orders = orders_df[orders_df['driver_id'] == driver_id] if not orders_df.empty else pd.DataFrame()
 
@@ -396,6 +377,58 @@ def create_driver_api(app: Flask, data_manager):
             }
         }), 200
 
+    # ── Explicit email trigger (called by iOS app after delivery) ─────────────
+
+    @app.route('/api/driver/stops/<stop_id>/notify', methods=['POST'])
+    @require_auth
+    def notify_customer(stop_id):
+        """
+        Explicitly trigger a customer notification email for a stop.
+        The iOS app calls this right after a successful status update so the
+        email send is visible in logs and can be retried independently.
+
+        Request body: { "status": "delivered" }  (optional — defaults to 'delivered')
+        """
+        from utils.email_service import send_status_update, is_email_configured
+
+        data = request.get_json() or {}
+        new_status = data.get('status', 'delivered')
+
+        if not is_email_configured(data_manager):
+            logger.warning(f"[email/notify] email not configured for stop {stop_id}")
+            return jsonify({
+                'success': False,
+                'error': 'Email not configured on server',
+            }), 200  # 200 so iOS doesn't show an error toast
+
+        try:
+            order = data_manager.store.get_order_by_id(stop_id)
+            if not order:
+                logger.warning(f"[email/notify] order {stop_id} not found")
+                return jsonify({'success': False, 'error': 'Order not found'}), 404
+
+            order_dict = dict(order)
+            to_email = order_dict.get('email', '')
+            if not to_email:
+                logger.warning(f"[email/notify] no customer email for order {stop_id}")
+                return jsonify({'success': False, 'error': 'No customer email'}), 200
+
+            logger.info(f"[email/notify] sending '{new_status}' email to {to_email} for order {stop_id}")
+            result = send_status_update(data_manager, order_dict, new_status)
+
+            if result.get('success'):
+                logger.info(f"[email/notify] ✅ sent to {to_email}")
+                return jsonify({'success': True}), 200
+            else:
+                logger.warning(f"[email/notify] ❌ failed: {result.get('error')}")
+                return jsonify({'success': False, 'error': result.get('error')}), 200
+
+        except Exception as exc:
+            logger.error(f"[email/notify] exception for {stop_id}: {exc}", exc_info=True)
+            return jsonify({'success': False, 'error': str(exc)}), 500
+
+    # ── Driver location ────────────────────────────────────────────────────────
+
     @app.route('/api/driver/location', methods=['POST'])
     @require_auth
     def update_driver_location():
@@ -408,12 +441,6 @@ def create_driver_api(app: Flask, data_manager):
             "longitude": 151.2093,
             "timestamp": "2024-01-01T12:00:00Z"
         }
-
-        Response:
-        {
-            "success": true,
-            "message": "Location updated"
-        }
         """
         driver_id = request.driver_id
         data = request.get_json()
@@ -425,7 +452,6 @@ def create_driver_api(app: Flask, data_manager):
         if latitude is None or longitude is None:
             return jsonify({'error': 'Latitude and longitude are required'}), 400
 
-        # Update driver location in database
         data_manager.update_driver_location(
             driver_id=driver_id,
             latitude=latitude,
@@ -438,15 +464,14 @@ def create_driver_api(app: Flask, data_manager):
             'message': 'Location updated'
         }), 200
 
+    # ── Logout ────────────────────────────────────────────────────────────────
+
     @app.route('/api/driver/logout', methods=['POST'])
     @require_auth
     def driver_logout():
         """Logout and invalidate the current token."""
         token = request.headers.get('Authorization', '').replace('Bearer ', '')
-
-        if token in _active_tokens:
-            del _active_tokens[token]
-
+        _delete_token(token)
         return jsonify({'success': True, 'message': 'Logged out successfully'}), 200
 
     return app

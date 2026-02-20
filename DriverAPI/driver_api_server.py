@@ -8,14 +8,31 @@ Usage:
 The API will be available at http://localhost:5000/api/driver/...
 """
 
+import logging
+import os
+import sys
+
+print("=" * 60, file=sys.stderr)
+print("BUILD VERSION: 2026-02-21-v2", file=sys.stderr)
+print("=" * 60, file=sys.stderr)
+
 from flask import Flask
 from flask_cors import CORS
 from data.data_manager import DataManager
 from api.driver_api import create_driver_api
-import os
+
+# Configure logging so every [email] line appears in stdout / Railway logs
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
 # Initialize Flask app
 app = Flask(__name__)
+
+# Allow large request bodies (driver photo uploads can be several MB as base64)
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB
 
 # Enable CORS for mobile app access
 CORS(app, resources={
@@ -31,6 +48,26 @@ data_manager = DataManager()
 
 # Register driver API routes
 create_driver_api(app, data_manager)
+
+# ── Email configuration check (printed once at startup) ──────────────────────
+try:
+    from utils.email_service import is_email_configured, _get_email_config
+    _ecfg = _get_email_config(data_manager)
+    _env_key  = bool(os.environ.get('RESEND_API_KEY', '').strip())
+    _env_from = os.environ.get('EMAIL_FROM_ADDRESS', '').strip()
+    print("=" * 60)
+    print("📧 Email configuration:")
+    print(f"   RESEND_API_KEY   (env) : {'✅ set' if _env_key else '❌ NOT SET — add this Railway env var'}")
+    print(f"   EMAIL_FROM_ADDRESS (env): {_env_from or '❌ NOT SET — add this Railway env var'}")
+    print(f"   resend_api_key   (DB)  : {'✅ set' if data_manager.get_setting('resend_api_key') else '⚠️  not in DB (env var used)'}")
+    print(f"   email_from_address (DB): {data_manager.get_setting('email_from_address') or '⚠️  not in DB (env var used)'}")
+    print(f"   email_notifications_enabled (DB): {data_manager.get_setting('email_notifications_enabled', 'false')}")
+    print(f"   resolved api_key       : {'✅ present' if _ecfg.get('api_key') else '❌ MISSING'}")
+    print(f"   resolved from_email    : {_ecfg.get('from_email') or '❌ MISSING'}")
+    print(f"   → Will send emails     : {'✅ YES' if is_email_configured(data_manager) else '❌ NO — fix the items above'}")
+    print("=" * 60)
+except Exception as _e:
+    print(f"⚠️ Email config check skipped: {_e}")
 
 # Health check endpoint
 @app.route('/health', methods=['GET'])
