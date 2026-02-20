@@ -56,6 +56,15 @@ if 'data_mode' not in st.session_state:
     else:
         st.session_state['data_mode'] = 'Local Only (SQLite)'
 
+# Push the selected mode into DataManager so it never needs to read session_state itself
+_raw_mode = st.session_state.get('data_mode', '')
+if 'Live' in _raw_mode and wms_config.is_configured:
+    dm.set_mode('live')
+elif 'Demo' in _raw_mode:
+    dm.set_mode('demo')
+else:
+    dm.set_mode('local')
+
 
 # ============================================
 # AUTH GATE

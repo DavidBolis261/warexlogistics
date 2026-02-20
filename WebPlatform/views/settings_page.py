@@ -244,6 +244,13 @@ def _render_wms_integration(data_manager):
         index=2 if wms_config.is_configured else 1,
     )
     st.session_state['data_mode'] = data_mode
+    # Keep DataManager in sync — it no longer reads session_state itself
+    if 'Live' in data_mode and wms_config.is_configured:
+        data_manager.set_mode('live')
+    elif 'Demo' in data_mode:
+        data_manager.set_mode('demo')
+    else:
+        data_manager.set_mode('local')
 
     st.markdown("---")
 

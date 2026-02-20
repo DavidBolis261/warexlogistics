@@ -22,15 +22,6 @@ from utils.email_service import send_order_confirmation, send_status_update, is_
 from api.logistics import create_kitting_job as api_create_kitting_job
 
 
-def _streamlit_has_context() -> bool:
-    """Return True only when called from a live Streamlit script thread."""
-    try:
-        from streamlit.runtime.scriptrunner import get_script_run_ctx
-        return get_script_run_ctx() is not None
-    except Exception:
-        return False
-
-
 class DataManager:
     """Unified data access layer.
 
@@ -45,16 +36,17 @@ class DataManager:
         database_url = os.environ.get('DATABASE_URL')
 
         if database_url:
-            # Use PostgreSQL for production
             from data.postgres_store import PostgresStore
             self.store = PostgresStore(database_url)
             print("✅ Using PostgreSQL database (Production)")
         else:
-            # Use SQLite for local development
             self.store = LocalStore()
             print("✅ Using SQLite database (Development)")
 
         self._client = None
+        # Optional override set by the Streamlit dashboard (e.g. 'demo').
+        # Never set by the Flask API server — keeps Streamlit out of this class.
+        self._mode_override: str | None = None
         # Seed default zones on first init
         self.store.seed_default_zones()
 
@@ -69,24 +61,19 @@ class DataManager:
         return wms_config.is_configured and self.client is not None
 
     @property
-    def data_mode(self):
-        # Only access Streamlit session_state when actually running inside Streamlit.
-        # The Flask driver API is a separate process — importing Streamlit there
-        # produces noisy "missing ScriptRunContext" warnings and the session_state
-        # returns defaults rather than raising, making the fallback unreachable.
-        import sys
-        in_streamlit = 'streamlit' in sys.modules and _streamlit_has_context()
-        if in_streamlit:
-            import streamlit as st
-            mode = st.session_state.get('data_mode', 'Local Only (SQLite)')
-            if 'Live' in mode and self.is_live:
-                return 'live'
-            elif 'Local' in mode:
-                return 'local'
-            return 'demo'
-        # Flask / standalone process — infer from store type
+    def data_mode(self) -> str:
+        # Explicit override wins (set by app.py after reading st.session_state)
+        if self._mode_override:
+            return self._mode_override
+        # Otherwise infer from store type — works correctly in both Flask and Streamlit
         from data.postgres_store import PostgresStore
-        return 'live' if isinstance(self.store, PostgresStore) else 'local'
+        if isinstance(self.store, PostgresStore):
+            return 'live' if self.is_live else 'local'
+        return 'local'
+
+    def set_mode(self, mode: str) -> None:
+        """Called by the Streamlit dashboard to set demo/live/local override."""
+        self._mode_override = mode if mode in ('demo', 'live', 'local') else None
 
     # === Orders ===
 
