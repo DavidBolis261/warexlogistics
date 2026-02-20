@@ -10,6 +10,11 @@ The API will be available at http://localhost:5000/api/driver/...
 
 import logging
 import os
+import sys
+
+print("=" * 60, file=sys.stderr)
+print("BUILD VERSION: 2026-02-21-v2", file=sys.stderr)
+print("=" * 60, file=sys.stderr)
 
 from flask import Flask
 from flask_cors import CORS

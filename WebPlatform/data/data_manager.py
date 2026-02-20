@@ -8,6 +8,10 @@ from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
+# Build sentinel — if Railway is running this file, we'll see this in the logs.
+_BUILD_VERSION = "2026-02-21-v2"
+logger.info(f"[data_manager] loaded — build version {_BUILD_VERSION}")
+
 import pandas as pd
 
 from config.settings import wms_config
