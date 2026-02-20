@@ -168,13 +168,20 @@ class DataManager:
 
     def update_order(self, order_id, **fields):
         """Update order fields (status, zone, driver_id, proof_photo, etc.)."""
+        # Step 1 — always update the DB first.  This MUST succeed; any error
+        # here is a real problem and should propagate up to the caller.
         self.store.update_order_fields(order_id, **fields)
 
-        # Only send email notification when the status field changes
-        if 'status' not in fields:
-            return
+        # Step 2 — attempt email notification (best-effort, never crashes
+        # the status update which already committed to the DB above).
+        if 'status' in fields:
+            try:
+                self._try_send_status_email(order_id, fields['status'])
+            except Exception as exc:
+                logger.error(f"[email] uncaught exception for order {order_id}: {exc}", exc_info=True)
 
-        new_status = fields['status']
+    def _try_send_status_email(self, order_id, new_status):
+        """Best-effort email notification.  Isolated so it can never crash the caller."""
         logger.info(f"[email] order {order_id} status → {new_status}")
 
         if not is_email_configured(self):
@@ -185,25 +192,31 @@ class DataManager:
             )
             return
 
-        try:
-            order = self.store.get_order_by_id(order_id)
-            if not order:
-                logger.warning(f"[email] skipped for order {order_id}: order not found in DB")
-                return
-            # get_order_by_id returns a dict from both stores
-            order_dict = dict(order)
-            to_email = order_dict.get('email', '')
-            if not to_email:
-                logger.warning(f"[email] skipped for order {order_id}: no customer email on record")
-                return
-            logger.info(f"[email] sending '{new_status}' notification to {to_email}")
-            result = send_status_update(self, order_dict, new_status)
-            if result.get('success'):
-                logger.info(f"[email] sent successfully to {to_email}")
-            else:
-                logger.warning(f"[email] send failed for order {order_id}: {result.get('error')}")
-        except Exception as exc:
-            logger.error(f"[email] exception for order {order_id}: {exc}", exc_info=True)
+        order_raw = self.store.get_order_by_id(order_id)
+
+        # Defensive: handle Series, dict, or None from any store version
+        if order_raw is None:
+            logger.warning(f"[email] skipped for order {order_id}: order not found in DB")
+            return
+
+        # Ensure we always work with a plain dict — older postgres_store
+        # versions returned a Pandas Series instead of a dict.
+        if hasattr(order_raw, 'to_dict') and callable(order_raw.to_dict):
+            order_dict = order_raw.to_dict()
+        else:
+            order_dict = dict(order_raw)
+
+        to_email = order_dict.get('email', '') or ''
+        if not to_email:
+            logger.warning(f"[email] skipped for order {order_id}: no customer email on record")
+            return
+
+        logger.info(f"[email] sending '{new_status}' notification to {to_email}")
+        result = send_status_update(self, order_dict, new_status)
+        if result.get('success'):
+            logger.info(f"[email] sent successfully to {to_email}")
+        else:
+            logger.warning(f"[email] send failed for order {order_id}: {result.get('error')}")
 
     # === Drivers ===
 
