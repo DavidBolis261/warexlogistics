@@ -459,6 +459,10 @@ def apply_styles():
 
     /* Hide sidebar collapse/toggle button — keep menu always visible */
     [data-testid="collapsedControl"] {display: none !important;}
+    [data-testid="stSidebarCollapseButton"] {display: none !important;}
     button[kind="header"] {display: none !important;}
+    section[data-testid="stSidebar"] > div:first-child > div:first-child > button {display: none !important;}
+    .st-emotion-cache-1rtdyuf {display: none !important;}
+    .st-emotion-cache-dvne4q {display: none !important;}
 </style>
 """, unsafe_allow_html=True)
