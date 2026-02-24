@@ -456,5 +456,9 @@ def apply_styles():
         content: '';
         display: none;
     }
+
+    /* Hide sidebar collapse/toggle button — keep menu always visible */
+    [data-testid="collapsedControl"] {display: none !important;}
+    button[kind="header"] {display: none !important;}
 </style>
 """, unsafe_allow_html=True)
