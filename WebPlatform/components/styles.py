@@ -457,12 +457,31 @@ def apply_styles():
         display: none;
     }
 
-    /* Hide sidebar collapse/toggle button — keep menu always visible */
+    /* Force sidebar always visible and expanded — hide collapse button */
     [data-testid="collapsedControl"] {display: none !important;}
     [data-testid="stSidebarCollapseButton"] {display: none !important;}
     button[kind="header"] {display: none !important;}
     section[data-testid="stSidebar"] > div:first-child > div:first-child > button {display: none !important;}
     .st-emotion-cache-1rtdyuf {display: none !important;}
     .st-emotion-cache-dvne4q {display: none !important;}
+
+    /* Force sidebar open even if previously collapsed */
+    section[data-testid="stSidebar"] {
+        display: flex !important;
+        visibility: visible !important;
+        width: 21rem !important;
+        min-width: 21rem !important;
+        transform: none !important;
+        left: 0 !important;
+        position: relative !important;
+    }
+    section[data-testid="stSidebar"][aria-expanded="false"] {
+        display: flex !important;
+        visibility: visible !important;
+        width: 21rem !important;
+        min-width: 21rem !important;
+        transform: none !important;
+        left: 0 !important;
+    }
 </style>
 """, unsafe_allow_html=True)
