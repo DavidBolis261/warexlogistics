@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 
 
 def apply_styles():
@@ -457,47 +458,7 @@ def apply_styles():
         display: none;
     }
 
-    /* ── Sidebar collapse / expand toggle ─────────────────────────────────────
-       The arrow is ALWAYS visible so the user can hide or restore the sidebar. */
-
-    /* Arrow shown on the left edge when sidebar is COLLAPSED */
-    [data-testid="collapsedControl"] {
-        display: flex !important;
-        visibility: visible !important;
-        position: fixed !important;
-        left: 0 !important;
-        top: 50% !important;
-        transform: translateY(-50%) !important;
-        z-index: 9999 !important;
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
-        border: 1px solid rgba(102, 126, 234, 0.5) !important;
-        border-left: none !important;
-        border-radius: 0 10px 10px 0 !important;
-        padding: 0.6rem 0.45rem !important;
-        box-shadow: 4px 0 16px rgba(0,0,0,0.4) !important;
-        cursor: pointer !important;
-        transition: all 0.2s ease !important;
-    }
-
-    [data-testid="collapsedControl"]:hover {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        border-color: rgba(102, 126, 234, 0.9) !important;
-        box-shadow: 4px 0 24px rgba(102, 126, 234, 0.4) !important;
-    }
-
-    [data-testid="collapsedControl"] svg {
-        fill: #667eea !important;
-        color: #667eea !important;
-        width: 18px !important;
-        height: 18px !important;
-    }
-
-    [data-testid="collapsedControl"]:hover svg {
-        fill: white !important;
-        color: white !important;
-    }
-
-    /* Collapse arrow shown inside the sidebar when it is OPEN */
+    /* Collapse arrow shown inside the sidebar when it is OPEN — keep it styled */
     [data-testid="stSidebarCollapseButton"] {
         display: flex !important;
         visibility: visible !important;
@@ -523,3 +484,105 @@ def apply_styles():
     }
 </style>
 """, unsafe_allow_html=True)
+
+    # ── Persistent sidebar toggle button ───────────────────────────────────────
+    # CSS alone cannot keep the expand arrow visible when the sidebar is hidden
+    # (display:none kills all descendants regardless of position:fixed).
+    # We inject a real button into the parent window's body via an invisible
+    # iframe so it always floats on screen and survives Streamlit re-renders.
+    components.html("""
+<script>
+(function () {
+    var ID = 'warex-sidebar-toggle';
+
+    function doc()     { return window.parent.document; }
+    function sidebar() { return doc().querySelector('[data-testid="stSidebar"]'); }
+
+    function isOpen() {
+        var sb = sidebar();
+        return !sb || sb.getAttribute('aria-expanded') !== 'false';
+    }
+
+    function updateArrow() {
+        var btn = doc().getElementById(ID);
+        if (!btn) return;
+        btn.innerHTML = isOpen() ? '&#9664;' : '&#9654;';   /* ◀ / ▶ */
+    }
+
+    function clickNativeToggle() {
+        var d = doc();
+        if (isOpen()) {
+            /* sidebar open → click the collapse button inside it */
+            var cb = d.querySelector('[data-testid="stSidebarCollapseButton"] button');
+            if (cb) { cb.click(); return; }
+        } else {
+            /* sidebar closed → click whichever expand control Streamlit rendered */
+            var eb = d.querySelector('[data-testid="collapsedControl"] button')
+                   || d.querySelector('[data-testid="collapsedControl"]');
+            if (eb) { eb.click(); return; }
+        }
+        /* last-resort fallback – Streamlit's keyboard shortcut */
+        d.dispatchEvent(new KeyboardEvent('keydown', {key:'[', bubbles:true}));
+    }
+
+    function createBtn() {
+        var d = doc();
+        if (d.getElementById(ID)) { updateArrow(); return; }
+
+        var btn = d.createElement('button');
+        btn.id    = ID;
+        btn.title = 'Toggle menu';
+        btn.innerHTML = '&#9664;';
+
+        btn.setAttribute('style', [
+            'position:fixed',
+            'left:0',
+            'top:50%',
+            'transform:translateY(-50%)',
+            'z-index:2147483647',
+            'background:linear-gradient(135deg,#1a1a2e,#16213e)',
+            'border:1px solid rgba(102,126,234,0.5)',
+            'border-left:none',
+            'border-radius:0 10px 10px 0',
+            'color:#667eea',
+            'padding:14px 10px',
+            'cursor:pointer',
+            'font-size:15px',
+            'line-height:1',
+            'box-shadow:4px 0 16px rgba(0,0,0,0.4)',
+            'transition:all 0.2s ease',
+            'outline:none'
+        ].join(';'));
+
+        btn.addEventListener('mouseenter', function () {
+            this.style.background  = 'linear-gradient(135deg,#667eea,#764ba2)';
+            this.style.color       = 'white';
+            this.style.boxShadow   = '4px 0 24px rgba(102,126,234,0.4)';
+        });
+        btn.addEventListener('mouseleave', function () {
+            this.style.background  = 'linear-gradient(135deg,#1a1a2e,#16213e)';
+            this.style.color       = '#667eea';
+            this.style.boxShadow   = '4px 0 16px rgba(0,0,0,0.4)';
+        });
+        btn.addEventListener('click', function () {
+            clickNativeToggle();
+            setTimeout(updateArrow, 80);
+            setTimeout(updateArrow, 400);
+        });
+
+        d.body.appendChild(btn);
+        updateArrow();
+
+        /* watch sidebar aria-expanded attribute for arrow direction updates */
+        var sb = sidebar();
+        if (sb) {
+            new MutationObserver(updateArrow)
+                .observe(sb, { attributes: true, attributeFilter: ['aria-expanded'] });
+        }
+    }
+
+    /* retry a few times — Streamlit's React renders asynchronously */
+    [100, 400, 900, 2000].forEach(function (ms) { setTimeout(createBtn, ms); });
+})();
+</script>
+""", height=0)
