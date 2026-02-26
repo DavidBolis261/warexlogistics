@@ -65,7 +65,7 @@ def render(orders_df, drivers_df, data_manager, zone_filter, service_filter, sta
         _render_pending(filtered_df, drivers_df, data_manager)
 
     with tab2:
-        _render_in_transit(filtered_df)
+        _render_in_transit(filtered_df, drivers_df, data_manager)
 
     with tab3:
         _render_completed(filtered_df)
@@ -430,11 +430,11 @@ def _render_new_order_form(data_manager):
         with col1:
             # Get list of drivers for dropdown
             drivers_list = data_manager.get_drivers()
-            driver_options = [""] + [f"{d['name']} ({d['driver_id']})" for _, d in drivers_list.iterrows()]
-            selected_driver = st.selectbox("Assign to Driver (optional)", driver_options)
+            driver_options = ["-- Select a driver *"] + [f"{d['name']} ({d['driver_id']})" for _, d in drivers_list.iterrows()]
+            selected_driver = st.selectbox("Assign to Driver *", driver_options)
             # Extract driver_id from selection
             driver_id = ""
-            if selected_driver and selected_driver != "":
+            if selected_driver and selected_driver != "-- Select a driver *":
                 driver_id = selected_driver.split("(")[1].strip(")")
 
         with col2:
@@ -447,6 +447,8 @@ def _render_new_order_form(data_manager):
                 st.error("Please fill in all required fields (marked with *)")
             elif not pickup_address or not pickup_suburb or not pickup_postcode:
                 st.error("Please fill in all required pickup address fields (marked with *)")
+            elif not driver_id:
+                st.error("Please assign a driver before creating the order.")
             else:
                 order_data = {
                     'customer': customer_name,
@@ -658,7 +660,7 @@ def _render_pending(orders_df, drivers_df, data_manager):
                         st.error(f"Failed: {result.get('error', 'Unknown error')}")
 
 
-def _render_in_transit(orders_df):
+def _render_in_transit(orders_df, drivers_df, data_manager):
     # Add search field
     search = st.text_input("Search in transit orders...", placeholder="Order ID, customer name, tracking number, or address", key="transit_search")
 
@@ -686,35 +688,108 @@ def _render_in_transit(orders_df):
         st.info("No orders in transit.")
         return
 
+    # Build driver list for reassignment
+    if not drivers_df.empty:
+        all_driver_names = drivers_df['name'].tolist()
+    else:
+        all_driver_names = []
+
     for _, order in in_transit.iterrows():
-        driver_line = f"Driver: {order['driver_id']}" if order.get('driver_id') else ''
-        eta_line = f"ETA {order['eta']}" if order.get('eta') else ''
+        order_id = order['order_id']
+        current_driver = order.get('driver_id', '') or ''
+        created_str = _fmt_sydney(order.get('created_at'))
         status_label = "In Transit" if order['status'] == 'in_transit' else "Assigned"
         badge_class = "status-in-transit" if order['status'] == 'in_transit' else "status-allocated"
         tracking = order.get('tracking_number', '')
         tracking_line = f"<div style='font-family: monospace; font-size: 0.75rem; color: rgba(255,255,255,0.4);'>#{tracking}</div>" if tracking else ''
-        created_str = _fmt_sydney(order.get('created_at'))
+        eta_line = f"ETA {order['eta']}" if order.get('eta') else ''
 
-        st.markdown(f"""
-<div class="order-card">
-<div style="display: flex; justify-content: space-between; align-items: flex-start;">
-<div>
-<div class="order-id">{order['order_id']}</div>
-{tracking_line}
-<div class="order-customer">{order['customer']}</div>
-<div class="order-address">{order['address']}, {order.get('suburb', '')} {order.get('postcode', '')}</div>
-<div style="margin-top: 0.5rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; color: rgba(255,255,255,0.5);">
-{order.get('parcels', 1)} parcel(s) &bull; {order['service_level'].upper()} &bull; Created {created_str}
-</div>
-</div>
-<div style="text-align: right;">
+        with st.expander(
+            f"{order_id} — {order['customer']} — {order.get('suburb', '')}  [{order['service_level'].upper()}]",
+            expanded=False
+        ):
+            col1, col2 = st.columns([2, 1])
+
+            with col1:
+                if order.get('tracking_number'):
+                    st.markdown(f"**Tracking:** `{order['tracking_number']}`")
+                st.markdown(f"""
+**Customer:** {order['customer']}
+**Deliver to:** {order['address']}, {order.get('suburb', '')} {order.get('postcode', '')}
+**Parcels:** {order.get('parcels', 1)}
+**Created:** {created_str}
+                """)
+                if current_driver:
+                    st.markdown(f"**Assigned Driver:** {current_driver}")
+                if order.get('special_instructions'):
+                    st.markdown(f"**Instructions:** {order['special_instructions']}")
+
+            with col2:
+                st.markdown(f"""
 <span class="status-badge {badge_class}">{status_label}</span>
-<div style="margin-top: 0.5rem; font-family: 'Space Mono', monospace; font-size: 0.9rem; color: #667eea;">{eta_line}</div>
-</div>
-</div>
-<div style="margin-top: 0.75rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; color: rgba(255,255,255,0.5);">{driver_line}</div>
-</div>
-""", unsafe_allow_html=True)
+<br><br>
+<span class="status-badge status-{order['service_level']}">{order['service_level']}</span>
+                """, unsafe_allow_html=True)
+
+            # ── Edit controls ──────────────────────────────────────────
+            st.markdown("---")
+            st.markdown("**✏️ Edit Order / Reassign Driver**")
+            st.caption("Changes are saved immediately and the driver app will update on next refresh.")
+
+            ec1, ec2 = st.columns(2)
+            with ec1:
+                new_customer = st.text_input("Customer Name", value=order.get('customer', '') or '', key=f"tr_cust_{order_id}")
+                new_address  = st.text_input("Address",       value=order.get('address', '') or '',  key=f"tr_addr_{order_id}")
+                new_suburb   = st.text_input("Suburb",        value=order.get('suburb', '') or '',   key=f"tr_sub_{order_id}")
+                state_options = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"]
+                cur_state = order.get('state', 'NSW') or 'NSW'
+                state_idx = state_options.index(cur_state) if cur_state in state_options else 0
+                new_state    = st.selectbox("State", state_options, index=state_idx, key=f"tr_state_{order_id}")
+                new_postcode = st.text_input("Postcode",      value=order.get('postcode', '') or '',  key=f"tr_post_{order_id}")
+
+            with ec2:
+                new_phone = st.text_input("Phone", value=order.get('phone', '') or '', key=f"tr_phone_{order_id}")
+                new_email = st.text_input("Email", value=order.get('email', '') or '', key=f"tr_email_{order_id}")
+                driver_list = ["None"] + all_driver_names
+                driver_idx  = all_driver_names.index(current_driver) + 1 if current_driver in all_driver_names else 0
+                new_driver  = st.selectbox("Reassign Driver", driver_list, index=driver_idx, key=f"tr_drv_{order_id}")
+                st.caption("⚠️ Changing driver removes job from current driver's app and sends it to the new driver.")
+
+            bc1, bc2 = st.columns(2)
+            with bc1:
+                if st.button("💾 Save Changes", key=f"tr_save_{order_id}", use_container_width=True):
+                    updates = {}
+                    if new_customer != (order.get('customer') or ''):
+                        updates['customer'] = new_customer
+                    if new_address != (order.get('address') or ''):
+                        updates['address'] = new_address
+                    if new_suburb != (order.get('suburb') or ''):
+                        updates['suburb'] = new_suburb
+                    if new_state != (order.get('state') or 'NSW'):
+                        updates['state'] = new_state
+                    if new_postcode != (order.get('postcode') or ''):
+                        updates['postcode'] = new_postcode
+                    if new_phone != (order.get('phone') or ''):
+                        updates['phone'] = new_phone
+                    if new_email != (order.get('email') or ''):
+                        updates['email'] = new_email
+                    resolved_driver = new_driver if new_driver != "None" else ''
+                    if resolved_driver != current_driver:
+                        updates['driver_id'] = resolved_driver
+                    if updates:
+                        data_manager.update_order(order_id, **updates)
+                        st.success("✅ Order updated! Driver app will reflect changes on next refresh.")
+                        st.rerun()
+                    else:
+                        st.info("No changes detected.")
+            with bc2:
+                if st.button("❌ Cancel Order", key=f"tr_cancel_{order_id}", use_container_width=True):
+                    result = data_manager.cancel_order(order_id)
+                    if result.get('success'):
+                        st.success("Order cancelled")
+                        st.rerun()
+                    else:
+                        st.error(f"Failed: {result.get('error', 'Unknown error')}")
 
 
 def _render_completed(orders_df):
