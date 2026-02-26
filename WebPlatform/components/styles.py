@@ -486,53 +486,86 @@ def apply_styles():
 """, unsafe_allow_html=True)
 
     # ── Persistent sidebar toggle button ───────────────────────────────────────
-    # CSS alone cannot keep the expand arrow visible when the sidebar is hidden
-    # (display:none kills all descendants regardless of position:fixed).
-    # We inject a real button into the parent window's body via an invisible
-    # iframe so it always floats on screen and survives Streamlit re-renders.
+    # Strategy: inject a floating button into window.parent.document.body via an
+    # invisible iframe.  The button toggles the sidebar using CSS injection
+    # (display:none on the sidebar) so we never need to find/click Streamlit's
+    # own React-managed buttons — that approach was fragile and produced
+    # "zombie" event listeners every time Streamlit recreated the iframe.
+    #
+    # State is stored in localStorage so it survives Streamlit re-renders.
+    # Each iframe instance gets a unique KEY; stale buttons from previous
+    # iframe lifecycles are detected by KEY mismatch and replaced with fresh ones.
     components.html("""
 <script>
 (function () {
-    var ID = 'warex-sidebar-toggle';
+    var ID       = 'warex-sidebar-toggle';
+    var STYLE_ID = 'warex-sb-override';
+    var LS_KEY   = 'warex-sb-collapsed';
+    /* Unique per iframe instance — detects zombie buttons from dead iframes */
+    var KEY      = Date.now().toString();
 
-    function doc()     { return window.parent.document; }
-    function sidebar() { return doc().querySelector('[data-testid="stSidebar"]'); }
+    function doc() { return window.parent.document; }
 
-    function isOpen() {
-        var sb = sidebar();
-        return !sb || sb.getAttribute('aria-expanded') !== 'false';
+    /* ── State helpers (localStorage) ─────────────────────────────────── */
+    function getCollapsed() {
+        try { return window.parent.localStorage.getItem(LS_KEY) === '1'; }
+        catch(e) { return false; }
+    }
+    function setCollapsed(v) {
+        try { window.parent.localStorage.setItem(LS_KEY, v ? '1' : '0'); }
+        catch(e) {}
     }
 
+    /* ── CSS injection — hides/shows the sidebar without touching React ─ */
+    function applyStyle() {
+        var d  = doc();
+        var st = d.getElementById(STYLE_ID);
+        if (!st) {
+            st    = d.createElement('style');
+            st.id = STYLE_ID;
+            (d.head || d.body).appendChild(st);
+        }
+        /* When collapsed: hide sidebar; flexbox/grid will expand main content */
+        st.textContent = getCollapsed()
+            ? '[data-testid="stSidebar"]{display:none!important}'
+            : '';
+    }
+
+    /* ── Arrow direction ───────────────────────────────────────────────── */
     function updateArrow() {
         var btn = doc().getElementById(ID);
-        if (!btn) return;
-        btn.innerHTML = isOpen() ? '&#9664;' : '&#9654;';   /* ◀ / ▶ */
+        if (btn) btn.innerHTML = getCollapsed() ? '&#9654;' : '&#9664;'; /* ▶ / ◀ */
     }
 
-    function clickNativeToggle() {
-        var d = doc();
-        if (isOpen()) {
-            /* sidebar open → click the collapse button inside it */
-            var cb = d.querySelector('[data-testid="stSidebarCollapseButton"] button');
-            if (cb) { cb.click(); return; }
-        } else {
-            /* sidebar closed → click whichever expand control Streamlit rendered */
-            var eb = d.querySelector('[data-testid="collapsedControl"] button')
-                   || d.querySelector('[data-testid="collapsedControl"]');
-            if (eb) { eb.click(); return; }
-        }
-        /* last-resort fallback – Streamlit's keyboard shortcut */
-        d.dispatchEvent(new KeyboardEvent('keydown', {key:'[', bubbles:true}));
+    /* ── Toggle action ─────────────────────────────────────────────────── */
+    function toggle() {
+        setCollapsed(!getCollapsed());
+        applyStyle();
+        updateArrow();
     }
 
+    /* ── Button creation / refresh ─────────────────────────────────────── */
     function createBtn() {
-        var d = doc();
-        if (d.getElementById(ID)) { updateArrow(); return; }
+        var d   = doc();
+        var old = d.getElementById(ID);
 
+        /* Same iframe — just keep CSS and arrow in sync, nothing else needed */
+        if (old && old.dataset.frameKey === KEY) {
+            applyStyle();
+            updateArrow();
+            return;
+        }
+
+        /* Stale button from a now-dead iframe — its listeners are zombies.
+           Remove it so we can rebuild with live closures. */
+        if (old) old.remove();
+
+        /* Build a fresh button bound to THIS iframe's closure */
         var btn = d.createElement('button');
-        btn.id    = ID;
-        btn.title = 'Toggle menu';
-        btn.innerHTML = '&#9664;';
+        btn.id               = ID;
+        btn.dataset.frameKey = KEY;
+        btn.title            = 'Toggle sidebar';
+        btn.innerHTML        = getCollapsed() ? '&#9654;' : '&#9664;';
 
         btn.setAttribute('style', [
             'position:fixed',
@@ -555,33 +588,25 @@ def apply_styles():
         ].join(';'));
 
         btn.addEventListener('mouseenter', function () {
-            this.style.background  = 'linear-gradient(135deg,#667eea,#764ba2)';
-            this.style.color       = 'white';
-            this.style.boxShadow   = '4px 0 24px rgba(102,126,234,0.4)';
+            this.style.background = 'linear-gradient(135deg,#667eea,#764ba2)';
+            this.style.color      = 'white';
+            this.style.boxShadow  = '4px 0 24px rgba(102,126,234,0.4)';
         });
         btn.addEventListener('mouseleave', function () {
-            this.style.background  = 'linear-gradient(135deg,#1a1a2e,#16213e)';
-            this.style.color       = '#667eea';
-            this.style.boxShadow   = '4px 0 16px rgba(0,0,0,0.4)';
+            this.style.background = 'linear-gradient(135deg,#1a1a2e,#16213e)';
+            this.style.color      = '#667eea';
+            this.style.boxShadow  = '4px 0 16px rgba(0,0,0,0.4)';
         });
-        btn.addEventListener('click', function () {
-            clickNativeToggle();
-            setTimeout(updateArrow, 80);
-            setTimeout(updateArrow, 400);
-        });
+        btn.addEventListener('click', toggle);
 
         d.body.appendChild(btn);
-        updateArrow();
 
-        /* watch sidebar aria-expanded attribute for arrow direction updates */
-        var sb = sidebar();
-        if (sb) {
-            new MutationObserver(updateArrow)
-                .observe(sb, { attributes: true, attributeFilter: ['aria-expanded'] });
-        }
+        /* Re-apply saved CSS state (e.g. sidebar was collapsed before re-render) */
+        applyStyle();
+        updateArrow();
     }
 
-    /* retry a few times — Streamlit's React renders asynchronously */
+    /* Staggered retries — Streamlit's React DOM renders asynchronously */
     [100, 400, 900, 2000].forEach(function (ms) { setTimeout(createBtn, ms); });
 })();
 </script>
