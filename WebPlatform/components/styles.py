@@ -486,86 +486,93 @@ def apply_styles():
 """, unsafe_allow_html=True)
 
     # ── Persistent sidebar toggle button ───────────────────────────────────────
-    # Strategy: inject a floating button into window.parent.document.body via an
-    # invisible iframe.  The button toggles the sidebar using CSS injection
-    # (display:none on the sidebar) so we never need to find/click Streamlit's
-    # own React-managed buttons — that approach was fragile and produced
-    # "zombie" event listeners every time Streamlit recreated the iframe.
+    # Inspected Streamlit 1.50's minified JS bundle to get the EXACT selectors:
+    #   Collapse btn: data-testid="stSidebarCollapseButton" (inside sidebar, visibility:hidden until hover)
+    #   Expand btn:   data-testid="stExpandSidebarButton"   (in the header, only present when collapsed)
+    #   Sidebar state: aria-expanded="true" (open) / aria-expanded="false" (collapsed)
+    #   Streamlit hides the sidebar via transform:translateX + minWidth:0 (NOT display:none)
     #
-    # State is stored in localStorage so it survives Streamlit re-renders.
+    # We inject a floating button into window.parent.document.body.
     # Each iframe instance gets a unique KEY; stale buttons from previous
-    # iframe lifecycles are detected by KEY mismatch and replaced with fresh ones.
+    # iframe lifecycles are detected by KEY mismatch and replaced with fresh ones
+    # (prevents "zombie" event listeners after Streamlit re-renders the iframe).
     components.html("""
 <script>
 (function () {
-    var ID       = 'warex-sidebar-toggle';
-    var STYLE_ID = 'warex-sb-override';
-    var LS_KEY   = 'warex-sb-collapsed';
-    /* Unique per iframe instance — detects zombie buttons from dead iframes */
-    var KEY      = Date.now().toString();
+    var ID  = 'warex-sidebar-toggle';
+    var KEY = Date.now().toString(); /* unique per iframe instance */
 
-    function doc() { return window.parent.document; }
+    function doc()     { return window.parent.document; }
+    function sidebar() { return doc().querySelector('[data-testid="stSidebar"]'); }
 
-    /* ── State helpers (localStorage) ─────────────────────────────────── */
-    function getCollapsed() {
-        try { return window.parent.localStorage.getItem(LS_KEY) === '1'; }
-        catch(e) { return false; }
-    }
-    function setCollapsed(v) {
-        try { window.parent.localStorage.setItem(LS_KEY, v ? '1' : '0'); }
-        catch(e) {}
+    /* Streamlit sets aria-expanded="true" when open, "false" when collapsed */
+    function isOpen() {
+        var sb = sidebar();
+        return !sb || sb.getAttribute('aria-expanded') !== 'false';
     }
 
-    /* ── CSS injection — hides/shows the sidebar without touching React ─ */
-    function applyStyle() {
-        var d  = doc();
-        var st = d.getElementById(STYLE_ID);
-        if (!st) {
-            st    = d.createElement('style');
-            st.id = STYLE_ID;
-            (d.head || d.body).appendChild(st);
-        }
-        /* When collapsed: hide sidebar; flexbox/grid will expand main content */
-        st.textContent = getCollapsed()
-            ? '[data-testid="stSidebar"]{display:none!important}'
-            : '';
-    }
-
-    /* ── Arrow direction ───────────────────────────────────────────────── */
     function updateArrow() {
         var btn = doc().getElementById(ID);
-        if (btn) btn.innerHTML = getCollapsed() ? '&#9654;' : '&#9664;'; /* ▶ / ◀ */
+        if (btn) btn.innerHTML = isOpen() ? '&#9664;' : '&#9654;'; /* ◀ / ▶ */
     }
 
-    /* ── Toggle action ─────────────────────────────────────────────────── */
     function toggle() {
-        setCollapsed(!getCollapsed());
-        applyStyle();
-        updateArrow();
+        var d    = doc();
+        var open = isOpen();
+        var el;
+
+        if (open) {
+            /* ── Collapse ────────────────────────────────────────────────────
+               Button is inside the sidebar (visibility:hidden until hover).
+               visibility:hidden still allows programmatic clicking.          */
+            el = d.querySelector('[data-testid="stSidebarCollapseButton"] button') ||
+                 d.querySelector('[data-testid="stSidebarCollapseButton"]');
+
+            if (el) {
+                /* dispatchEvent works regardless of visibility:hidden */
+                el.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true}));
+            }
+
+        } else {
+            /* ── Expand ──────────────────────────────────────────────────────
+               Button is inside [data-testid="stToolbar"] which our CSS hides
+               with display:none.  el.click() silently fails on display:none
+               ancestors, but dispatchEvent fires the event directly without
+               the browser's hit-testing, so React's delegated listener still
+               catches it at the document root.                                */
+            el = d.querySelector('[data-testid="stExpandSidebarButton"]') ||
+                 d.querySelector('[data-testid="stExpandSidebarButton"] button');
+
+            if (el) {
+                el.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true}));
+            }
+        }
+
+        /* Streamlit animates the sidebar at 300ms — poll twice to sync arrow */
+        setTimeout(updateArrow, 350);
+        setTimeout(updateArrow, 750);
     }
 
-    /* ── Button creation / refresh ─────────────────────────────────────── */
+    /* ── Button creation / zombie detection ───────────────────────────── */
     function createBtn() {
         var d   = doc();
         var old = d.getElementById(ID);
 
-        /* Same iframe — just keep CSS and arrow in sync, nothing else needed */
-        if (old && old.dataset.frameKey === KEY) {
-            applyStyle();
-            updateArrow();
-            return;
-        }
+        /* Same iframe: button is alive, just refresh the arrow */
+        if (old && old.dataset.frameKey === KEY) { updateArrow(); return; }
 
-        /* Stale button from a now-dead iframe — its listeners are zombies.
-           Remove it so we can rebuild with live closures. */
+        /* Different iframe key → stale button with dead listeners.  Rebuild. */
         if (old) old.remove();
 
-        /* Build a fresh button bound to THIS iframe's closure */
+        /* Clean up any stale CSS override from previous approach */
+        var staleStyle = d.getElementById('warex-sb-override');
+        if (staleStyle) staleStyle.remove();
+
         var btn = d.createElement('button');
         btn.id               = ID;
         btn.dataset.frameKey = KEY;
         btn.title            = 'Toggle sidebar';
-        btn.innerHTML        = getCollapsed() ? '&#9654;' : '&#9664;';
+        btn.innerHTML        = isOpen() ? '&#9664;' : '&#9654;';
 
         btn.setAttribute('style', [
             'position:fixed',
@@ -600,10 +607,15 @@ def apply_styles():
         btn.addEventListener('click', toggle);
 
         d.body.appendChild(btn);
-
-        /* Re-apply saved CSS state (e.g. sidebar was collapsed before re-render) */
-        applyStyle();
         updateArrow();
+
+        /* MutationObserver keeps arrow in sync when Streamlit changes aria-expanded
+           (e.g. user clicks native button, or window resizes past breakpoint) */
+        var sb = sidebar();
+        if (sb) {
+            new MutationObserver(updateArrow)
+                .observe(sb, {attributes: true, attributeFilter: ['aria-expanded']});
+        }
     }
 
     /* Staggered retries — Streamlit's React DOM renders asynchronously */
