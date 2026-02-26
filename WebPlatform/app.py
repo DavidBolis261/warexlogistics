@@ -25,9 +25,6 @@ st.set_page_config(
 # Apply custom CSS
 apply_styles()
 
-# Force sidebar expanded — clears any previously saved collapsed state
-st.session_state["sidebar_state"] = "expanded"
-
 # Initialize data manager (singleton per session)
 if 'data_manager' not in st.session_state:
     st.session_state.data_manager = DataManager()

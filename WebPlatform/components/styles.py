@@ -457,31 +457,69 @@ def apply_styles():
         display: none;
     }
 
-    /* Force sidebar always visible and expanded — hide collapse button */
-    [data-testid="collapsedControl"] {display: none !important;}
-    [data-testid="stSidebarCollapseButton"] {display: none !important;}
-    button[kind="header"] {display: none !important;}
-    section[data-testid="stSidebar"] > div:first-child > div:first-child > button {display: none !important;}
-    .st-emotion-cache-1rtdyuf {display: none !important;}
-    .st-emotion-cache-dvne4q {display: none !important;}
+    /* ── Sidebar collapse / expand toggle ─────────────────────────────────────
+       The arrow is ALWAYS visible so the user can hide or restore the sidebar. */
 
-    /* Force sidebar open even if previously collapsed */
-    section[data-testid="stSidebar"] {
+    /* Arrow shown on the left edge when sidebar is COLLAPSED */
+    [data-testid="collapsedControl"] {
         display: flex !important;
         visibility: visible !important;
-        width: 21rem !important;
-        min-width: 21rem !important;
-        transform: none !important;
+        position: fixed !important;
         left: 0 !important;
-        position: relative !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        z-index: 9999 !important;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+        border: 1px solid rgba(102, 126, 234, 0.5) !important;
+        border-left: none !important;
+        border-radius: 0 10px 10px 0 !important;
+        padding: 0.6rem 0.45rem !important;
+        box-shadow: 4px 0 16px rgba(0,0,0,0.4) !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
     }
-    section[data-testid="stSidebar"][aria-expanded="false"] {
+
+    [data-testid="collapsedControl"]:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        border-color: rgba(102, 126, 234, 0.9) !important;
+        box-shadow: 4px 0 24px rgba(102, 126, 234, 0.4) !important;
+    }
+
+    [data-testid="collapsedControl"] svg {
+        fill: #667eea !important;
+        color: #667eea !important;
+        width: 18px !important;
+        height: 18px !important;
+    }
+
+    [data-testid="collapsedControl"]:hover svg {
+        fill: white !important;
+        color: white !important;
+    }
+
+    /* Collapse arrow shown inside the sidebar when it is OPEN */
+    [data-testid="stSidebarCollapseButton"] {
         display: flex !important;
         visibility: visible !important;
-        width: 21rem !important;
-        min-width: 21rem !important;
-        transform: none !important;
-        left: 0 !important;
+    }
+
+    [data-testid="stSidebarCollapseButton"] button {
+        background: rgba(102, 126, 234, 0.1) !important;
+        border: 1px solid rgba(102, 126, 234, 0.3) !important;
+        border-radius: 8px !important;
+        color: #667eea !important;
+        transition: all 0.2s ease !important;
+    }
+
+    [data-testid="stSidebarCollapseButton"] button:hover {
+        background: rgba(102, 126, 234, 0.25) !important;
+        border-color: rgba(102, 126, 234, 0.7) !important;
+        box-shadow: 0 0 12px rgba(102, 126, 234, 0.3) !important;
+    }
+
+    [data-testid="stSidebarCollapseButton"] svg {
+        fill: #667eea !important;
+        color: #667eea !important;
     }
 </style>
 """, unsafe_allow_html=True)
