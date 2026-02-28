@@ -581,3 +581,40 @@ class DataManager:
     def admin_exists(self):
         """Check if any admin user exists."""
         return self.store.admin_user_count() > 0
+
+    # === Messages ===
+
+    def send_admin_reply(self, driver_id, driver_name, body):
+        """Admin sends a message to a driver (direction='outbound')."""
+        return self.store.save_message(driver_id, driver_name, body, direction='outbound')
+
+    def get_messages_for_driver(self, driver_id):
+        """Get full conversation thread for a driver."""
+        return self.store.get_messages_for_driver(driver_id)
+
+    def get_all_messages(self):
+        """Get all messages (admin inbox)."""
+        if self.data_mode == 'demo':
+            return __import__('pandas').DataFrame()
+        return self.store.get_all_messages()
+
+    def get_unread_count(self):
+        """Count unread inbound messages from drivers."""
+        try:
+            return self.store.get_unread_count()
+        except Exception:
+            return 0
+
+    def get_driver_unread_counts(self):
+        """Return {driver_id: unread_count} map."""
+        try:
+            return self.store.get_driver_unread_counts()
+        except Exception:
+            return {}
+
+    def mark_messages_read(self, driver_id):
+        """Mark all inbound messages from driver as read."""
+        try:
+            self.store.mark_messages_read(driver_id)
+        except Exception:
+            pass

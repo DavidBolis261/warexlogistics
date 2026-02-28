@@ -175,6 +175,16 @@ class LocalStore:
                 error_message TEXT
             );
 
+            CREATE TABLE IF NOT EXISTS messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                driver_id TEXT NOT NULL,
+                driver_name TEXT,
+                body TEXT NOT NULL,
+                direction TEXT NOT NULL DEFAULT 'inbound',
+                is_read INTEGER DEFAULT 0,
+                sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+
             CREATE INDEX IF NOT EXISTS idx_orders_driver_id ON orders(driver_id);
             CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
             CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
@@ -184,6 +194,8 @@ class LocalStore:
             CREATE INDEX IF NOT EXISTS idx_runs_status ON runs(status);
             CREATE INDEX IF NOT EXISTS idx_runs_driver_id ON runs(driver_id);
             CREATE INDEX IF NOT EXISTS idx_session_tokens_expires_at ON session_tokens(expires_at);
+            CREATE INDEX IF NOT EXISTS idx_messages_driver_id ON messages(driver_id);
+            CREATE INDEX IF NOT EXISTS idx_messages_sent_at ON messages(sent_at);
         ''')
         self.conn.commit()
 
@@ -203,6 +215,8 @@ class LocalStore:
             'proof_photo': 'TEXT',
             'proof_signature': 'TEXT',
             'delivery_notes': 'TEXT',
+            # Delivery completion timestamp (set when status → delivered)
+            'delivered_at': 'TEXT',
         }
         for col, col_type in new_cols.items():
             if col not in existing:
@@ -765,4 +779,47 @@ class LocalStore:
 
     def clear_api_log(self):
         self.conn.execute("DELETE FROM api_log")
+        self.conn.commit()
+
+    # === Messages ===
+
+    def save_message(self, driver_id, driver_name, body, direction='inbound'):
+        """Save a driver↔admin message. direction: 'inbound' = driver→admin, 'outbound' = admin→driver."""
+        from datetime import timezone
+        sent_at = datetime.now(timezone.utc).isoformat()
+        self.conn.execute(
+            "INSERT INTO messages (driver_id, driver_name, body, direction, is_read, sent_at) VALUES (?, ?, ?, ?, 0, ?)",
+            (driver_id, driver_name, body, direction, sent_at),
+        )
+        self.conn.commit()
+        row = self.conn.execute("SELECT last_insert_rowid() as id").fetchone()
+        return row['id'] if row else None
+
+    def get_messages_for_driver(self, driver_id, limit=100):
+        """Get all messages for a specific driver (conversation thread)."""
+        rows = self.conn.execute(
+            "SELECT * FROM messages WHERE driver_id = ? ORDER BY sent_at ASC LIMIT ?",
+            (driver_id, limit),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    def get_unread_count(self, driver_id=None):
+        """Count unread outbound messages (admin→driver) for a driver."""
+        if driver_id:
+            row = self.conn.execute(
+                "SELECT COUNT(*) as cnt FROM messages WHERE driver_id=? AND direction='outbound' AND is_read=0",
+                (driver_id,),
+            ).fetchone()
+        else:
+            row = self.conn.execute(
+                "SELECT COUNT(*) as cnt FROM messages WHERE direction='outbound' AND is_read=0"
+            ).fetchone()
+        return row['cnt'] if row else 0
+
+    def mark_messages_read(self, driver_id):
+        """Mark all outbound messages to a driver as read (driver has seen them)."""
+        self.conn.execute(
+            "UPDATE messages SET is_read=1 WHERE driver_id=? AND direction='outbound'",
+            (driver_id,),
+        )
         self.conn.commit()

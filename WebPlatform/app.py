@@ -131,6 +131,13 @@ with st.sidebar:
     st.markdown("---")
 
     # Navigation
+    # Show unread message count badge
+    try:
+        unread_msgs = dm.get_unread_count()
+    except Exception:
+        unread_msgs = 0
+    msg_label = f"💬 Messages ({unread_msgs})" if unread_msgs else "💬 Messages"
+
     page = st.radio(
         "Navigation",
         [
@@ -140,6 +147,7 @@ with st.sidebar:
             "🗺️ Route Planning",
             "🖨️ Print Labels",
             "📈 Analytics",
+            msg_label,
             "⚙️ Settings",
         ],
         label_visibility="collapsed",
@@ -270,6 +278,10 @@ elif page == "📦 Inventory":
 elif page == "📈 Analytics":
     from views.analytics import render
     render(orders_df, drivers_df, dm)
+
+elif page.startswith("💬 Messages"):
+    from views.messages import render
+    render(dm)
 
 elif page == "⚙️ Settings":
     from views.settings_page import render

@@ -201,6 +201,19 @@ class PostgresStore:
                 )
             """))
 
+            # Messages table (driver ↔ admin messaging)
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS messages (
+                    id SERIAL PRIMARY KEY,
+                    driver_id TEXT NOT NULL,
+                    driver_name TEXT,
+                    body TEXT NOT NULL,
+                    direction TEXT NOT NULL DEFAULT 'inbound',
+                    is_read BOOLEAN DEFAULT FALSE,
+                    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+
             conn.commit()
 
         logger.info("✅ PostgreSQL tables created/verified")
@@ -220,6 +233,7 @@ class PostgresStore:
             ('orders', 'proof_signature',      'TEXT'),
             ('orders', 'delivery_notes',       'TEXT'),
             ('orders', 'special_instructions', 'TEXT'),
+            ('orders', 'delivered_at',         'TIMESTAMP'),
             ('drivers', 'latitude',            'DOUBLE PRECISION'),
             ('drivers', 'longitude',           'DOUBLE PRECISION'),
             ('drivers', 'location_updated_at', 'TIMESTAMP'),
@@ -816,4 +830,58 @@ class PostgresStore:
         """Delete an item."""
         with self.engine.connect() as conn:
             conn.execute(text("DELETE FROM items WHERE item_code = :item_code"), {'item_code': item_code})
+            conn.commit()
+
+    # === Messages ===
+
+    def save_message(self, driver_id, driver_name, body, direction='inbound'):
+        """Save a driver↔admin message. direction: 'inbound' = driver→admin, 'outbound' = admin→driver."""
+        from datetime import datetime as dt, timezone
+        sent_at = dt.now(timezone.utc).isoformat()
+        with self.engine.connect() as conn:
+            result = conn.execute(text("""
+                INSERT INTO messages (driver_id, driver_name, body, direction, is_read, sent_at)
+                VALUES (:driver_id, :driver_name, :body, :direction, FALSE, :sent_at)
+                RETURNING id
+            """), {
+                'driver_id': driver_id,
+                'driver_name': driver_name,
+                'body': body,
+                'direction': direction,
+                'sent_at': sent_at,
+            })
+            row = result.fetchone()
+            conn.commit()
+        return row[0] if row else None
+
+    def get_messages_for_driver(self, driver_id, limit=100):
+        """Get all messages for a specific driver (conversation thread)."""
+        result = pd.read_sql(
+            "SELECT * FROM messages WHERE driver_id = %(driver_id)s ORDER BY sent_at ASC LIMIT %(limit)s",
+            self.engine,
+            params={'driver_id': driver_id, 'limit': limit},
+        )
+        return result.to_dict('records')
+
+    def get_unread_count(self, driver_id=None):
+        """Count unread outbound messages (admin→driver) for a driver."""
+        with self.engine.connect() as conn:
+            if driver_id:
+                result = conn.execute(text("""
+                    SELECT COUNT(*) FROM messages
+                    WHERE driver_id=:driver_id AND direction='outbound' AND is_read=FALSE
+                """), {'driver_id': driver_id})
+            else:
+                result = conn.execute(text("""
+                    SELECT COUNT(*) FROM messages WHERE direction='outbound' AND is_read=FALSE
+                """))
+            return result.fetchone()[0]
+
+    def mark_messages_read(self, driver_id):
+        """Mark all outbound messages to a driver as read (driver has seen them)."""
+        with self.engine.connect() as conn:
+            conn.execute(text("""
+                UPDATE messages SET is_read=TRUE
+                WHERE driver_id=:driver_id AND direction='outbound'
+            """), {'driver_id': driver_id})
             conn.commit()

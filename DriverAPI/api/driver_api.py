@@ -308,6 +308,10 @@ def create_driver_api(app: Flask, data_manager):
             update_fields['status'] = backend_status
             if notes:
                 update_fields['delivery_notes'] = notes
+            # Record delivery timestamp when marking as delivered
+            if backend_status == 'delivered':
+                from datetime import timezone
+                update_fields['delivered_at'] = datetime.now(timezone.utc).isoformat()
 
         if has_media:
             if photo_b64:
@@ -463,6 +467,75 @@ def create_driver_api(app: Flask, data_manager):
             'success': True,
             'message': 'Location updated'
         }), 200
+
+    # ── Messages ──────────────────────────────────────────────────────────────
+
+    @app.route('/api/driver/messages', methods=['GET'])
+    @require_auth
+    def get_driver_messages():
+        """Get all messages for the authenticated driver (full conversation thread)."""
+        driver_id = request.driver_id
+        store = data_manager.store
+        try:
+            messages = store.get_messages_for_driver(driver_id, limit=200)
+        except Exception as exc:
+            logger.error(f"[messages] get failed for {driver_id}: {exc}", exc_info=True)
+            return jsonify({'error': 'Failed to load messages'}), 500
+
+        # Mark outbound messages as read (driver has fetched them)
+        try:
+            store.mark_messages_read(driver_id)
+        except Exception:
+            pass
+
+        serialized = []
+        for m in messages:
+            serialized.append({
+                'id': m.get('id'),
+                'driverId': m.get('driver_id'),
+                'body': m.get('body'),
+                'direction': m.get('direction'),
+                'sentAt': str(m.get('sent_at', '')),
+                'isRead': bool(m.get('is_read', False)),
+            })
+
+        return jsonify({'messages': serialized, 'total': len(serialized)}), 200
+
+    @app.route('/api/driver/messages', methods=['POST'])
+    @require_auth
+    def send_driver_message():
+        """Send a message from the driver to admin (direction = 'inbound')."""
+        driver_id = request.driver_id
+        data = request.get_json(force=True, silent=True) or {}
+        body = (data.get('body') or '').strip()
+
+        if not body:
+            return jsonify({'error': 'Message body is required'}), 400
+
+        # Get driver name for display in dashboard
+        store = data_manager.store
+        driver_name = request.driver_phone  # fallback
+        try:
+            drivers_df = data_manager.get_drivers()
+            match = drivers_df[drivers_df['driver_id'] == driver_id]
+            if not match.empty:
+                driver_name = match.iloc[0].get('name', driver_name)
+        except Exception:
+            pass
+
+        try:
+            msg_id = store.save_message(
+                driver_id=driver_id,
+                driver_name=driver_name,
+                body=body,
+                direction='inbound',
+            )
+        except Exception as exc:
+            logger.error(f"[messages] save failed for {driver_id}: {exc}", exc_info=True)
+            return jsonify({'error': 'Failed to send message'}), 500
+
+        logger.info(f"[messages] driver {driver_id} sent message id={msg_id}")
+        return jsonify({'success': True, 'id': msg_id}), 200
 
     # ── Logout ────────────────────────────────────────────────────────────────
 
