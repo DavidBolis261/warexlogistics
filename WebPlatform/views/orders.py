@@ -553,6 +553,26 @@ def _render_pending(orders_df, drivers_df, data_manager):
         st.success(f"{len(selected_orders)} orders allocated to {assigned_driver}")
         st.rerun()
 
+    # Pagination
+    total_pending = len(pending)
+    total_pages = max(1, (total_pending + ITEMS_PER_PAGE - 1) // ITEMS_PER_PAGE)
+    if total_pending > ITEMS_PER_PAGE:
+        p_col1, p_col2, p_col3 = st.columns([1, 2, 1])
+        current_page = st.session_state.get('pending_page', 1)
+        current_page = min(current_page, total_pages)
+        with p_col1:
+            if st.button("← Prev", disabled=current_page <= 1, use_container_width=True, key="pending_prev"):
+                st.session_state['pending_page'] = current_page - 1
+                st.rerun()
+        with p_col2:
+            st.markdown(f"<div style='text-align:center; padding:0.5rem;'>Page {current_page} of {total_pages}</div>", unsafe_allow_html=True)
+        with p_col3:
+            if st.button("Next →", disabled=current_page >= total_pages, use_container_width=True, key="pending_next"):
+                st.session_state['pending_page'] = current_page + 1
+                st.rerun()
+        start_idx = (current_page - 1) * ITEMS_PER_PAGE
+        pending = pending.iloc[start_idx:start_idx + ITEMS_PER_PAGE]
+
     for _, order in pending.iterrows():
         order_id = order['order_id']
         current_status = order['status']
@@ -694,6 +714,26 @@ def _render_in_transit(orders_df, drivers_df, data_manager):
     else:
         all_driver_names = []
 
+    # Pagination
+    total_transit = len(in_transit)
+    total_transit_pages = max(1, (total_transit + ITEMS_PER_PAGE - 1) // ITEMS_PER_PAGE)
+    if total_transit > ITEMS_PER_PAGE:
+        t_col1, t_col2, t_col3 = st.columns([1, 2, 1])
+        current_transit_page = st.session_state.get('transit_page', 1)
+        current_transit_page = min(current_transit_page, total_transit_pages)
+        with t_col1:
+            if st.button("← Prev", disabled=current_transit_page <= 1, use_container_width=True, key="transit_prev"):
+                st.session_state['transit_page'] = current_transit_page - 1
+                st.rerun()
+        with t_col2:
+            st.markdown(f"<div style='text-align:center; padding:0.5rem;'>Page {current_transit_page} of {total_transit_pages}</div>", unsafe_allow_html=True)
+        with t_col3:
+            if st.button("Next →", disabled=current_transit_page >= total_transit_pages, use_container_width=True, key="transit_next"):
+                st.session_state['transit_page'] = current_transit_page + 1
+                st.rerun()
+        start_idx = (current_transit_page - 1) * ITEMS_PER_PAGE
+        in_transit = in_transit.iloc[start_idx:start_idx + ITEMS_PER_PAGE]
+
     for _, order in in_transit.iterrows():
         order_id = order['order_id']
         current_driver = order.get('driver_id', '') or ''
@@ -825,6 +865,26 @@ def _render_completed(orders_df):
         st.success(f"{delivered_count} delivered successfully")
     with col2:
         st.error(f"{failed_count} failed deliveries")
+
+    # Pagination
+    total_completed = len(completed)
+    total_comp_pages = max(1, (total_completed + ITEMS_PER_PAGE - 1) // ITEMS_PER_PAGE)
+    if total_completed > ITEMS_PER_PAGE:
+        c_col1, c_col2, c_col3 = st.columns([1, 2, 1])
+        current_comp_page = st.session_state.get('completed_page', 1)
+        current_comp_page = min(current_comp_page, total_comp_pages)
+        with c_col1:
+            if st.button("← Prev", disabled=current_comp_page <= 1, use_container_width=True, key="comp_prev"):
+                st.session_state['completed_page'] = current_comp_page - 1
+                st.rerun()
+        with c_col2:
+            st.markdown(f"<div style='text-align:center; padding:0.5rem;'>Page {current_comp_page} of {total_comp_pages}</div>", unsafe_allow_html=True)
+        with c_col3:
+            if st.button("Next →", disabled=current_comp_page >= total_comp_pages, use_container_width=True, key="comp_next"):
+                st.session_state['completed_page'] = current_comp_page + 1
+                st.rerun()
+        start_idx = (current_comp_page - 1) * ITEMS_PER_PAGE
+        completed = completed.iloc[start_idx:start_idx + ITEMS_PER_PAGE]
 
     for _, order in completed.iterrows():
         status_class = "status-delivered" if order['status'] == 'delivered' else "status-failed"
