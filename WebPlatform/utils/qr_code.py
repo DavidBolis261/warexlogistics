@@ -6,11 +6,14 @@ import qrcode
 import io
 import base64
 from PIL import Image
+import streamlit as st
 
 
+@st.cache_data(max_entries=1000, show_spinner=False)
 def generate_qr_code(data: str, size: int = 300) -> str:
     """
     Generate a QR code for the given data.
+    Cached by (data, size) so identical order IDs are never re-encoded.
 
     Args:
         data: The data to encode (e.g., order number)
@@ -19,7 +22,6 @@ def generate_qr_code(data: str, size: int = 300) -> str:
     Returns:
         Base64 encoded PNG image string for embedding in HTML
     """
-    # Create QR code
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -29,13 +31,9 @@ def generate_qr_code(data: str, size: int = 300) -> str:
     qr.add_data(data)
     qr.make(fit=True)
 
-    # Create image
     img = qr.make_image(fill_color="black", back_color="white")
-
-    # Resize to requested size
     img = img.resize((size, size), Image.Resampling.LANCZOS)
 
-    # Convert to base64 for embedding
     buffer = io.BytesIO()
     img.save(buffer, format='PNG')
     img_str = base64.b64encode(buffer.getvalue()).decode()

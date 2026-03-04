@@ -8,6 +8,13 @@ ZONE_MAPPING = {
 
 ZONES = list(ZONE_MAPPING.keys())
 
+# Reverse lookup: suburb → zone name (built once at import time)
+SUBURB_TO_ZONE = {
+    suburb: zone
+    for zone, suburbs in ZONE_MAPPING.items()
+    for suburb in suburbs
+}
+
 SUBURBS = [
     ("Surry Hills", "2010"), ("Bondi", "2026"), ("Newtown", "2042"),
     ("Paddington", "2021"), ("Glebe", "2037"), ("Marrickville", "2204"),

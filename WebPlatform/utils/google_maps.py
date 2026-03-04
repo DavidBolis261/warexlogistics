@@ -4,13 +4,12 @@ Google Maps utilities for geocoding, routing, and distance calculations.
 import os
 import requests
 from typing import List, Dict, Tuple, Optional
-from functools import lru_cache
+import streamlit as st
 
 
 def get_api_key() -> str:
     """Get Google Places API key from environment or Streamlit secrets."""
     try:
-        import streamlit as st
         api_key = st.secrets.get('google_places_api_key', '')
         if api_key:
             return api_key
@@ -20,7 +19,7 @@ def get_api_key() -> str:
     return os.getenv('GOOGLE_PLACES_API_KEY', '')
 
 
-@lru_cache(maxsize=500)
+@st.cache_data(ttl=86400, max_entries=2000, show_spinner=False)  # Cache geocodes for 24 h
 def geocode_address(address: str, suburb: str = '', state: str = 'NSW', postcode: str = '', country: str = 'Australia') -> Optional[Tuple[float, float]]:
     """
     Geocode an address to get latitude and longitude.
@@ -74,6 +73,7 @@ def geocode_address(address: str, suburb: str = '', state: str = 'NSW', postcode
     return None
 
 
+@st.cache_data(ttl=3600, show_spinner=False)  # Cache routes for 1 h
 def get_route_polyline(waypoints: List[Dict[str, float]]) -> Optional[str]:
     """
     Get a route polyline from Google Directions API for multiple waypoints.

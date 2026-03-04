@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 
-from config.constants import ZONE_MAPPING
+from config.constants import ZONE_MAPPING, SUBURB_TO_ZONE
 
 
 def render(orders_df, drivers_df, data_manager):
@@ -137,13 +137,7 @@ def render(orders_df, drivers_df, data_manager):
         st.markdown("### Orders by Zone")
 
         if not filtered_df.empty and 'suburb' in filtered_df.columns:
-            # Map each order's suburb back to its zone
-            suburb_to_zone = {}
-            for zone, suburbs in ZONE_MAPPING.items():
-                for suburb in suburbs:
-                    suburb_to_zone[suburb] = zone
-
-            filtered_df['_zone'] = filtered_df['suburb'].map(suburb_to_zone).fillna('Other')
+            filtered_df['_zone'] = filtered_df['suburb'].map(SUBURB_TO_ZONE).fillna('Other')
             zone_counts = (
                 filtered_df
                 .groupby('_zone')
@@ -215,9 +209,9 @@ def render(orders_df, drivers_df, data_manager):
         driver_perf.columns = display_cols
 
         if 'Success %' in driver_perf.columns:
-            driver_perf['Success %'] = driver_perf['Success %'].apply(
-                lambda x: round(x * 100, 1) if x <= 1 else round(x, 1)
-            )
+            import numpy as np
+            sr = driver_perf['Success %']
+            driver_perf['Success %'] = np.where(sr <= 1, (sr * 100).round(1), sr.round(1))
 
         sort_col = 'Deliveries' if 'Deliveries' in driver_perf.columns else 'Driver'
         st.dataframe(
@@ -231,7 +225,11 @@ def render(orders_df, drivers_df, data_manager):
     # ── API Log ──────────────────────────────────────────────
     st.markdown("<br>", unsafe_allow_html=True)
 
-    api_log = data_manager.get_api_log()
+    @st.cache_data(ttl=60, show_spinner=False)
+    def _get_api_log(_dm_id):
+        return data_manager.get_api_log()
+
+    api_log = _get_api_log(id(data_manager))
     if not api_log.empty:
         st.markdown("### API Operation Log")
         st.dataframe(api_log.tail(20), use_container_width=True, hide_index=True)

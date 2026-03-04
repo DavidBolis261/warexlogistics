@@ -214,6 +214,16 @@ class PostgresStore:
                 )
             """))
 
+            # Indexes
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_orders_driver_id ON orders(driver_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at DESC)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_orders_status_created ON orders(status, created_at DESC)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_orders_driver_status ON orders(driver_id, status)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_run_orders_run_id ON run_orders(run_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_runs_status ON runs(status)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_messages_driver_id ON messages(driver_id)"))
+
             conn.commit()
 
         logger.info("✅ PostgreSQL tables created/verified")
@@ -307,6 +317,24 @@ class PostgresStore:
                     UPDATE orders SET status = :status, updated_at = CURRENT_TIMESTAMP
                     WHERE order_id = :order_id
                 """), {'order_id': order_id, 'status': status})
+            conn.commit()
+
+    def batch_update_order_status(self, order_ids, status, driver_id=None):
+        """Update status for multiple orders in a single query."""
+        if not order_ids:
+            return
+        ids_list = list(order_ids)
+        with self.engine.connect() as conn:
+            if driver_id:
+                conn.execute(text("""
+                    UPDATE orders SET status = :status, driver_id = :driver_id, updated_at = CURRENT_TIMESTAMP
+                    WHERE order_id = ANY(:ids)
+                """), {'status': status, 'driver_id': driver_id, 'ids': ids_list})
+            else:
+                conn.execute(text("""
+                    UPDATE orders SET status = :status, updated_at = CURRENT_TIMESTAMP
+                    WHERE order_id = ANY(:ids)
+                """), {'status': status, 'ids': ids_list})
             conn.commit()
 
     def update_order_fields(self, order_id, **fields):
@@ -520,13 +548,15 @@ class PostgresStore:
             conn.commit()
 
     def save_run_orders(self, run_id, order_ids):
-        """Save run orders."""
+        """Save run orders in a single batch insert."""
+        if not order_ids:
+            return
+        rows = [{'run_id': run_id, 'order_id': oid, 'seq': seq} for seq, oid in enumerate(order_ids, 1)]
         with self.engine.connect() as conn:
-            for seq, oid in enumerate(order_ids, 1):
-                conn.execute(text("""
-                    INSERT INTO run_orders (run_id, order_id, stop_sequence, status)
-                    VALUES (:run_id, :order_id, :seq, 'pending')
-                """), {'run_id': run_id, 'order_id': oid, 'seq': seq})
+            conn.execute(text("""
+                INSERT INTO run_orders (run_id, order_id, stop_sequence, status)
+                VALUES (:run_id, :order_id, :seq, 'pending')
+            """), rows)
             conn.commit()
 
     def get_run_orders(self, run_id):
@@ -595,12 +625,22 @@ class PostgresStore:
     def get_all_settings(self):
         """Get all settings."""
         result = pd.read_sql("SELECT key, value FROM settings", self.engine)
-        return {row['key']: row['value'] for _, row in result.iterrows()}
+        return result.set_index('key')['value'].to_dict() if not result.empty else {}
 
     def set_settings_bulk(self, settings_dict):
-        """Set multiple settings."""
-        for key, value in settings_dict.items():
-            self.set_setting(key, value)
+        """Set multiple settings in a single transaction."""
+        if not settings_dict:
+            return
+        rows = [{'key': k, 'value': str(v)} for k, v in settings_dict.items()]
+        with self.engine.connect() as conn:
+            conn.execute(text("""
+                INSERT INTO settings (key, value, updated_at)
+                VALUES (:key, :value, CURRENT_TIMESTAMP)
+                ON CONFLICT (key) DO UPDATE SET
+                    value = EXCLUDED.value,
+                    updated_at = CURRENT_TIMESTAMP
+            """), rows)
+            conn.commit()
 
     # Zones
     def get_zones(self):

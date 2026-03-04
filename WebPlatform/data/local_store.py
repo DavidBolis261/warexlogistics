@@ -189,6 +189,8 @@ class LocalStore:
             CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
             CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
             CREATE INDEX IF NOT EXISTS idx_orders_zone ON orders(zone);
+            CREATE INDEX IF NOT EXISTS idx_orders_status_created ON orders(status, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_orders_driver_status ON orders(driver_id, status);
             CREATE INDEX IF NOT EXISTS idx_run_orders_run_id ON run_orders(run_id);
             CREATE INDEX IF NOT EXISTS idx_run_orders_order_id ON run_orders(order_id);
             CREATE INDEX IF NOT EXISTS idx_runs_status ON runs(status);
@@ -323,6 +325,24 @@ class LocalStore:
             self.conn.execute(
                 "UPDATE orders SET status=?, updated_at=? WHERE order_id=?",
                 (status, datetime.now().isoformat(), order_id)
+            )
+        self.conn.commit()
+
+    def batch_update_order_status(self, order_ids, status, driver_id=None):
+        """Update status for multiple orders in a single query."""
+        if not order_ids:
+            return
+        now = datetime.now().isoformat()
+        placeholders = ','.join('?' * len(order_ids))
+        if driver_id:
+            self.conn.execute(
+                f"UPDATE orders SET status=?, driver_id=?, updated_at=? WHERE order_id IN ({placeholders})",
+                [status, driver_id, now] + list(order_ids),
+            )
+        else:
+            self.conn.execute(
+                f"UPDATE orders SET status=?, updated_at=? WHERE order_id IN ({placeholders})",
+                [status, now] + list(order_ids),
             )
         self.conn.commit()
 
@@ -537,11 +557,11 @@ class LocalStore:
         self.conn.commit()
 
     def save_run_orders(self, run_id, order_ids):
-        for seq, oid in enumerate(order_ids, 1):
-            self.conn.execute('''
-                INSERT INTO run_orders (run_id, order_id, stop_sequence, status)
-                VALUES (?, ?, ?, 'pending')
-            ''', (run_id, oid, seq))
+        rows = [(run_id, oid, seq) for seq, oid in enumerate(order_ids, 1)]
+        self.conn.executemany(
+            "INSERT INTO run_orders (run_id, order_id, stop_sequence, status) VALUES (?, ?, ?, 'pending')",
+            rows,
+        )
         self.conn.commit()
 
     def get_runs(self, status=None):

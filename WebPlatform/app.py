@@ -219,15 +219,15 @@ with st.sidebar:
 
 
 # LOAD DATA — cached with 30-second TTL to avoid redundant DB queries on every rerun
-@st.cache_data(ttl=30, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def _cached_get_orders(_dm_id):
     return dm.get_orders()
 
-@st.cache_data(ttl=30, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def _cached_get_drivers(_dm_id):
     return dm.get_drivers()
 
-@st.cache_data(ttl=30, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def _cached_get_runs(_dm_id):
     return dm.get_runs()
 

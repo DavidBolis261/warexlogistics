@@ -272,9 +272,8 @@ class DataManager:
         self.store.save_run(run_data)
         self.store.save_run_orders(run_id, order_ids)
 
-        # Update each order's status to allocated
-        for oid in order_ids:
-            self.store.update_order_status(oid, 'allocated', driver_id=driver_name)
+        # Batch update all orders to allocated in a single query
+        self.store.batch_update_order_status(order_ids, 'allocated', driver_id=driver_name)
 
         return {'success': True, 'run_id': run_id}
 
@@ -284,21 +283,19 @@ class DataManager:
 
     def complete_run(self, run_id):
         self.store.update_run_status(run_id, 'completed')
-        # Mark all orders in this run as delivered
+        # Batch mark all orders in this run as delivered
         run_orders = self.store.get_run_orders(run_id)
         if not run_orders.empty:
-            for _, ro in run_orders.iterrows():
-                self.store.update_order_status(ro['order_id'], 'delivered')
+            self.store.batch_update_order_status(run_orders['order_id'].tolist(), 'delivered')
             self.store.update_run_progress(run_id, len(run_orders))
         return {'success': True}
 
     def cancel_run(self, run_id):
         self.store.update_run_status(run_id, 'cancelled')
-        # Revert orders back to pending
+        # Batch revert orders back to pending
         run_orders = self.store.get_run_orders(run_id)
         if not run_orders.empty:
-            for _, ro in run_orders.iterrows():
-                self.store.update_order_status(ro['order_id'], 'pending')
+            self.store.batch_update_order_status(run_orders['order_id'].tolist(), 'pending')
         return {'success': True}
 
     def get_run_orders(self, run_id):
