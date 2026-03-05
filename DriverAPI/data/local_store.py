@@ -3,8 +3,15 @@ import json
 import os
 import secrets
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import pandas as pd
+
+_SYDNEY_TZ = ZoneInfo('Australia/Sydney')
+
+
+def _now():
+    return datetime.now(_SYDNEY_TZ).replace(tzinfo=None)
 
 
 class LocalStore:
@@ -251,7 +258,7 @@ class LocalStore:
             "SELECT order_id FROM orders WHERE tracking_number IS NULL"
         ).fetchall()
         if null_orders:
-            prefix = datetime.now().strftime('%y%m')
+            prefix = _now().strftime('%y%m')
             for row in null_orders:
                 tracking = f"WRX-{prefix}-{secrets.token_hex(3).upper()}"
                 self.conn.execute(
@@ -300,8 +307,8 @@ class LocalStore:
             order_data.get('eta'),
             1 if pushed else 0,
             json.dumps(wms_response) if wms_response else None,
-            order_data.get('created_at', datetime.now().isoformat()),
-            datetime.now().isoformat(),
+            order_data.get('created_at', _now().isoformat()),
+            _now().isoformat(),
         ))
         self.conn.commit()
 
@@ -317,12 +324,12 @@ class LocalStore:
         if driver_id:
             self.conn.execute(
                 "UPDATE orders SET status=?, driver_id=?, updated_at=? WHERE order_id=?",
-                (status, driver_id, datetime.now().isoformat(), order_id)
+                (status, driver_id, _now().isoformat(), order_id)
             )
         else:
             self.conn.execute(
                 "UPDATE orders SET status=?, updated_at=? WHERE order_id=?",
-                (status, datetime.now().isoformat(), order_id)
+                (status, _now().isoformat(), order_id)
             )
         self.conn.commit()
 
@@ -332,7 +339,7 @@ class LocalStore:
             return
         set_clauses = ', '.join(f"{k}=?" for k in fields)
         values = list(fields.values())
-        values.append(datetime.now().isoformat())
+        values.append(_now().isoformat())
         values.append(order_id)
         self.conn.execute(
             f"UPDATE orders SET {set_clauses}, updated_at=? WHERE order_id=?",
@@ -358,7 +365,7 @@ class LocalStore:
             json.dumps(receipt_data.get('lines', [])),
             1 if pushed else 0,
             json.dumps(wms_response) if wms_response else None,
-            datetime.now().isoformat(),
+            _now().isoformat(),
         ))
         self.conn.commit()
 
@@ -387,7 +394,7 @@ class LocalStore:
             item_data.get('outer_qty'),
             item_data.get('pallet_qty'),
             1 if pushed else 0,
-            datetime.now().isoformat(),
+            _now().isoformat(),
         ))
         self.conn.commit()
 
@@ -418,7 +425,7 @@ class LocalStore:
             driver_data.get('success_rate', 0.95),
             driver_data.get('rating', 4.5),
             driver_data.get('active_orders', 0),
-            datetime.now().isoformat(),
+            _now().isoformat(),
         ))
         self.conn.commit()
 
@@ -465,7 +472,7 @@ class LocalStore:
         if drivers_df.empty:
             return drivers_df
 
-        today = datetime.now().strftime('%Y-%m-%d')
+        today = _now().strftime('%Y-%m-%d')
 
         # Single aggregation query replaces N+1 per-driver queries
         stats_df = pd.read_sql_query(
@@ -531,8 +538,8 @@ class LocalStore:
             run_data.get('status', 'active'),
             run_data.get('total_stops', 0),
             run_data.get('completed', 0),
-            run_data.get('created_at', datetime.now().isoformat()),
-            datetime.now().isoformat(),
+            run_data.get('created_at', _now().isoformat()),
+            _now().isoformat(),
         ))
         self.conn.commit()
 
@@ -573,14 +580,14 @@ class LocalStore:
     def update_run_status(self, run_id, status):
         self.conn.execute(
             "UPDATE runs SET status=?, updated_at=? WHERE run_id=?",
-            (status, datetime.now().isoformat(), run_id),
+            (status, _now().isoformat(), run_id),
         )
         self.conn.commit()
 
     def update_run_progress(self, run_id, completed):
         self.conn.execute(
             "UPDATE runs SET completed=?, updated_at=? WHERE run_id=?",
-            (completed, datetime.now().isoformat(), run_id),
+            (completed, _now().isoformat(), run_id),
         )
         self.conn.commit()
 
@@ -590,7 +597,7 @@ class LocalStore:
         self.conn.commit()
 
     def count_runs_today(self):
-        today = datetime.now().strftime('%Y-%m-%d')
+        today = _now().strftime('%Y-%m-%d')
         row = self.conn.execute(
             "SELECT COUNT(*) as cnt FROM runs WHERE DATE(created_at) = ?",
             (today,),
@@ -608,7 +615,7 @@ class LocalStore:
     def set_setting(self, key, value):
         self.conn.execute(
             "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, ?)",
-            (key, str(value), datetime.now().isoformat()),
+            (key, str(value), _now().isoformat()),
         )
         self.conn.commit()
 
@@ -617,7 +624,7 @@ class LocalStore:
         return {row['key']: row['value'] for row in rows}
 
     def set_settings_bulk(self, settings_dict):
-        now = datetime.now().isoformat()
+        now = _now().isoformat()
         for key, value in settings_dict.items():
             self.conn.execute(
                 "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, ?)",
@@ -641,7 +648,7 @@ class LocalStore:
             zone_data.get('postcodes', ''),
             zone_data.get('surcharge', 0.0),
             zone_data.get('max_stops', 15),
-            datetime.now().isoformat(),
+            _now().isoformat(),
         ))
         self.conn.commit()
 
@@ -686,14 +693,14 @@ class LocalStore:
     def create_session_token(self, token, username, expires_at):
         self.conn.execute(
             "INSERT OR REPLACE INTO session_tokens (token, username, created_at, expires_at) VALUES (?, ?, ?, ?)",
-            (token, username, datetime.now().isoformat(), expires_at),
+            (token, username, _now().isoformat(), expires_at),
         )
         self.conn.commit()
 
     def get_session_token(self, token):
         return self.conn.execute(
             "SELECT * FROM session_tokens WHERE token = ? AND expires_at > ?",
-            (token, datetime.now().isoformat()),
+            (token, _now().isoformat()),
         ).fetchone()
 
     def delete_session_token(self, token):
@@ -701,7 +708,7 @@ class LocalStore:
         self.conn.commit()
 
     def cleanup_expired_tokens(self):
-        self.conn.execute("DELETE FROM session_tokens WHERE expires_at < ?", (datetime.now().isoformat(),))
+        self.conn.execute("DELETE FROM session_tokens WHERE expires_at < ?", (_now().isoformat(),))
         self.conn.commit()
 
     # Driver auth tokens
@@ -715,7 +722,7 @@ class LocalStore:
     def get_driver_token(self, token):
         row = self.conn.execute(
             "SELECT driver_id, phone, expires_at FROM driver_tokens WHERE token = ? AND expires_at > ?",
-            (token, datetime.now().isoformat()),
+            (token, _now().isoformat()),
         ).fetchone()
         if row is None:
             return None
@@ -726,7 +733,7 @@ class LocalStore:
         self.conn.commit()
 
     def purge_expired_driver_tokens(self):
-        self.conn.execute("DELETE FROM driver_tokens WHERE expires_at <= ?", (datetime.now().isoformat(),))
+        self.conn.execute("DELETE FROM driver_tokens WHERE expires_at <= ?", (_now().isoformat(),))
         self.conn.commit()
 
     # === Tracking ===
@@ -759,7 +766,7 @@ class LocalStore:
              response_body, error_message)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
-            datetime.now().isoformat(),
+            _now().isoformat(),
             operation,
             endpoint,
             request_summary[:500] if request_summary else None,
@@ -785,8 +792,7 @@ class LocalStore:
 
     def save_message(self, driver_id, driver_name, body, direction='inbound'):
         """Save a driver↔admin message. direction: 'inbound' = driver→admin, 'outbound' = admin→driver."""
-        from datetime import timezone
-        sent_at = datetime.now(timezone.utc).isoformat()
+        sent_at = _now().isoformat()
         self.conn.execute(
             "INSERT INTO messages (driver_id, driver_name, body, direction, is_read, sent_at) VALUES (?, ?, ?, ?, 0, ?)",
             (driver_id, driver_name, body, direction, sent_at),

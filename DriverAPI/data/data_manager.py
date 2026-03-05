@@ -5,6 +5,14 @@ import logging
 import secrets
 import os
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
+SYDNEY_TZ = ZoneInfo('Australia/Sydney')
+
+
+def _now():
+    """Return the current Sydney local time as a naive datetime (no tz suffix)."""
+    return datetime.now(SYDNEY_TZ).replace(tzinfo=None)
 
 logger = logging.getLogger(__name__)
 
@@ -92,9 +100,9 @@ class DataManager:
         order_data['order_id'] = tracking_number
         order_data['tracking_number'] = tracking_number
         order_data['status'] = 'pending'
-        order_data['created_at'] = datetime.now().isoformat()
-        order_data['updated_at'] = datetime.now().isoformat()
-        order_data['order_date'] = datetime.now().strftime('%Y-%m-%d')
+        order_data['created_at'] = _now().isoformat()
+        order_data['updated_at'] = _now().isoformat()
+        order_data['order_date'] = _now().strftime('%Y-%m-%d')
 
         wms_result = None
         pushed = False
@@ -171,18 +179,14 @@ class DataManager:
         self.store.update_order_status(order_id, 'allocated', driver_id=driver_name)
 
     def update_order(self, order_id, **fields):
-        """Update order fields (status, zone, driver_id, proof_photo, etc.)."""
-        # Step 1 — always update the DB first.  This MUST succeed; any error
-        # here is a real problem and should propagate up to the caller.
-        self.store.update_order_fields(order_id, **fields)
+        """Update order fields (status, zone, driver_id, proof_photo, etc.).
 
-        # Step 2 — attempt email notification (best-effort, never crashes
-        # the status update which already committed to the DB above).
-        if 'status' in fields:
-            try:
-                self._try_send_status_email(order_id, fields['status'])
-            except Exception as exc:
-                logger.error(f"[email] uncaught exception for order {order_id}: {exc}", exc_info=True)
+        Note: email notifications are NOT sent automatically here for the DriverAPI.
+        The iOS app calls /api/driver/stops/<id>/notify explicitly after a status
+        update, which is the single point of email dispatch. This prevents double
+        sends when both update_order and /notify would otherwise both fire.
+        """
+        self.store.update_order_fields(order_id, **fields)
 
     def _try_send_status_email(self, order_id, new_status):
         """Best-effort email notification.  Isolated so it can never crash the caller."""
@@ -256,7 +260,7 @@ class DataManager:
         return self.store.get_runs()
 
     def create_run(self, zone, driver_id, driver_name, order_ids):
-        today = datetime.now().strftime('%y%m%d')
+        today = _now().strftime('%y%m%d')
         count = self.store.count_runs_today()
         run_id = f"RUN-{today}-{count + 1:03d}"
 
@@ -520,7 +524,7 @@ class DataManager:
 
     def _generate_tracking_number(self):
         """Generate a unique tracking number like WRX-2602-A3F7B1."""
-        prefix = datetime.now().strftime('%y%m')
+        prefix = _now().strftime('%y%m')
         for _ in range(10):
             hex_part = secrets.token_hex(3).upper()
             tracking = f"WRX-{prefix}-{hex_part}"
@@ -550,7 +554,7 @@ class DataManager:
             return None
         # Create a session token valid for 7 days
         token = secrets.token_urlsafe(32)
-        expires = (datetime.now() + timedelta(days=7)).isoformat()
+        expires = (_now() + timedelta(days=7)).isoformat()
         self.store.create_session_token(token, user['username'], expires)
         return token
 
@@ -574,7 +578,7 @@ class DataManager:
         self.store.create_admin_user(username, pw_hash, salt)
         # Auto-login: create session token
         token = secrets.token_urlsafe(32)
-        expires = (datetime.now() + timedelta(days=7)).isoformat()
+        expires = (_now() + timedelta(days=7)).isoformat()
         self.store.create_session_token(token, username, expires)
         return {'success': True, 'token': token}
 

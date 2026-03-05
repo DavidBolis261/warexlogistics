@@ -6,7 +6,14 @@ Automatically used when DATABASE_URL environment variable is present.
 import os
 import pandas as pd
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from sqlalchemy import create_engine, text
+
+_SYDNEY_TZ = ZoneInfo('Australia/Sydney')
+
+
+def _now():
+    return datetime.now(_SYDNEY_TZ).replace(tzinfo=None)
 from sqlalchemy.pool import NullPool
 import logging
 
@@ -387,7 +394,7 @@ class PostgresStore:
         if drivers_df.empty:
             return drivers_df
 
-        today = datetime.now().strftime('%Y-%m-%d')
+        today = _now().strftime('%Y-%m-%d')
 
         # Single aggregation query replaces N+1 per-driver queries
         stats_df = pd.read_sql(
@@ -543,7 +550,7 @@ class PostgresStore:
                 'status': run_data.get('status', 'active'),
                 'total_stops': run_data.get('total_stops', 0),
                 'completed': run_data.get('completed', 0),
-                'created_at': run_data.get('created_at', datetime.now().isoformat()),
+                'created_at': run_data.get('created_at', _now().isoformat()),
             })
             conn.commit()
 
@@ -592,7 +599,7 @@ class PostgresStore:
 
     def count_runs_today(self):
         """Count runs created today."""
-        today = datetime.now().strftime('%Y-%m-%d')
+        today = _now().strftime('%Y-%m-%d')
         with self.engine.connect() as conn:
             result = conn.execute(text("""
                 SELECT COUNT(*) as count FROM runs
@@ -876,8 +883,7 @@ class PostgresStore:
 
     def save_message(self, driver_id, driver_name, body, direction='inbound'):
         """Save a driver↔admin message. direction: 'inbound' = driver→admin, 'outbound' = admin→driver."""
-        from datetime import datetime as dt, timezone
-        sent_at = dt.now(timezone.utc).isoformat()
+        sent_at = _now().isoformat()
         with self.engine.connect() as conn:
             result = conn.execute(text("""
                 INSERT INTO messages (driver_id, driver_name, body, direction, is_read, sent_at)

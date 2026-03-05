@@ -139,14 +139,6 @@ def _build_email_template(company_name, tracking_number, content_html, tracking_
         'We love dogs. But your dog might not love our drivers.<br>'
         'Please make sure our drivers have safe access to your delivery location.'
         '</p></div></td></tr>'
-        # Contact Section
-        '<tr><td style="padding: 0 40px 30px;">'
-        '<div style="background-color: #e0e7ff; border-left: 4px solid #667eea; padding: 16px 20px; border-radius: 4px;">'
-        '<p style="margin: 0 0 8px; font-size: 14px; font-weight: 700; color: #3730a3;">💬 Just ask us!</p>'
-        '<p style="margin: 0; font-size: 13px; line-height: 1.6; color: #312e81;">'
-        'Want to find out more about the broad range of services we can offer you or your business?<br>'
-        'Just ask our knowledgeable team on <a href="mailto:admin@warexlogistics.com.au" style="color: #667eea; text-decoration: none; font-weight: 600;">info@warexlogistics.com.au</a>.'
-        '</p></div></td></tr>'
         # Footer
         '<tr><td style="background-color: #f4f4f7; padding: 20px 40px; text-align: center;">'
         f'<p style="margin: 0; font-size: 12px; color: #8e8ea0;">{company_name} &bull; Powered by Warex Logistics</p>'

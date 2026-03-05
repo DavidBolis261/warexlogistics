@@ -7,6 +7,13 @@ from flask import Flask, request, jsonify
 from functools import wraps
 import secrets
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
+_SYDNEY_TZ = ZoneInfo('Australia/Sydney')
+
+
+def _now():
+    return datetime.now(_SYDNEY_TZ).replace(tzinfo=None)
 import logging
 import pandas as pd
 
@@ -70,7 +77,7 @@ def create_driver_api(app: Flask, data_manager):
             # Check expiration
             try:
                 expires = datetime.fromisoformat(str(token_data['expires']))
-                if expires < datetime.now():
+                if expires < _now():
                     _delete_token(token)
                     return jsonify({'error': 'Unauthorized', 'message': 'Token expired'}), 401
             except (ValueError, KeyError):
@@ -116,7 +123,7 @@ def create_driver_api(app: Flask, data_manager):
 
         # Generate auth token (valid for 30 days)
         token = secrets.token_urlsafe(32)
-        expires = datetime.now() + timedelta(days=30)
+        expires = _now() + timedelta(days=30)
 
         _save_token(token, driver['driver_id'], driver['phone'], expires)
 
@@ -175,12 +182,12 @@ def create_driver_api(app: Flask, data_manager):
         else:
             status = 'Completed'
 
-        today = datetime.now().strftime("%Y%m%d")
+        today = _now().strftime("%Y%m%d")
         run = {
             'id': f'RUN-{driver_id}-{today}',
             'runNumber': f'RUN-{today}',
             'zone': "Today's Deliveries",
-            'date': datetime.now().isoformat(),
+            'date': _now().isoformat(),
             'status': status,
             'totalStops': total_stops,
             'completedStops': completed,
@@ -238,7 +245,7 @@ def create_driver_api(app: Flask, data_manager):
                     'parcels': int(row.get('parcels') or 1),
                     'serviceLevel': row.get('service_level') or 'standard',
                     'specialInstructions': row.get('special_instructions') or '',
-                    'createdAt': row.get('created_at') or datetime.now().isoformat(),
+                    'createdAt': row.get('created_at') or _now().isoformat(),
                 },
             }
             for seq, row in enumerate(driver_orders.to_dict('records'), start=1)
@@ -308,10 +315,9 @@ def create_driver_api(app: Flask, data_manager):
             update_fields['status'] = backend_status
             if notes:
                 update_fields['delivery_notes'] = notes
-            # Record delivery timestamp when marking as delivered
+            # Record delivery timestamp when marking as delivered (Sydney local time)
             if backend_status == 'delivered':
-                from datetime import timezone
-                update_fields['delivered_at'] = datetime.now(timezone.utc).isoformat()
+                update_fields['delivered_at'] = _now().isoformat()
 
         if has_media:
             if photo_b64:
@@ -354,7 +360,7 @@ def create_driver_api(app: Flask, data_manager):
         orders_df = data_manager.get_orders()
         driver_orders = orders_df[orders_df['driver_id'] == driver_id] if not orders_df.empty else pd.DataFrame()
 
-        today = datetime.now().strftime('%Y-%m-%d')
+        today = _now().strftime('%Y-%m-%d')
         deliveries_today = len(driver_orders[
             (driver_orders['status'] == 'delivered') &
             (driver_orders['order_date'] == today)

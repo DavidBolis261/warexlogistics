@@ -5,6 +5,15 @@ import logging
 import secrets
 import os
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
+_SYDNEY_TZ = ZoneInfo('Australia/Sydney')
+
+
+def _now():
+    """Return the current Sydney local time as a naive datetime (no tz suffix)."""
+    return datetime.now(_SYDNEY_TZ).replace(tzinfo=None)
+
 
 logger = logging.getLogger(__name__)
 
@@ -92,9 +101,9 @@ class DataManager:
         order_data['order_id'] = tracking_number
         order_data['tracking_number'] = tracking_number
         order_data['status'] = 'pending'
-        order_data['created_at'] = datetime.now().isoformat()
-        order_data['updated_at'] = datetime.now().isoformat()
-        order_data['order_date'] = datetime.now().strftime('%Y-%m-%d')
+        order_data['created_at'] = _now().isoformat()
+        order_data['updated_at'] = _now().isoformat()
+        order_data['order_date'] = _now().strftime('%Y-%m-%d')
 
         wms_result = None
         pushed = False
@@ -256,7 +265,7 @@ class DataManager:
         return self.store.get_runs()
 
     def create_run(self, zone, driver_id, driver_name, order_ids):
-        today = datetime.now().strftime('%y%m%d')
+        today = _now().strftime('%y%m%d')
         count = self.store.count_runs_today()
         run_id = f"RUN-{today}-{count + 1:03d}"
 
@@ -517,7 +526,7 @@ class DataManager:
 
     def _generate_tracking_number(self):
         """Generate a unique tracking number like WRX-2602-A3F7B1."""
-        prefix = datetime.now().strftime('%y%m')
+        prefix = _now().strftime('%y%m')
         for _ in range(10):
             hex_part = secrets.token_hex(3).upper()
             tracking = f"WRX-{prefix}-{hex_part}"
@@ -547,7 +556,7 @@ class DataManager:
             return None
         # Create a session token valid for 7 days
         token = secrets.token_urlsafe(32)
-        expires = (datetime.now() + timedelta(days=7)).isoformat()
+        expires = (_now() + timedelta(days=7)).isoformat()
         self.store.create_session_token(token, user['username'], expires)
         return token
 
@@ -571,7 +580,7 @@ class DataManager:
         self.store.create_admin_user(username, pw_hash, salt)
         # Auto-login: create session token
         token = secrets.token_urlsafe(32)
-        expires = (datetime.now() + timedelta(days=7)).isoformat()
+        expires = (_now() + timedelta(days=7)).isoformat()
         self.store.create_session_token(token, username, expires)
         return {'success': True, 'token': token}
 
