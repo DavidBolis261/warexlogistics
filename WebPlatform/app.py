@@ -17,7 +17,7 @@ from data.data_manager import DataManager
 # Page configuration
 st.set_page_config(
     page_title="Warex Logistics",
-    page_icon="📦",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -153,53 +153,53 @@ with st.sidebar:
         label_visibility="collapsed",
     )
 
-    st.markdown("---")
+    # st.markdown("---")
 
-    # Quick filters
-    st.markdown("### Quick Filters")
+    # # Quick filters
+    # st.markdown("### Quick Filters")
 
-    zone_filter = st.multiselect(
-        "Zones",
-        ["Inner West", "Eastern Suburbs", "CBD", "South Sydney", "Inner City"],
-        default=[],
-    )
+    # zone_filter = st.multiselect(
+    #     "Zones",
+    #     ["Inner West", "Eastern Suburbs", "CBD", "South Sydney", "Inner City"],
+    #     default=[],
+    # )
 
-    service_filter = st.multiselect(
-        "Service Level",
-        ["express", "standard", "economy"],
-        default=[],
-    )
+    # service_filter = st.multiselect(
+    #     "Service Level",
+    #     ["express", "standard", "economy"],
+    #     default=[],
+    # )
 
-    status_filter = st.multiselect(
-        "Status",
-        ["pending", "allocated", "in_transit", "delivered", "failed"],
-        default=[],
-    )
+    # status_filter = st.multiselect(
+    #     "Status",
+    #     ["pending", "allocated", "in_transit", "delivered", "failed"],
+    #     default=[],
+    # )
 
-    st.markdown("---")
+    # st.markdown("---")
 
-    # Connection status
-    if wms_config.is_configured:
-        mode = dm.data_mode
-        if mode == 'live':
-            dot_color = "#10b981"
-            label = "Live - WMS Connected"
-        elif mode == 'local':
-            dot_color = "#fbbf24"
-            label = "Local Only"
-        else:
-            dot_color = "#6b7280"
-            label = "Demo Mode"
-    else:
-        dot_color = "#6b7280"
-        label = "Demo Mode"
+    # # Connection status
+    # if wms_config.is_configured:
+    #     mode = dm.data_mode
+    #     if mode == 'live':
+    #         dot_color = "#10b981"
+    #         label = "Live - WMS Connected"
+    #     elif mode == 'local':
+    #         dot_color = "#fbbf24"
+    #         label = "Local Only"
+    #     else:
+    #         dot_color = "#6b7280"
+    #         label = "Demo Mode"
+    # else:
+    #     dot_color = "#6b7280"
+    #     label = "Demo Mode"
 
-    st.markdown(f"""
-    <div class="live-indicator" style="color: {dot_color};">
-        <div class="live-dot" style="background: {dot_color};"></div>
-        {label}
-    </div>
-    """, unsafe_allow_html=True)
+    # st.markdown(f"""
+    # <div class="live-indicator" style="color: {dot_color};">
+    #     <div class="live-dot" style="background: {dot_color};"></div>
+    #     {label}
+    # </div>
+    # """, unsafe_allow_html=True)
 
     st.caption(f"Last updated: {datetime.now().strftime('%H:%M:%S')}")
 
