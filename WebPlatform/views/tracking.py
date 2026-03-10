@@ -35,7 +35,7 @@ def render_tracking_page(dm, company_name):
     st.markdown(f"""
     <div style="text-align: center; padding: 2rem 0 1rem;">
         
-        st.markdown(f'<img src="{logo}" style="width:100px;height:auto;" />', unsafe_allow_html=True)
+        <img src="{logo}" style="width:100px;height:auto;" />
 
         <div style="font-family: 'DM Sans', sans-serif; font-size: 2rem; font-weight: 700; color: white; margin-top: 0.5rem;">
             {company_name}
