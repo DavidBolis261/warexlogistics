@@ -121,6 +121,22 @@ else:
     dm.set_mode('local')
 
 
+# Hide the sidebar and its expand/collapse toggle on all public-facing pages.
+# The authenticated dashboard re-adds the sidebar naturally via "with st.sidebar".
+if not st.session_state.authenticated:
+    st.markdown("""
+    <style>
+    /* Hide sidebar chevron/toggle button and the sidebar panel itself
+       for any page that isn't the authenticated admin dashboard */
+    [data-testid="collapsedControl"],
+    [data-testid="stSidebarCollapsedControl"],
+    section[data-testid="stSidebar"] {
+        display: none !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+
 # ============================================
 # AUTH GATE
 # ============================================
