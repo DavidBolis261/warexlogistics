@@ -6,6 +6,11 @@ maxMessageSize = 200
 
 [browser]
 gatherUsageStats = false
+serverAddress = "warexlogistics.up.railway.app"
+
+[client]
+toolbarMode = "minimal"
+showErrorDetails = false
 
 [theme]
 base = "dark"

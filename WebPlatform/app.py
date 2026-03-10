@@ -5,25 +5,80 @@ A comprehensive logistics management interface integrated with Thomax .wms API
 
 import sys
 import os
+import base64
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import streamlit as st
 from datetime import datetime
+from PIL import Image
 
 from components.styles import apply_styles
 from config.settings import wms_config
 from data.data_manager import DataManager
 
+# ── Logo helpers ──────────────────────────────────────────────────────────────
+_LOGO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'warex_logo.png')
+
+def _load_logo_b64():
+    """Return an inline base64 data-URI for the Warex logo, or None."""
+    try:
+        with open(_LOGO_PATH, 'rb') as f:
+            return 'data:image/png;base64,' + base64.b64encode(f.read()).decode()
+    except FileNotFoundError:
+        return None
+
+def _load_logo_pil():
+    """Return PIL Image for page_icon, or fallback emoji string."""
+    try:
+        return Image.open(_LOGO_PATH)
+    except Exception:
+        return "📦"
+
+_logo_b64  = _load_logo_b64()   # inline HTML/CSS use
+_logo_pil  = _load_logo_pil()   # st.set_page_config page_icon
+
 # Page configuration
 st.set_page_config(
     page_title="Warex Logistics",
-    page_icon="",
+    page_icon=_logo_pil,
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 # Apply custom CSS
 apply_styles()
+
+# Inject OG / social-sharing meta tags and strip residual Streamlit branding
+st.markdown("""
+<script>
+(function () {
+    var metas = [
+        ['property', 'og:title',        'Warex Logistics'],
+        ['property', 'og:description',  'Warex Logistics — Courier & Delivery Management Dashboard'],
+        ['property', 'og:type',         'website'],
+        ['property', 'og:site_name',    'Warex Logistics'],
+        ['name',     'description',     'Warex Logistics — Courier & Delivery Management Dashboard'],
+        ['name',     'application-name','Warex Logistics'],
+        ['name',     'theme-color',     '#f59e0b'],
+        ['name',     'twitter:card',    'summary'],
+        ['name',     'twitter:title',   'Warex Logistics'],
+        ['name',     'twitter:description', 'Warex Logistics — Courier & Delivery Management Dashboard'],
+    ];
+    metas.forEach(function (m) {
+        var sel = 'meta[' + m[0] + '="' + m[1] + '"]';
+        var el  = document.querySelector(sel);
+        if (!el) {
+            el = document.createElement('meta');
+            el.setAttribute(m[0], m[1]);
+            document.head.appendChild(el);
+        }
+        el.setAttribute('content', m[2]);
+    });
+    // Override title so shared links / browser tabs show the correct name
+    document.title = 'Warex Logistics';
+})();
+</script>
+""", unsafe_allow_html=True)
 
 # Initialize data manager (singleton per session)
 if 'data_manager' not in st.session_state:
@@ -116,13 +171,14 @@ else:
 
 # SIDEBAR
 with st.sidebar:
+    _logo_tag = (
+        f'<img src="{_logo_b64}" style="width:130px;height:auto;border-radius:12px;" />'
+        if _logo_b64 else '<div style="font-size:2.5rem;">📦</div>'
+    )
     st.markdown(f"""
-    <div style="text-align: center; padding: 1.5rem 0;">
-        <div style="font-size: 2.5rem;">📦</div>
-        <div style="font-family: 'DM Sans', sans-serif; font-size: 1.25rem; font-weight: 700; color: white; margin-top: 0.5rem;">
-            {company_name}
-        </div>
-        <div style="font-family: 'Space Mono', monospace; font-size: 0.75rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 2px;">
+    <div style="text-align: center; padding: 1.2rem 0 0.6rem;">
+        {_logo_tag}
+        <div style="font-family: 'Space Mono', monospace; font-size: 0.7rem; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 2px; margin-top: 0.5rem;">
             Dashboard
         </div>
     </div>
@@ -240,11 +296,18 @@ runs_df = _cached_get_runs(_dm_id)
 # HEADER
 col1, col2 = st.columns([3, 1])
 with col1:
+    _hdr_logo = (
+        f'<img src="{_logo_b64}" style="height:56px;width:auto;border-radius:10px;margin-right:1rem;flex-shrink:0;" />'
+        if _logo_b64 else ''
+    )
     st.markdown(f"""
     <div class="dashboard-header">
-        <div>
-            <h1 class="dashboard-title">{company_name}</h1>
-            <p class="dashboard-subtitle">{datetime.now().strftime('%A, %d %B %Y')} &bull; Operations Dashboard</p>
+        <div style="display:flex;align-items:center;">
+            {_hdr_logo}
+            <div>
+                <h1 class="dashboard-title">{company_name}</h1>
+                <p class="dashboard-subtitle">{datetime.now().strftime('%A, %d %B %Y')} &bull; Operations Dashboard</p>
+            </div>
         </div>
     </div>
     """, unsafe_allow_html=True)

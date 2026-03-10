@@ -7,6 +7,11 @@ def apply_styles():
 <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap');
 
+    /* ── Hide Streamlit default branding ── */
+    #MainMenu { visibility: hidden; }
+    footer { visibility: hidden; }
+    header[data-testid="stHeader"] { visibility: hidden; }
+
     .stApp {
         background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
     }
