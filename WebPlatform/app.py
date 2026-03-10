@@ -250,6 +250,11 @@ with col1:
     """, unsafe_allow_html=True)
 
 
+# Sidebar filters are currently disabled — default to empty (no filtering)
+zone_filter = []
+service_filter = []
+status_filter = []
+
 # PAGE ROUTING
 if page == "📊 Dashboard":
     from views.dashboard import render
