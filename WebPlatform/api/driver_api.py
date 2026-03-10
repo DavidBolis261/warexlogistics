@@ -136,7 +136,8 @@ def create_driver_api(app: Flask, data_manager):
             'rating': float(driver.get('rating', 4.5)),
             'totalDeliveries': int(driver.get('deliveries_today', 0)),
             'successRate': float(driver.get('success_rate', 0.95)),
-            'status': driver.get('status', 'available'),
+            'status': driver.get('status', 'offline'),
+            'pendingStatus': driver.get('pending_status') or '',
             'currentZone': driver.get('current_zone', '')
         }
 
@@ -366,7 +367,8 @@ def create_driver_api(app: Flask, data_manager):
                 'vehicleType': driver['vehicle_type'],
                 'plateNumber': driver.get('plate', ''),
                 'rating': float(driver.get('rating', 4.5)),
-                'status': driver.get('status', 'available'),
+                'status': driver.get('status', 'offline'),
+                'pendingStatus': driver.get('pending_status') or '',
                 'currentZone': driver.get('current_zone', '')
             },
             'stats': {
@@ -429,6 +431,30 @@ def create_driver_api(app: Flask, data_manager):
         except Exception as exc:
             logger.error(f"[email/notify] exception for {stop_id}: {exc}", exc_info=True)
             return jsonify({'success': False, 'error': str(exc)}), 500
+
+    # ── Driver online / offline status ────────────────────────────────────────
+
+    @app.route('/api/driver/go-online', methods=['POST'])
+    @require_auth
+    def driver_go_online():
+        """
+        Driver accepts the pre-shift declarations and goes online.
+        Sets driver status to 'available' and clears any pending_status.
+        """
+        driver_id = request.driver_id
+        data_manager.driver_go_online(driver_id)
+        return jsonify({'success': True, 'status': 'available'}), 200
+
+    @app.route('/api/driver/request-offline', methods=['POST'])
+    @require_auth
+    def driver_request_offline():
+        """
+        Driver requests to go offline.
+        Sets pending_status = 'offline'; requires admin approval before status changes.
+        """
+        driver_id = request.driver_id
+        data_manager.request_driver_offline(driver_id)
+        return jsonify({'success': True, 'status': 'pending_offline'}), 200
 
     # ── Driver location ────────────────────────────────────────────────────────
 

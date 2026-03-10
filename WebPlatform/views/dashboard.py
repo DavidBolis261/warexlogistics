@@ -363,6 +363,32 @@ def render(orders_df, drivers_df, runs_df, data_manager=None):
 
         st.markdown("<br>", unsafe_allow_html=True)
 
+        # ── Pending Offline Requests ──────────────────────────────────────────
+        if data_manager is not None:
+            pending_offline = data_manager.get_pending_offline_requests()
+            if pending_offline:
+                st.markdown('<div class="section-header" style="color: #f59e0b;">⏳ Pending Offline Requests</div>', unsafe_allow_html=True)
+                for driver in pending_offline:
+                    col_info, col_btn = st.columns([3, 1])
+                    with col_info:
+                        st.markdown(f"""
+                        <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);
+                                    border-radius: 10px; padding: 12px 16px; margin-bottom: 8px;">
+                            <div style="font-weight: 700; color: #f3f4f6;">{driver['name']}</div>
+                            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.5);">
+                                {driver.get('vehicle_type', '')} &bull; {driver.get('plate', '')}
+                                &bull; requesting to go offline
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    with col_btn:
+                        if st.button("✅ Approve", key=f"approve_offline_{driver['driver_id']}",
+                                     use_container_width=True):
+                            data_manager.approve_driver_offline(driver['driver_id'])
+                            st.success(f"{driver['name']} is now offline.")
+                            st.rerun()
+                st.markdown("<br>", unsafe_allow_html=True)
+
         st.markdown('<div class="section-header">Driver Status</div>', unsafe_allow_html=True)
 
         if drivers_df.empty:
@@ -370,11 +396,14 @@ def render(orders_df, drivers_df, runs_df, data_manager=None):
         else:
             for _, driver in drivers_df.head(5).iterrows():
                 status_class = f"status-{driver['status'].replace('_', '-')}"
+                pending_badge = ""
+                if driver.get('pending_status') == 'offline':
+                    pending_badge = ' <span style="background:#f59e0b;color:#000;font-size:0.65rem;padding:2px 6px;border-radius:4px;margin-left:6px;">OFFLINE PENDING</span>'
                 st.markdown(f"""
                 <div class="driver-card">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <div>
-                            <div class="driver-name">{driver['name']}</div>
+                            <div class="driver-name">{driver['name']}{pending_badge}</div>
                             <div class="driver-vehicle">{driver['vehicle_type']} &bull; {driver['plate']}</div>
                         </div>
                         <span class="status-badge {status_class}">{driver['status'].replace('_', ' ')}</span>
