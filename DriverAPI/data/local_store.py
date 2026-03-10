@@ -238,12 +238,13 @@ class LocalStore:
 
         self.conn.commit()
 
-        # Migrate drivers table — add location columns if missing
+        # Migrate drivers table — add location and status columns if missing
         driver_existing = {row[1] for row in self.conn.execute("PRAGMA table_info(drivers)").fetchall()}
         driver_new_cols = {
             'latitude': 'REAL',
             'longitude': 'REAL',
             'location_updated_at': 'TEXT',
+            'pending_status': 'TEXT',
         }
         for col, col_type in driver_new_cols.items():
             if col not in driver_existing:
@@ -463,6 +464,30 @@ class LocalStore:
                 location_updated_at = ?
             WHERE driver_id = ?
         ''', (latitude, longitude, timestamp, driver_id))
+        self.conn.commit()
+
+    def driver_go_online(self, driver_id):
+        """Set driver status to available and clear any pending offline request."""
+        self.conn.execute(
+            "UPDATE drivers SET status = 'available', pending_status = NULL WHERE driver_id = ?",
+            (driver_id,)
+        )
+        self.conn.commit()
+
+    def request_driver_offline(self, driver_id):
+        """Mark driver as having a pending offline request awaiting admin approval."""
+        self.conn.execute(
+            "UPDATE drivers SET pending_status = 'offline' WHERE driver_id = ?",
+            (driver_id,)
+        )
+        self.conn.commit()
+
+    def approve_driver_offline(self, driver_id):
+        """Admin approves the offline request — set status to offline and clear pending."""
+        self.conn.execute(
+            "UPDATE drivers SET status = 'offline', pending_status = NULL WHERE driver_id = ?",
+            (driver_id,)
+        )
         self.conn.commit()
 
     def get_drivers(self):

@@ -252,6 +252,29 @@ class DataManager:
         self.store.update_driver_location(driver_id, latitude, longitude, timestamp)
         return {'success': True}
 
+    def driver_go_online(self, driver_id):
+        """Mark a driver as available (online). Clears any pending_status."""
+        self.store.driver_go_online(driver_id)
+        return {'success': True}
+
+    def request_driver_offline(self, driver_id):
+        """Set pending_status = 'offline' — admin must approve before driver goes offline."""
+        self.store.request_driver_offline(driver_id)
+        return {'success': True}
+
+    def approve_driver_offline(self, driver_id):
+        """Admin approval: set status = 'offline' and clear pending_status."""
+        self.store.approve_driver_offline(driver_id)
+        return {'success': True}
+
+    def get_pending_offline_requests(self):
+        """Return a list of driver dicts whose pending_status == 'offline'."""
+        drivers_df = self.get_drivers()
+        if drivers_df.empty or 'pending_status' not in drivers_df.columns:
+            return []
+        pending = drivers_df[drivers_df['pending_status'] == 'offline']
+        return pending.to_dict('records')
+
     # === Runs ===
 
     def get_runs(self):

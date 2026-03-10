@@ -143,7 +143,8 @@ def create_driver_api(app: Flask, data_manager):
             'rating': float(driver.get('rating', 4.5)),
             'totalDeliveries': int(driver.get('deliveries_today', 0)),
             'successRate': float(driver.get('success_rate', 0.95)),
-            'status': driver.get('status', 'available'),
+            'status': driver.get('status', 'offline'),
+            'pendingStatus': driver.get('pending_status') or '',
             'currentZone': driver.get('current_zone', '')
         }
 
@@ -376,7 +377,8 @@ def create_driver_api(app: Flask, data_manager):
                 'vehicleType': driver['vehicle_type'],
                 'plateNumber': driver.get('plate', ''),
                 'rating': float(driver.get('rating', 4.5)),
-                'status': driver.get('status', 'available'),
+                'status': driver.get('status', 'offline'),
+                'pendingStatus': driver.get('pending_status') or '',
                 'currentZone': driver.get('current_zone', '')
             },
             'stats': {
@@ -542,6 +544,42 @@ def create_driver_api(app: Flask, data_manager):
 
         logger.info(f"[messages] driver {driver_id} sent message id={msg_id}")
         return jsonify({'success': True, 'id': msg_id}), 200
+
+    # ── Online / Offline status ────────────────────────────────────────────────
+
+    @app.route('/api/driver/go-online', methods=['POST'])
+    @require_auth
+    def driver_go_online():
+        """
+        Driver accepts pre-shift declarations and goes online.
+        Sets status = 'available' and clears any pending_status.
+        """
+        driver_id = request.driver_id
+        try:
+            data_manager.driver_go_online(driver_id)
+        except Exception as exc:
+            logger.error(f"[go-online] error for {driver_id}: {exc}", exc_info=True)
+            return jsonify({'error': 'Failed to update status', 'detail': str(exc)}), 500
+
+        logger.info(f"[go-online] driver {driver_id} is now online")
+        return jsonify({'success': True, 'status': 'available'}), 200
+
+    @app.route('/api/driver/request-offline', methods=['POST'])
+    @require_auth
+    def driver_request_offline():
+        """
+        Driver requests to go offline — requires admin approval.
+        Sets pending_status = 'offline' while status remains 'available'.
+        """
+        driver_id = request.driver_id
+        try:
+            data_manager.request_driver_offline(driver_id)
+        except Exception as exc:
+            logger.error(f"[request-offline] error for {driver_id}: {exc}", exc_info=True)
+            return jsonify({'error': 'Failed to update status', 'detail': str(exc)}), 500
+
+        logger.info(f"[request-offline] driver {driver_id} requested offline (pending admin approval)")
+        return jsonify({'success': True, 'status': 'pending_offline'}), 200
 
     # ── Logout ────────────────────────────────────────────────────────────────
 

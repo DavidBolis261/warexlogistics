@@ -244,6 +244,7 @@ class PostgresStore:
             ('drivers', 'latitude',            'DOUBLE PRECISION'),
             ('drivers', 'longitude',           'DOUBLE PRECISION'),
             ('drivers', 'location_updated_at', 'TIMESTAMP'),
+            ('drivers', 'pending_status',      'TEXT'),
         ]
         for table, col, col_def in migrations:
             try:
@@ -488,6 +489,30 @@ class PostgresStore:
                 'longitude': longitude,
                 'timestamp': timestamp
             })
+            conn.commit()
+
+    def driver_go_online(self, driver_id):
+        """Set driver status to available and clear any pending offline request."""
+        with self.engine.connect() as conn:
+            conn.execute(text(
+                "UPDATE drivers SET status = 'available', pending_status = NULL WHERE driver_id = :driver_id"
+            ), {'driver_id': driver_id})
+            conn.commit()
+
+    def request_driver_offline(self, driver_id):
+        """Mark driver as having a pending offline request awaiting admin approval."""
+        with self.engine.connect() as conn:
+            conn.execute(text(
+                "UPDATE drivers SET pending_status = 'offline' WHERE driver_id = :driver_id"
+            ), {'driver_id': driver_id})
+            conn.commit()
+
+    def approve_driver_offline(self, driver_id):
+        """Admin approves the offline request — set status to offline and clear pending."""
+        with self.engine.connect() as conn:
+            conn.execute(text(
+                "UPDATE drivers SET status = 'offline', pending_status = NULL WHERE driver_id = :driver_id"
+            ), {'driver_id': driver_id})
             conn.commit()
 
     # Runs
