@@ -16,7 +16,7 @@ STATUS_LABELS = {
     'allocated': 'Allocated to Driver',
     'in_transit': 'In Transit',
     'delivered': 'Delivered',
-    'failed': 'Delivery Failed',
+    'failed': 'Cancelled',
 }
 
 
@@ -202,8 +202,14 @@ def send_order_confirmation(data_manager, order):
     return _send_email(config, to_email, subject, html_body)
 
 
-def send_status_update(data_manager, order, new_status):
-    """Send status update email when order status changes."""
+def send_status_update(data_manager, order, new_status, proof_photo=None):
+    """Send status update email when order status changes.
+
+    ``proof_photo`` is an optional raw base64 string (or data-URL) for the
+    delivery photo.  When provided and status is 'delivered', the photo is
+    embedded inline in the email so the customer can see where their parcel
+    was left.  The timestamp is already stamped onto the photo by the iOS app.
+    """
     config = _get_email_config(data_manager)
     # Mirror is_email_configured: env var presence implies enabled
     env_key_present = bool(os.environ.get('RESEND_API_KEY', '').strip())
@@ -238,7 +244,7 @@ def send_status_update(data_manager, order, new_status):
     elif new_status == 'failed':
         heading = "Delivery update"
         message = (
-            f"Hi {customer}, unfortunately we were unable to complete your delivery. "
+            f"Hi {customer}, unfortunately your delivery has been cancelled. "
             "Please contact us for assistance."
         )
     else:
@@ -252,13 +258,31 @@ def send_status_update(data_manager, order, new_status):
     else:
         status_color = '#667eea'
 
+    # Build the proof-of-delivery photo block (delivered emails only)
+    photo_html = ''
+    if new_status == 'delivered' and proof_photo and isinstance(proof_photo, str) and proof_photo.strip():
+        # Normalise to a data-URL (raw base64 or data-URL both accepted)
+        if proof_photo.startswith('data:'):
+            photo_src = proof_photo
+        else:
+            photo_src = f'data:image/jpeg;base64,{proof_photo}'
+        photo_html = (
+            '<div style="margin: 20px 0; text-align: center;">'
+            '<p style="font-size: 13px; color: #8e8ea0; margin-bottom: 8px; '
+            'text-transform: uppercase; letter-spacing: 1px;">Proof of Delivery</p>'
+            f'<img src="{photo_src}" alt="Proof of delivery photo" '
+            'style="max-width: 100%; border-radius: 8px; border: 2px solid #10b981;" />'
+            '</div>'
+        )
+
     content_html = (
         f'<h2 style="color: #333; margin: 0 0 10px; font-size: 20px;">{heading}</h2>'
         f'<p style="color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 24px;">{message}</p>'
         '<div style="background-color: #f4f4f7; border-radius: 6px; padding: 16px 20px; margin-bottom: 20px;">'
         '<span style="font-size: 12px; color: #8e8ea0; text-transform: uppercase; letter-spacing: 1px;">Current Status</span><br>'
         f'<span style="font-size: 18px; font-weight: 700; color: {status_color};">{status_label}</span>'
-        '</div>'
+        f'</div>'
+        f'{photo_html}'
     )
 
     subject = f"{status_label} - {tracking_number} | {company_name}"

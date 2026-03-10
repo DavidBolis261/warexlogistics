@@ -31,7 +31,7 @@ STATUS_LABELS = {
     'allocated': 'Allocated',
     'in_transit': 'In Transit',
     'delivered': 'Delivered',
-    'failed': 'Failed',
+    'failed': 'Cancelled',
 }
 
 
@@ -360,7 +360,11 @@ def _render_new_order_form(data_manager):
 
         st.markdown("---")
 
-    with st.form("new_order_form"):
+    # Use a version counter in the form key so that after a successful
+    # submission the form key changes and Streamlit renders it completely
+    # fresh — no stale field values carried over from the previous order.
+    form_version = st.session_state.get('order_form_version', 0)
+    with st.form(f"new_order_form_{form_version}"):
         st.markdown("### Pickup Address")
 
         col1, col2 = st.columns(2)
@@ -484,9 +488,11 @@ def _render_new_order_form(data_manager):
                         st.info("Order pushed to .wms")
                     if result.get('email_sent'):
                         st.info(f"📧 Confirmation email sent to {order_data.get('email', '')}")
-                    # Clear parsed addresses
+                    # Clear parsed addresses and bump form version so the next
+                    # "New Order" shows a completely blank form.
                     st.session_state.pop('address_parsed', None)
                     st.session_state.pop('pickup_parsed', None)
+                    st.session_state['order_form_version'] = st.session_state.get('order_form_version', 0) + 1
                     st.session_state['show_new_order_form'] = False
                     st.rerun()
                 else:
@@ -618,9 +624,46 @@ def _render_pending(orders_df, drivers_df, data_manager):
 </div>
                 """, unsafe_allow_html=True)
 
-            # Update controls
+            # ── Edit address & contact ────────────────────────────────
             st.markdown("---")
-            st.markdown("**Update Order**")
+            st.markdown("**✏️ Edit Order Details**")
+            st.caption("Changes are saved immediately and the driver app will reflect them on next refresh.")
+
+            pe1, pe2 = st.columns(2)
+            with pe1:
+                pend_customer = st.text_input("Customer Name", value=order.get('customer', '') or '', key=f"pend_cust_{order_id}")
+                pend_address  = st.text_input("Address",       value=order.get('address', '') or '',  key=f"pend_addr_{order_id}")
+                pend_suburb   = st.text_input("Suburb",        value=order.get('suburb', '') or '',   key=f"pend_sub_{order_id}")
+                pend_state_options = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"]
+                pend_cur_state = order.get('state', 'NSW') or 'NSW'
+                pend_state_idx = pend_state_options.index(pend_cur_state) if pend_cur_state in pend_state_options else 0
+                pend_state    = st.selectbox("State", pend_state_options, index=pend_state_idx, key=f"pend_state_{order_id}")
+                pend_postcode = st.text_input("Postcode",      value=order.get('postcode', '') or '',  key=f"pend_post_{order_id}")
+            with pe2:
+                pend_phone = st.text_input("Phone",           value=order.get('phone', '') or '', key=f"pend_phone_{order_id}")
+                pend_email = st.text_input("Email",           value=order.get('email', '') or '', key=f"pend_email_{order_id}")
+                pend_instructions = st.text_area("Special Instructions", value=order.get('special_instructions', '') or '', height=80, key=f"pend_instr_{order_id}")
+
+            detail_updates = {}
+            if pend_customer != (order.get('customer') or ''):
+                detail_updates['customer'] = pend_customer
+            if pend_address != (order.get('address') or ''):
+                detail_updates['address'] = pend_address
+            if pend_suburb != (order.get('suburb') or ''):
+                detail_updates['suburb'] = pend_suburb
+            if pend_state != (order.get('state') or 'NSW'):
+                detail_updates['state'] = pend_state
+            if pend_postcode != (order.get('postcode') or ''):
+                detail_updates['postcode'] = pend_postcode
+            if pend_phone != (order.get('phone') or ''):
+                detail_updates['phone'] = pend_phone
+            if pend_email != (order.get('email') or ''):
+                detail_updates['email'] = pend_email
+            if pend_instructions != (order.get('special_instructions') or ''):
+                detail_updates['special_instructions'] = pend_instructions
+
+            # ── Status / zone / driver controls ────────────────────────
+            st.markdown("**Update Status & Assignment**")
             uc1, uc2, uc3 = st.columns(3)
             with uc1:
                 status_idx = STATUS_OPTIONS.index(current_status) if current_status in STATUS_OPTIONS else 0
@@ -642,7 +685,7 @@ def _render_pending(orders_df, drivers_df, data_manager):
                 driver_idx = drv_opts.index(current_driver) + 1 if current_driver in drv_opts else 0
                 new_driver = st.selectbox("Driver", driver_list, index=driver_idx, key=f"pend_driver_{order_id}")
 
-            updates = {}
+            updates = dict(detail_updates)
             resolved_driver = new_driver if new_driver != "None" else ''
             resolved_zone = new_zone if new_zone != "None" else ''
             if new_status != current_status:
@@ -659,7 +702,7 @@ def _render_pending(orders_df, drivers_df, data_manager):
             with bc1:
                 if st.button("💾 Save Changes", key=f"pend_save_{order_id}", use_container_width=True, disabled=not updates):
                     data_manager.update_order(order_id, **updates)
-                    st.success("Order updated!")
+                    st.success("✅ Order updated! Driver app will reflect changes on next refresh.")
                     st.rerun()
             with bc2:
                 if st.button("📤 Push to WMS", key=f"pend_push_{order_id}", use_container_width=True):
@@ -864,7 +907,7 @@ def _render_completed(orders_df):
     with col1:
         st.success(f"{delivered_count} delivered successfully")
     with col2:
-        st.error(f"{failed_count} failed deliveries")
+        st.error(f"{failed_count} cancelled")
 
     # Pagination
     total_completed = len(completed)
@@ -914,8 +957,9 @@ def _render_completed(orders_df):
                     st.markdown(f"**Driver:** {order['driver_id']}")
 
             with col2:
+                display_status = STATUS_LABELS.get(order['status'], order['status'].replace('_', ' '))
                 st.markdown(f"""
-                <span class="status-badge {status_class}">{order['status'].replace('_', ' ')}</span>
+                <span class="status-badge {status_class}">{display_status}</span>
                 <br><br>
                 <span class="status-badge status-{order['service_level']}">{order['service_level']}</span>
                 """, unsafe_allow_html=True)
