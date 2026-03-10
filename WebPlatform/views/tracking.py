@@ -1,6 +1,6 @@
 import streamlit as st
 from datetime import datetime
-
+import os, base64
 
 TRACKING_STATUSES = ['pending', 'allocated', 'in_transit', 'delivered']
 STATUS_LABELS = {
@@ -9,6 +9,15 @@ STATUS_LABELS = {
     'in_transit': 'In Transit',
     'delivered': 'Delivered',
 }
+
+
+def _get_logo():
+    path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'static', 'warex_logo.png')
+    try:
+        with open(path, 'rb') as f:
+            return 'data:image/png;base64,' + base64.b64encode(f.read()).decode()
+    except:
+        return ''
 
 
 def render_tracking_page(dm, company_name):
@@ -22,9 +31,12 @@ def render_tracking_page(dm, company_name):
             st.rerun()
 
     # Header
+    logo = _get_logo()
     st.markdown(f"""
     <div style="text-align: center; padding: 2rem 0 1rem;">
-        <div style="font-size: 3rem;">📦</div>
+        
+        st.markdown(f'<img src="{logo}" style="width:100px;height:auto;" />', unsafe_allow_html=True)
+
         <div style="font-family: 'DM Sans', sans-serif; font-size: 2rem; font-weight: 700; color: white; margin-top: 0.5rem;">
             {company_name}
         </div>
