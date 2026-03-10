@@ -4,10 +4,35 @@ Sends order confirmation and status update emails via Resend API.
 """
 
 import os
+import base64
+import io
 import logging
 import requests as http_requests
+from PIL import Image
 
 logger = logging.getLogger(__name__)
+
+# ── Logo helper ───────────────────────────────────────────────────────────────
+_LOGO_B64 = None  # module-level cache
+
+def _get_logo_b64():
+    """Lazily load and base64-encode the Warex logo for inline email embedding."""
+    global _LOGO_B64
+    if _LOGO_B64 is not None:
+        return _LOGO_B64
+    try:
+        # static/ sits one directory above utils/
+        logo_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'static', 'warex_logo.png',
+        )
+        img = Image.open(logo_path).resize((160, 160), Image.LANCZOS)
+        buf = io.BytesIO()
+        img.convert('RGB').save(buf, format='JPEG', quality=85)
+        _LOGO_B64 = 'data:image/jpeg;base64,' + base64.b64encode(buf.getvalue()).decode()
+    except Exception:
+        _LOGO_B64 = ''
+    return _LOGO_B64
 
 RESEND_API_URL = 'https://api.resend.com/emails'
 
@@ -108,6 +133,14 @@ def _build_email_template(company_name, tracking_number, content_html, tracking_
             '</td></tr>'
         )
 
+    # Logo in header — load inline base64 so it renders in all email clients
+    logo_b64 = _get_logo_b64()
+    logo_img = (
+        f'<img src="{logo_b64}" alt="{company_name}" '
+        'style="width:80px;height:80px;border-radius:12px;display:block;margin:0 auto 12px;" />'
+        if logo_b64 else ''
+    )
+
     return (
         '<!DOCTYPE html><html><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width, initial-scale=1.0"></head>'
@@ -117,9 +150,10 @@ def _build_email_template(company_name, tracking_number, content_html, tracking_
         '<tr><td align="center">'
         '<table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; '
         'overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">'
-        # Header
+        # Header — logo + company name
         '<tr><td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 40px; text-align: center;">'
-        f'<h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700;">{company_name}</h1>'
+        f'{logo_img}'
+        f'<h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 700;">{company_name}</h1>'
         '</td></tr>'
         # Body
         f'<tr><td style="padding: 40px;">{content_html}</td></tr>'
@@ -131,14 +165,6 @@ def _build_email_template(company_name, tracking_number, content_html, tracking_
         '<span style="font-size: 12px; color: #8e8ea0; text-transform: uppercase; letter-spacing: 1px;">Tracking Number</span><br>'
         f'<span style="font-size: 20px; font-weight: 700; color: #667eea; letter-spacing: 2px;">{tracking_number}</span>'
         '</div></td></tr>'
-        # Driver Safety Section
-        '<tr><td style="padding: 0 40px 20px;">'
-        '<div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px 20px; border-radius: 4px;">'
-        '<p style="margin: 0 0 8px; font-size: 14px; font-weight: 700; color: #92400e;">🐕 Driver safety on delivery</p>'
-        '<p style="margin: 0; font-size: 13px; line-height: 1.6; color: #78350f;">'
-        'We love dogs. But your dog might not love our drivers.<br>'
-        'Please make sure our drivers have safe access to your delivery location.'
-        '</p></div></td></tr>'
         # Footer
         '<tr><td style="background-color: #f4f4f7; padding: 20px 40px; text-align: center;">'
         f'<p style="margin: 0; font-size: 12px; color: #8e8ea0;">{company_name} &bull; Powered by Warex Logistics</p>'
