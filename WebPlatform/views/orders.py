@@ -19,7 +19,9 @@ def _fmt_sydney(ts):
     if ts is None:
         return ''
     try:
-        if hasattr(ts, 'tzinfo') and ts.tzinfo is None:
+        if isinstance(ts, str):
+            ts = datetime.fromisoformat(ts)
+        if ts.tzinfo is None:
             ts = ts.replace(tzinfo=ZoneInfo("UTC"))
         return ts.astimezone(SYDNEY_TZ).strftime('%d/%m/%Y %H:%M')
     except Exception:

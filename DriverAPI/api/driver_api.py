@@ -6,14 +6,15 @@ Provides authentication and data access for drivers.
 from flask import Flask, request, jsonify
 from functools import wraps
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 _SYDNEY_TZ = ZoneInfo('Australia/Sydney')
 
 
 def _now():
-    return datetime.now(_SYDNEY_TZ).replace(tzinfo=None)
+    """Return current UTC time (timezone-aware). Stored as UTC to avoid server tzdata DST issues."""
+    return datetime.now(timezone.utc)
 import logging
 import pandas as pd
 

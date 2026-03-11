@@ -2,7 +2,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 
-def apply_styles():
+def apply_styles(authenticated=False):
     st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap');
@@ -490,7 +490,11 @@ def apply_styles():
 </style>
 """, unsafe_allow_html=True)
 
+    if not authenticated:
+        return
+
     # ── Persistent sidebar toggle button ───────────────────────────────────────
+    # Injected only for authenticated admin dashboard — not on public pages.
     # Inspected Streamlit 1.50's minified JS bundle to get the EXACT selectors:
     #   Collapse btn: data-testid="stSidebarCollapseButton" (inside sidebar, visibility:hidden until hover)
     #   Expand btn:   data-testid="stExpandSidebarButton"   (in the header, only present when collapsed)

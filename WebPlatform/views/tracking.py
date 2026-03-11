@@ -1,6 +1,6 @@
 import streamlit as st
 from datetime import datetime
-import os, base64
+import os
 
 TRACKING_STATUSES = ['pending', 'allocated', 'in_transit', 'delivered']
 STATUS_LABELS = {
@@ -10,14 +10,6 @@ STATUS_LABELS = {
     'delivered': 'Delivered',
 }
 
-
-def _get_logo():
-    path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'static', 'warex_logo.png')
-    try:
-        with open(path, 'rb') as f:
-            return 'data:image/png;base64,' + base64.b64encode(f.read()).decode()
-    except:
-        return ''
 
 
 def render_tracking_page(dm, company_name):
@@ -31,12 +23,14 @@ def render_tracking_page(dm, company_name):
             st.rerun()
 
     # Header
-    logo = _get_logo()
+    logo_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'static', 'warex_logo.png')
+    st.markdown('<div style="text-align: center; padding: 2rem 0 0;">', unsafe_allow_html=True)
+    col_l, col_img, col_r = st.columns([3, 1, 3])
+    with col_img:
+        if os.path.exists(logo_path):
+            st.image(logo_path, width=100)
     st.markdown(f"""
-    <div style="text-align: center; padding: 2rem 0 1rem;">
-        
-        <img src="{logo}" style="width:100px;height:auto;" />
-
+    <div style="text-align: center; padding: 0.25rem 0 1rem;">
         <div style="font-family: 'DM Sans', sans-serif; font-size: 2rem; font-weight: 700; color: white; margin-top: 0.5rem;">
             {company_name}
         </div>

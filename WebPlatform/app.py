@@ -45,9 +45,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Apply custom CSS
-apply_styles()
-
 # Inject OG / social-sharing meta tags and strip residual Streamlit branding
 st.markdown("""
 <script>
@@ -103,6 +100,9 @@ if not st.session_state.authenticated:
     if token_from_url and dm.validate_session_token(token_from_url):
         st.session_state.authenticated = True
         st.session_state.session_token = token_from_url
+
+# Apply custom CSS — pass auth state so sidebar toggle is only injected for admins
+apply_styles(authenticated=st.session_state.authenticated)
 
 # Initialize data mode (persist across refreshes by defaulting to Local)
 if 'data_mode' not in st.session_state:
