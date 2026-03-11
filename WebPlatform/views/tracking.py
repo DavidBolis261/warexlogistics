@@ -23,12 +23,12 @@ def render_tracking_page(dm, company_name):
             st.rerun()
 
     # Header
-    logo_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'static', 'warex_logo.png')
-    st.markdown('<div style="text-align: center; padding: 2rem 0 0;">', unsafe_allow_html=True)
-    col_l, col_img, col_r = st.columns([3, 1, 3])
-    with col_img:
-        if os.path.exists(logo_path):
-            st.image(logo_path, width=100)
+    # logo_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'static', 'warex_logo.png')
+    # st.markdown('<div style="text-align: center; padding: 2rem 0 0;">', unsafe_allow_html=True)
+    # col_l, col_img, col_r = st.columns([3, 1, 3])
+    # with col_img:
+    #     if os.path.exists(logo_path):
+    #         st.image(logo_path, width=100)
     st.markdown(f"""
     <div style="text-align: center; padding: 0.25rem 0 1rem;">
         <div style="font-family: 'DM Sans', sans-serif; font-size: 2rem; font-weight: 700; color: white; margin-top: 0.5rem;">
