@@ -78,6 +78,9 @@ def create_driver_api(app: Flask, data_manager):
             # Check expiration
             try:
                 expires = datetime.fromisoformat(str(token_data['expires']))
+                # Tokens stored before the UTC migration are naive — treat them as UTC
+                if expires.tzinfo is None:
+                    expires = expires.replace(tzinfo=timezone.utc)
                 if expires < _now():
                     _delete_token(token)
                     return jsonify({'error': 'Unauthorized', 'message': 'Token expired'}), 401
