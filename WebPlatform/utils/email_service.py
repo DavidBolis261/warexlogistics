@@ -41,7 +41,7 @@ STATUS_LABELS = {
     'allocated': 'Allocated to Driver',
     'in_transit': 'In Transit',
     'delivered': 'Delivered',
-    'failed': 'Cancelled',
+    'failed': 'Delivery Failed',
 }
 
 
@@ -270,7 +270,7 @@ def send_status_update(data_manager, order, new_status, proof_photo=None):
     elif new_status == 'failed':
         heading = "Delivery update"
         message = (
-            f"Hi {customer}, unfortunately your delivery has been cancelled. "
+            f"Hi {customer}, unfortunately we were unable to complete your delivery. "
             "Please contact us for assistance."
         )
     else:

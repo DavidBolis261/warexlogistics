@@ -179,15 +179,22 @@ class DataManager:
     def allocate_order(self, order_id, driver_name):
         self.store.update_order_status(order_id, 'allocated', driver_id=driver_name)
 
-    def update_order(self, order_id, **fields):
-        """Update order fields (status, zone, driver_id, proof_photo, etc.)."""
+    def update_order(self, order_id, skip_email=False, **fields):
+        """Update order fields (status, zone, driver_id, proof_photo, etc.).
+
+        Pass ``skip_email=True`` when the caller will handle email dispatch
+        independently (e.g. the iOS driver API, which calls /notify after
+        uploading the proof photo).  Dashboard-triggered updates leave this
+        False so the existing auto-email behaviour is preserved.
+        """
         # Step 1 — always update the DB first.  This MUST succeed; any error
         # here is a real problem and should propagate up to the caller.
         self.store.update_order_fields(order_id, **fields)
 
         # Step 2 — attempt email notification (best-effort, never crashes
         # the status update which already committed to the DB above).
-        if 'status' in fields:
+        # Skipped when the caller manages its own email dispatch.
+        if 'status' in fields and not skip_email:
             try:
                 self._try_send_status_email(order_id, fields['status'])
             except Exception as exc:

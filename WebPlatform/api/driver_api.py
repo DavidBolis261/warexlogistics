@@ -6,9 +6,14 @@ Provides authentication and data access for drivers.
 from flask import Flask, request, jsonify
 from functools import wraps
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import logging
 import pandas as pd
+
+
+def _now():
+    """Return current UTC time (timezone-aware). Mirrors DriverAPI convention."""
+    return datetime.now(timezone.utc)
 
 logger = logging.getLogger(__name__)
 
@@ -67,13 +72,15 @@ def create_driver_api(app: Flask, data_manager):
             if not token_data:
                 return jsonify({'error': 'Unauthorized', 'message': 'Invalid or expired token'}), 401
 
-            # Check expiration
+            # Check expiration — handle both naive (legacy) and UTC-aware tokens
             try:
                 expires = datetime.fromisoformat(str(token_data['expires']))
-                if expires < datetime.now():
+                if expires.tzinfo is None:
+                    expires = expires.replace(tzinfo=timezone.utc)
+                if expires < _now():
                     _delete_token(token)
                     return jsonify({'error': 'Unauthorized', 'message': 'Token expired'}), 401
-            except (ValueError, KeyError):
+            except (ValueError, KeyError, TypeError):
                 _delete_token(token)
                 return jsonify({'error': 'Unauthorized', 'message': 'Invalid token data'}), 401
 
@@ -114,9 +121,10 @@ def create_driver_api(app: Flask, data_manager):
 
         driver = driver_match.iloc[0].to_dict()
 
-        # Generate auth token (valid for 30 days)
+        # Generate auth token (valid for 30 days) — UTC-aware so comparison
+        # works correctly regardless of which server process checks it.
         token = secrets.token_urlsafe(32)
-        expires = datetime.now() + timedelta(days=30)
+        expires = _now() + timedelta(days=30)
 
         _save_token(token, driver['driver_id'], driver['phone'], expires)
 
@@ -309,6 +317,9 @@ def create_driver_api(app: Flask, data_manager):
             update_fields['status'] = backend_status
             if notes:
                 update_fields['delivery_notes'] = notes
+            # Record delivery timestamp when marking as delivered
+            if backend_status == 'delivered':
+                update_fields['delivered_at'] = _now().isoformat()
 
         if has_media:
             if photo_b64:
@@ -317,7 +328,9 @@ def create_driver_api(app: Flask, data_manager):
                 update_fields['proof_signature'] = signature_b64
 
         try:
-            data_manager.update_order(stop_id, **update_fields)
+            # skip_email=True — the iOS app calls /notify separately after
+            # uploading proof media, so we must not auto-send here.
+            data_manager.update_order(stop_id, skip_email=True, **update_fields)
         except Exception as exc:
             logger.error(f"update_stop_status error for {stop_id}: {exc}", exc_info=True)
             return jsonify({'error': 'Failed to update stop', 'detail': str(exc)}), 500
@@ -351,7 +364,7 @@ def create_driver_api(app: Flask, data_manager):
         orders_df = data_manager.get_orders()
         driver_orders = orders_df[orders_df['driver_id'] == driver_id] if not orders_df.empty else pd.DataFrame()
 
-        today = datetime.now().strftime('%Y-%m-%d')
+        today = _now().strftime('%Y-%m-%d')
         deliveries_today = len(driver_orders[
             (driver_orders['status'] == 'delivered') &
             (driver_orders['order_date'] == today)
