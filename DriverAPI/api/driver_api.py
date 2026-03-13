@@ -430,7 +430,10 @@ def create_driver_api(app: Flask, data_manager):
                 return jsonify({'success': False, 'error': 'No customer email'}), 200
 
             logger.info(f"[email/notify] sending '{new_status}' email to {to_email} for order {stop_id}")
-            result = send_status_update(data_manager, order_dict, new_status)
+            # Include the proof photo (if already uploaded) so it appears inline
+            # in the delivery confirmation email.
+            proof_photo = order_dict.get('proof_photo') or order_dict.get('photo')
+            result = send_status_update(data_manager, order_dict, new_status, proof_photo=proof_photo)
 
             if result.get('success'):
                 logger.info(f"[email/notify] ✅ sent to {to_email}")
