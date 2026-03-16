@@ -13,7 +13,7 @@ import os
 import sys
 
 print("=" * 60, file=sys.stderr)
-print("BUILD VERSION: 2026-02-21-v2", file=sys.stderr)
+print("BUILD VERSION: 2026-03-16-v3", file=sys.stderr)
 print("=" * 60, file=sys.stderr)
 
 from flask import Flask

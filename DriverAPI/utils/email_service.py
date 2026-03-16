@@ -263,6 +263,9 @@ def send_order_confirmation(data_manager, order):
         return {'success': False, 'error': 'No customer email'}
 
     company_name = data_manager.get_setting('company_name', 'Warex Logistics')
+    # Resolve {company_name} placeholder that may appear in the from address
+    # e.g. "{company_name} <noreply@example.com>" → "Acme Co <noreply@example.com>"
+    config['from_email'] = config['from_email'].replace('{company_name}', company_name)
     tracking_number = order.get('tracking_number', 'N/A')
     customer = order.get('customer', 'Customer')
     suburb = order.get('suburb', '')
@@ -331,6 +334,8 @@ def send_status_update(data_manager, order, new_status, proof_photo=None):
         return {'success': False, 'error': 'No customer email'}
 
     company_name = data_manager.get_setting('company_name', 'Warex Logistics')
+    # Resolve {company_name} placeholder that may appear in the from address
+    config['from_email'] = config['from_email'].replace('{company_name}', company_name)
     tracking_number = order.get('tracking_number', 'N/A')
     customer = order.get('customer', 'Customer')
     status_label = STATUS_LABELS.get(new_status, new_status.replace('_', ' ').capitalize())
