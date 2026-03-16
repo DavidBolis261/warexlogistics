@@ -228,8 +228,7 @@ def _build_email_template(company_name, tracking_number, content_html, tracking_
         'background-color: #667eea; '
         'padding: 30px 40px; text-align: center;">'
         f'{logo_img}'
-        f'<h1 class="text-white" style="color: #ffffff; -webkit-text-fill-color: #ffffff; '
-        'margin: 0; font-size: 22px; font-weight: 700;">{company_name}</h1>'
+        f'<h1 class="text-white" style="color: #ffffff; -webkit-text-fill-color: #ffffff; margin: 0; font-size: 22px; font-weight: 700;">{company_name}</h1>'
         '</td></tr>'
         # Body
         '<tr><td class="email-body-cell" style="padding: 40px; background-color: #ffffff; color: #333333;">'

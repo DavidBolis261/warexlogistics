@@ -172,7 +172,7 @@ def _render_tracking_result(order, company_name):
             f'<div><div style="{label_style}">Status</div><div style="{value_style}">{status_label}</div></div>'
             #f'<div><div style="{label_style}">Service</div><div style="{value_style}">{service}</div></div>'
             f'<div><div style="{label_style}">Destination</div><div style="{value_style}">{destination or "N/A"}</div></div>'
-            f'<div><div style="{label_style}">Parcels</div><div style="{value_style}">{parcels}</div></div>'
+            #f'<div><div style="{label_style}">Parcels</div><div style="{value_style}">{parcels}</div></div>'
             #f'<div><div style="{label_style}">Order Placed</div><div style="{value_style}">{created_str or "N/A"}</div></div>'
             f'{eta_html}'
             f'</div></div>'
