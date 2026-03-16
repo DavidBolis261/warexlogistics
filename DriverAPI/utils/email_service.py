@@ -294,6 +294,12 @@ def send_order_confirmation(data_manager, order):
         'This means we will leave the parcel in a safe place at the delivery address. '
         '</p>'
         '</div>'
+        '<div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px 16px; margin-bottom: 20px; border-radius: 4px;">'
+        '<p style="color: #92400e; font-size: 13px; line-height: 1.6; margin: 0;">'
+        '<strong>🐕 Driver safety on delivery</strong><br>'
+        'We love dogs. But your dog might not love our drivers. Please make sure our drivers have safe access to your delivery location.'
+        '</p>'
+        '</div>'
         '<p class="text-muted" style="color: #8e8ea0; font-size: 13px; line-height: 1.5;">'
         'You can track your delivery at any time using the tracking number below.'
         '</p>'
@@ -382,6 +388,15 @@ def send_status_update(data_manager, order, new_status, proof_photo=None):
             '</div>'
         )
 
+    dog_safety_html = (
+        '<div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px 16px; margin-bottom: 20px; border-radius: 4px;">'
+        '<p style="color: #92400e; font-size: 13px; line-height: 1.6; margin: 0;">'
+        '<strong>🐕 Driver safety on delivery</strong><br>'
+        'We love dogs. But your dog might not love our drivers. Please make sure our drivers have safe access to your delivery location.'
+        '</p>'
+        '</div>'
+    ) if new_status == 'in_transit' else ''
+
     content_html = (
         f'<h2 class="text-heading" style="color: #333333; margin: 0 0 10px; font-size: 20px;">{heading}</h2>'
         f'<p class="text-body" style="color: #555555; font-size: 15px; line-height: 1.6; margin: 0 0 24px;">{message}</p>'
@@ -389,6 +404,7 @@ def send_status_update(data_manager, order, new_status, proof_photo=None):
         '<span class="text-muted" style="font-size: 12px; color: #8e8ea0; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px;">Current Status</span>'
         f'<span class="{status_class}" style="font-size: 18px; font-weight: 700; color: {status_color};">{status_label}</span>'
         '</div>'
+        f'{dog_safety_html}'
         f'{photo_html}'
     )
 

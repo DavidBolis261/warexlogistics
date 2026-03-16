@@ -185,18 +185,31 @@ class DataManager:
         Pass ``skip_email=True`` when the caller will handle email dispatch
         independently (e.g. the iOS driver API, which calls /notify after
         uploading the proof photo).  Dashboard-triggered updates leave this
-        False so the existing auto-email behaviour is preserved.
+        False so the existing auto-email behaviour is preserved, but emails
+        are only sent when the status actually transitions to a new value.
         """
+        new_status = fields.get('status') if not skip_email else None
+
+        # Capture old status before the update so we can detect real changes.
+        old_status = None
+        if new_status:
+            try:
+                current = self.store.get_order_by_id(order_id)
+                if current is not None:
+                    old_status = current.get('status') if hasattr(current, 'get') else current['status']
+            except Exception:
+                pass
+
         # Step 1 — always update the DB first.  This MUST succeed; any error
         # here is a real problem and should propagate up to the caller.
         self.store.update_order_fields(order_id, **fields)
 
-        # Step 2 — attempt email notification (best-effort, never crashes
-        # the status update which already committed to the DB above).
-        # Skipped when the caller manages its own email dispatch.
-        if 'status' in fields and not skip_email:
+        # Step 2 — send email only when the status actually transitions to a
+        # new value.  Prevents duplicate emails when multiple paths touch the
+        # same order (e.g. dashboard sets in_transit, then driver scans).
+        if new_status and new_status != old_status:
             try:
-                self._try_send_status_email(order_id, fields['status'])
+                self._try_send_status_email(order_id, new_status)
             except Exception as exc:
                 logger.error(f"[email] uncaught exception for order {order_id}: {exc}", exc_info=True)
 

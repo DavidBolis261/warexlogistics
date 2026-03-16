@@ -184,16 +184,30 @@ class DataManager:
         Pass ``skip_email=True`` when the caller will handle email dispatch
         independently (e.g. the iOS driver API for 'delivered' status, which
         calls /notify after uploading the proof photo so the photo appears in
-        the email).  All other status changes auto-send the notification here.
+        the email).  All other status changes auto-send the notification here,
+        but only when the status actually changes to a new value.
         """
+        new_status = fields.get('status') if not skip_email else None
+
+        # Capture old status before the update so we can detect real changes.
+        old_status = None
+        if new_status:
+            try:
+                current = self.store.get_order_by_id(order_id)
+                if current is not None:
+                    old_status = current.get('status') if hasattr(current, 'get') else current['status']
+            except Exception:
+                pass
+
         # Step 1 — always update the DB first.
         self.store.update_order_fields(order_id, **fields)
 
-        # Step 2 — attempt email notification (best-effort, never crashes
-        # the status update which already committed to the DB above).
-        if 'status' in fields and not skip_email:
+        # Step 2 — send email only when the status actually transitions to a
+        # new value.  Skips duplicate emails when e.g. the dashboard sets
+        # in_transit and then the driver scans the same package.
+        if new_status and new_status != old_status:
             try:
-                self._try_send_status_email(order_id, fields['status'])
+                self._try_send_status_email(order_id, new_status)
             except Exception as exc:
                 logger.error(f"[email] uncaught exception for order {order_id}: {exc}", exc_info=True)
 
