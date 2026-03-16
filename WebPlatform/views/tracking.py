@@ -2,10 +2,9 @@ import streamlit as st
 from datetime import datetime
 import os
 
-TRACKING_STATUSES = ['pending', 'allocated', 'in_transit', 'delivered']
+TRACKING_STATUSES = ['pending', 'in_transit', 'delivered']
 STATUS_LABELS = {
     'pending': 'Order Placed',
-    #'allocated': 'Allocated',
     'in_transit': 'Out For Delivery',
     'delivered': 'Delivered',
 }
@@ -111,7 +110,8 @@ def _render_tracking_result(order, company_name):
                 'Please contact us for assistance.</div></div>'
             )
         else:
-            status_index = TRACKING_STATUSES.index(status) if status in TRACKING_STATUSES else 0
+            display_status = 'pending' if status == 'allocated' else status
+            status_index = TRACKING_STATUSES.index(display_status) if display_status in TRACKING_STATUSES else 0
             timeline_html = '<div class="tracking-timeline">'
             for i, s in enumerate(TRACKING_STATUSES):
                 is_active = i <= status_index
@@ -150,7 +150,7 @@ def _render_tracking_result(order, company_name):
 
         service = order.get('service_level', 'standard').capitalize()
         parcels = order.get('parcels', 1)
-        status_label = STATUS_LABELS.get(status, status.replace('_', ' ').capitalize())
+        status_label = STATUS_LABELS.get('pending' if status == 'allocated' else status, status.replace('_', ' ').capitalize())
         result_class = 'tracking-failed' if status == 'failed' else ''
 
         eta_html = ''

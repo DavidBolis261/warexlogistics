@@ -120,16 +120,76 @@ def _send_email(config, to_email, subject, html_body):
         return {'success': False, 'error': str(e)}
 
 
+# ── Dark-mode–safe CSS injected into every email <head> ──────────────────────
+#
+# Strategy (layered, most-to-least capable client):
+#   1. <meta name="color-scheme" content="light only"> — tells Apple Mail /
+#      iOS Mail / Outlook for Mac NOT to apply any dark-mode transformation.
+#   2. :root { color-scheme: light only } — same signal via CSS for clients
+#      that read <style> tags (Samsung Mail, Outlook 2019+).
+#   3. @media (prefers-color-scheme: dark) overrides — forces explicit light
+#      colours on every element for clients that ignore the above but DO
+#      support media queries in <style> (older iOS Mail, Thunderbird).
+#   4. Inline styles with explicit colour values everywhere — last-resort
+#      defence for Gmail, which strips <style> tags entirely.
+#
+_DARK_MODE_CSS = (
+    '<style type="text/css">'
+    ':root { color-scheme: light only; }'
+    'body { background-color: #f4f4f7 !important; color: #333333 !important; }'
+    '@media (prefers-color-scheme: dark) {'
+    '  body, .email-wrapper, .email-wrapper table { background-color: #f4f4f7 !important; }'
+    '  .email-card { background-color: #ffffff !important; }'
+    '  .email-body-cell { background-color: #ffffff !important; color: #333333 !important; }'
+    '  .email-tracking-cell { background-color: #ffffff !important; }'
+    '  .email-footer-cell { background-color: #f4f4f7 !important; }'
+    '  .text-heading { color: #333333 !important; }'
+    '  .text-body { color: #555555 !important; }'
+    '  .text-muted { color: #8e8ea0 !important; }'
+    '  .text-brand { color: #667eea !important; }'
+    '  .text-success { color: #10b981 !important; }'
+    '  .text-danger { color: #ef4444 !important; }'
+    '  .text-white { color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }'
+    '  .bg-subtle { background-color: #f4f4f7 !important; }'
+    '  .info-box { background-color: #dbeafe !important; }'
+    '  .info-box p { color: #1e3a8a !important; }'
+    '  .btn-track {'
+    '    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;'
+    '    background-color: #667eea !important;'
+    '    color: #ffffff !important;'
+    '    -webkit-text-fill-color: #ffffff !important;'
+    '    border-color: #667eea !important;'
+    '  }'
+    '  .table-label { color: #8e8ea0 !important; }'
+    '  .table-value { color: #333333 !important; }'
+    '  .table-divider { border-bottom-color: #eeeeee !important; }'
+    '}'
+    '</style>'
+)
+
+
 def _build_email_template(company_name, tracking_number, content_html, tracking_url=''):
-    """Build a styled HTML email template."""
+    """Build a dark-mode–safe styled HTML email template."""
     tracking_button = ''
     if tracking_url:
         tracking_button = (
             '<tr>'
-            '<td style="padding: 0 40px 30px; text-align: center;">'
-            f'<a href="{tracking_url}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); '
-            'color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 6px; font-size: 16px; font-weight: 600;">'
-            'Track Your Delivery</a>'
+            '<td class="email-tracking-cell" style="padding: 0 40px 30px; text-align: center; background-color: #ffffff;">'
+            f'<a href="{tracking_url}" class="btn-track" '
+            'style="display: inline-block; '
+            'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); '
+            'background-color: #667eea; '
+            'color: #ffffff !important; '
+            '-webkit-text-fill-color: #ffffff; '
+            'text-decoration: none; '
+            'padding: 14px 40px; '
+            'border-radius: 6px; '
+            'font-size: 16px; '
+            'font-weight: 600; '
+            'border: 2px solid #764ba2; '
+            'mso-padding-alt: 14px 40px;">'
+            'Track Your Delivery'
+            '</a>'
             '</td></tr>'
         )
 
@@ -142,32 +202,50 @@ def _build_email_template(company_name, tracking_number, content_html, tracking_
     )
 
     return (
-        '<!DOCTYPE html><html><head><meta charset="utf-8">'
-        '<meta name="viewport" content="width=device-width, initial-scale=1.0"></head>'
-        '<body style="margin: 0; padding: 0; background-color: #f4f4f7; '
+        '<!DOCTYPE html>'
+        '<html lang="en" style="color-scheme: light only;">'
+        '<head>'
+        '<meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
+        # Prevent Apple Mail / iOS Mail / Outlook for Mac from going dark
+        '<meta name="color-scheme" content="light only">'
+        '<meta name="supported-color-schemes" content="light">'
+        f'{_DARK_MODE_CSS}'
+        '</head>'
+        '<body style="margin: 0; padding: 0; background-color: #f4f4f7; color: #333333; '
         "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\">"
-        '<table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f7; padding: 20px 0;">'
+        '<table class="email-wrapper" width="100%" cellpadding="0" cellspacing="0" '
+        'style="background-color: #f4f4f7; padding: 20px 0;">'
         '<tr><td align="center">'
-        '<table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; '
+        # Card container
+        '<table class="email-card" width="600" cellpadding="0" cellspacing="0" '
+        'style="background-color: #ffffff; border-radius: 8px; '
         'overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">'
-        # Header — logo + company name
-        '<tr><td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 40px; text-align: center;">'
+        # Header — purple gradient; white text is safe here because the gradient
+        # background is a solid brand colour that email clients won't invert.
+        '<tr><td class="email-header" '
+        'style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); '
+        'background-color: #667eea; '
+        'padding: 30px 40px; text-align: center;">'
         f'{logo_img}'
-        f'<h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 700;">{company_name}</h1>'
+        f'<h1 class="text-white" style="color: #ffffff; -webkit-text-fill-color: #ffffff; '
+        'margin: 0; font-size: 22px; font-weight: 700;">{company_name}</h1>'
         '</td></tr>'
         # Body
-        f'<tr><td style="padding: 40px;">{content_html}</td></tr>'
-        # Tracking Button
+        '<tr><td class="email-body-cell" style="padding: 40px; background-color: #ffffff; color: #333333;">'
+        f'{content_html}'
+        '</td></tr>'
+        # Tracking button (optional)
         f'{tracking_button}'
-        # Tracking Number
-        '<tr><td style="padding: 0 40px 30px; text-align: center;">'
-        '<div style="background-color: #f4f4f7; border-radius: 6px; padding: 16px; display: inline-block;">'
-        '<span style="font-size: 12px; color: #8e8ea0; text-transform: uppercase; letter-spacing: 1px;">Tracking Number</span><br>'
-        f'<span style="font-size: 20px; font-weight: 700; color: #667eea; letter-spacing: 2px;">{tracking_number}</span>'
+        # Tracking number badge
+        '<tr><td class="email-tracking-cell" style="padding: 0 40px 30px; text-align: center; background-color: #ffffff;">'
+        '<div class="bg-subtle" style="background-color: #f4f4f7; border-radius: 6px; padding: 16px; display: inline-block;">'
+        '<span class="text-muted" style="font-size: 12px; color: #8e8ea0; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px;">Tracking Number</span>'
+        f'<span class="text-brand" style="font-size: 20px; font-weight: 700; color: #667eea; letter-spacing: 2px;">{tracking_number}</span>'
         '</div></td></tr>'
         # Footer
-        '<tr><td style="background-color: #f4f4f7; padding: 20px 40px; text-align: center;">'
-        f'<p style="margin: 0; font-size: 12px; color: #8e8ea0;">{company_name} &bull; Powered by Warex Logistics</p>'
+        '<tr><td class="email-footer-cell" style="background-color: #f4f4f7; padding: 20px 40px; text-align: center;">'
+        f'<p class="text-muted" style="margin: 0; font-size: 12px; color: #8e8ea0;">{company_name} &bull; Powered by Warex Logistics</p>'
         '</td></tr>'
         '</table></td></tr></table></body></html>'
     )
@@ -197,27 +275,27 @@ def send_order_confirmation(data_manager, order):
     tracking_url = f"https://{domain}?tracking={tracking_number}" if domain else ''
 
     content_html = (
-        '<h2 style="color: #333; margin: 0 0 10px; font-size: 20px;">Your order is confirmed!</h2>'
-        '<p style="color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 24px;">'
+        '<h2 class="text-heading" style="color: #333333; margin: 0 0 10px; font-size: 20px;">Your order is confirmed!</h2>'
+        '<p class="text-body" style="color: #555555; font-size: 15px; line-height: 1.6; margin: 0 0 24px;">'
         f'Hi {customer}, thank you for your order. We have received your delivery request and it is being processed.'
         '</p>'
         '<table width="100%" cellpadding="8" cellspacing="0" style="margin-bottom: 20px;">'
-        '<tr><td style="border-bottom: 1px solid #eee; color: #8e8ea0; font-size: 13px; width: 40%;">Service</td>'
-        f'<td style="border-bottom: 1px solid #eee; color: #333; font-size: 15px; font-weight: 600;">{service}</td></tr>'
-        '<tr><td style="border-bottom: 1px solid #eee; color: #8e8ea0; font-size: 13px;">Parcels</td>'
-        f'<td style="border-bottom: 1px solid #eee; color: #333; font-size: 15px; font-weight: 600;">{parcels}</td></tr>'
-        '<tr><td style="border-bottom: 1px solid #eee; color: #8e8ea0; font-size: 13px;">Delivering to</td>'
-        f'<td style="border-bottom: 1px solid #eee; color: #333; font-size: 15px; font-weight: 600;">{suburb} {postcode}</td></tr>'
-        '<tr><td style="color: #8e8ea0; font-size: 13px;">Status</td>'
-        '<td style="color: #333; font-size: 15px; font-weight: 600;">Order Placed</td></tr>'
+        '<tr><td class="table-label table-divider" style="border-bottom: 1px solid #eeeeee; color: #8e8ea0; font-size: 13px; width: 40%;">Service</td>'
+        f'<td class="table-value table-divider" style="border-bottom: 1px solid #eeeeee; color: #333333; font-size: 15px; font-weight: 600;">{service}</td></tr>'
+        '<tr><td class="table-label table-divider" style="border-bottom: 1px solid #eeeeee; color: #8e8ea0; font-size: 13px;">Parcels</td>'
+        f'<td class="table-value table-divider" style="border-bottom: 1px solid #eeeeee; color: #333333; font-size: 15px; font-weight: 600;">{parcels}</td></tr>'
+        '<tr><td class="table-label table-divider" style="border-bottom: 1px solid #eeeeee; color: #8e8ea0; font-size: 13px;">Delivering to</td>'
+        f'<td class="table-value table-divider" style="border-bottom: 1px solid #eeeeee; color: #333333; font-size: 15px; font-weight: 600;">{suburb} {postcode}</td></tr>'
+        '<tr><td class="table-label" style="color: #8e8ea0; font-size: 13px;">Status</td>'
+        '<td class="table-value" style="color: #333333; font-size: 15px; font-weight: 600;">Order Placed</td></tr>'
         '</table>'
-        '<div style="background-color: #f0f9ff; border-left: 4px solid #3b82f6; padding: 12px 16px; margin-bottom: 20px; border-radius: 4px;">'
-        '<p style="color: #1e40af; font-size: 13px; line-height: 1.6; margin: 0;">'
+        '<div class="info-box" style="background-color: #dbeafe; border-left: 4px solid #3b82f6; padding: 12px 16px; margin-bottom: 20px; border-radius: 4px;">'
+        '<p style="color: #1e3a8a; font-size: 13px; line-height: 1.6; margin: 0;">'
         '<strong>Authority to Leave:</strong> The sender has chosen our Authority to Leave delivery service for your parcel. '
         'This means we will leave the parcel in a safe place at the delivery address. '
         '</p>'
         '</div>'
-        '<p style="color: #8e8ea0; font-size: 13px; line-height: 1.5;">'
+        '<p class="text-muted" style="color: #8e8ea0; font-size: 13px; line-height: 1.5;">'
         'You can track your delivery at any time using the tracking number below.'
         '</p>'
     )
@@ -277,12 +355,16 @@ def send_status_update(data_manager, order, new_status, proof_photo=None):
         heading = "Delivery status update"
         message = f"Hi {customer}, your order status has been updated to: {status_label}."
 
+    # Status badge colours — explicit inline AND class for dark-mode @media override
     if new_status == 'delivered':
         status_color = '#10b981'
+        status_class = 'text-success'
     elif new_status == 'failed':
         status_color = '#ef4444'
+        status_class = 'text-danger'
     else:
         status_color = '#667eea'
+        status_class = 'text-brand'
 
     # Build the proof-of-delivery photo block (delivered emails only)
     photo_html = ''
@@ -294,7 +376,7 @@ def send_status_update(data_manager, order, new_status, proof_photo=None):
             photo_src = f'data:image/jpeg;base64,{proof_photo}'
         photo_html = (
             '<div style="margin: 20px 0; text-align: center;">'
-            '<p style="font-size: 13px; color: #8e8ea0; margin-bottom: 8px; '
+            '<p class="text-muted" style="font-size: 13px; color: #8e8ea0; margin-bottom: 8px; '
             'text-transform: uppercase; letter-spacing: 1px;">Proof of Delivery</p>'
             f'<img src="{photo_src}" alt="Proof of delivery photo" '
             'style="max-width: 100%; border-radius: 8px; border: 2px solid #10b981;" />'
@@ -302,12 +384,12 @@ def send_status_update(data_manager, order, new_status, proof_photo=None):
         )
 
     content_html = (
-        f'<h2 style="color: #333; margin: 0 0 10px; font-size: 20px;">{heading}</h2>'
-        f'<p style="color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 24px;">{message}</p>'
-        '<div style="background-color: #f4f4f7; border-radius: 6px; padding: 16px 20px; margin-bottom: 20px;">'
-        '<span style="font-size: 12px; color: #8e8ea0; text-transform: uppercase; letter-spacing: 1px;">Current Status</span><br>'
-        f'<span style="font-size: 18px; font-weight: 700; color: {status_color};">{status_label}</span>'
-        f'</div>'
+        f'<h2 class="text-heading" style="color: #333333; margin: 0 0 10px; font-size: 20px;">{heading}</h2>'
+        f'<p class="text-body" style="color: #555555; font-size: 15px; line-height: 1.6; margin: 0 0 24px;">{message}</p>'
+        '<div class="bg-subtle" style="background-color: #f4f4f7; border-radius: 6px; padding: 16px 20px; margin-bottom: 20px;">'
+        '<span class="text-muted" style="font-size: 12px; color: #8e8ea0; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px;">Current Status</span>'
+        f'<span class="{status_class}" style="font-size: 18px; font-weight: 700; color: {status_color};">{status_label}</span>'
+        '</div>'
         f'{photo_html}'
     )
 
