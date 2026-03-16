@@ -178,15 +178,24 @@ class DataManager:
     def allocate_order(self, order_id, driver_name):
         self.store.update_order_status(order_id, 'allocated', driver_id=driver_name)
 
-    def update_order(self, order_id, **fields):
+    def update_order(self, order_id, skip_email=False, **fields):
         """Update order fields (status, zone, driver_id, proof_photo, etc.).
 
-        Note: email notifications are NOT sent automatically here for the DriverAPI.
-        The iOS app calls /api/driver/stops/<id>/notify explicitly after a status
-        update, which is the single point of email dispatch. This prevents double
-        sends when both update_order and /notify would otherwise both fire.
+        Pass ``skip_email=True`` when the caller will handle email dispatch
+        independently (e.g. the iOS driver API for 'delivered' status, which
+        calls /notify after uploading the proof photo so the photo appears in
+        the email).  All other status changes auto-send the notification here.
         """
+        # Step 1 — always update the DB first.
         self.store.update_order_fields(order_id, **fields)
+
+        # Step 2 — attempt email notification (best-effort, never crashes
+        # the status update which already committed to the DB above).
+        if 'status' in fields and not skip_email:
+            try:
+                self._try_send_status_email(order_id, fields['status'])
+            except Exception as exc:
+                logger.error(f"[email] uncaught exception for order {order_id}: {exc}", exc_info=True)
 
     def _try_send_status_email(self, order_id, new_status):
         """Best-effort email notification.  Isolated so it can never crash the caller."""

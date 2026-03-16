@@ -327,8 +327,15 @@ def create_driver_api(app: Flask, data_manager):
             if signature_b64:
                 update_fields['proof_signature'] = signature_b64
 
+        # For 'delivered' skip the auto-email here — the iOS app calls /notify
+        # separately after uploading the proof photo so the photo appears in the
+        # delivery confirmation email.  All other status changes (in_transit,
+        # failed, allocated) auto-send the email from update_order.
+        backend_status_value = update_fields.get('status', '')
+        skip_email = (backend_status_value == 'delivered')
+
         try:
-            data_manager.update_order(stop_id, **update_fields)
+            data_manager.update_order(stop_id, skip_email=skip_email, **update_fields)
         except Exception as exc:
             logger.error(f"update_stop_status error for {stop_id}: {exc}", exc_info=True)
             return jsonify({'error': 'Failed to update stop', 'detail': str(exc)}), 500

@@ -5,8 +5,8 @@ import os
 TRACKING_STATUSES = ['pending', 'allocated', 'in_transit', 'delivered']
 STATUS_LABELS = {
     'pending': 'Order Placed',
-    'allocated': 'Allocated',
-    'in_transit': 'In Transit',
+    #'allocated': 'Allocated',
+    'in_transit': 'Out For Delivery',
     'delivered': 'Delivered',
 }
 
@@ -170,10 +170,10 @@ def _render_tracking_result(order, company_name):
             f'<div class="tracking-result {result_class}">'
             f'<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">'
             f'<div><div style="{label_style}">Status</div><div style="{value_style}">{status_label}</div></div>'
-            f'<div><div style="{label_style}">Service</div><div style="{value_style}">{service}</div></div>'
+            #f'<div><div style="{label_style}">Service</div><div style="{value_style}">{service}</div></div>'
             f'<div><div style="{label_style}">Destination</div><div style="{value_style}">{destination or "N/A"}</div></div>'
             f'<div><div style="{label_style}">Parcels</div><div style="{value_style}">{parcels}</div></div>'
-            f'<div><div style="{label_style}">Order Placed</div><div style="{value_style}">{created_str or "N/A"}</div></div>'
+            #f'<div><div style="{label_style}">Order Placed</div><div style="{value_style}">{created_str or "N/A"}</div></div>'
             f'{eta_html}'
             f'</div></div>'
         )
