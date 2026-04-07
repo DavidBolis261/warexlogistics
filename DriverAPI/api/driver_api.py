@@ -164,12 +164,7 @@ def create_driver_api(app: Flask, data_manager):
         """Get delivery run for the authenticated driver."""
         driver_id = request.driver_id
 
-        orders_df = data_manager.get_orders()
-
-        if orders_df.empty:
-            return jsonify({'runs': [], 'total': 0}), 200
-
-        driver_orders = orders_df[orders_df['driver_id'] == driver_id]
+        driver_orders = data_manager.store.get_orders_for_driver(driver_id)
 
         if driver_orders.empty:
             return jsonify({'runs': [], 'total': 0}), 200
@@ -207,12 +202,7 @@ def create_driver_api(app: Flask, data_manager):
         """Get all delivery stops (orders) for the driver."""
         driver_id = request.driver_id
 
-        orders_df = data_manager.get_orders()
-
-        if orders_df.empty:
-            return jsonify({'stops': [], 'total': 0}), 200
-
-        driver_orders = orders_df[orders_df['driver_id'] == driver_id]
+        driver_orders = data_manager.store.get_orders_for_driver(driver_id)
 
         if driver_orders.empty:
             return jsonify({'stops': [], 'total': 0}), 200

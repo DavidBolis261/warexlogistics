@@ -263,6 +263,14 @@ class PostgresStore:
         """Get all orders."""
         return pd.read_sql("SELECT * FROM orders ORDER BY created_at DESC", self.engine)
 
+    def get_orders_for_driver(self, driver_id):
+        """Get only the orders assigned to a specific driver — avoids full table scan."""
+        return pd.read_sql(
+            "SELECT * FROM orders WHERE driver_id = %(driver_id)s ORDER BY created_at DESC",
+            self.engine,
+            params={'driver_id': driver_id},
+        )
+
     def save_order(self, order_data, wms_response=None, pushed=False):
         """Save an order."""
         # Ensure all required fields have defaults if not provided
