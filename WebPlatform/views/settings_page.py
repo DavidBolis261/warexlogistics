@@ -37,7 +37,7 @@ def _render_general(data_manager):
         with col1:
             company_name = st.text_input(
                 "Company Name",
-                value=data_manager.get_setting('company_name', 'Sydney Metro Courier'),
+                value=data_manager.get_setting('company_name', 'WAREX LOGISTICS'),
             )
             contact_email = st.text_input(
                 "Primary Contact Email",

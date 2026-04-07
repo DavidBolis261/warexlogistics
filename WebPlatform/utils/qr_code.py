@@ -66,7 +66,7 @@ def generate_shipping_label_html(order_data: dict) -> str:
     ">
         <!-- Header -->
         <div style="text-align: center; margin-bottom: 15px;">
-            <h2 style="margin: 0; font-size: 24px;">Sydney Metro Courier</h2>
+            <h2 style="margin: 0; font-size: 24px;">WAREX LOGISTICS</h2>
             <p style="margin: 5px 0; font-size: 12px;">Warex Logistics</p>
         </div>
 
