@@ -277,6 +277,13 @@ class DataManager:
         self.store.update_driver_location(driver_id, latitude, longitude, timestamp)
         return {'success': True}
 
+    def get_driver_location_history(self, driver_id, date=None):
+        """Return location history DataFrame for a driver on a given date (YYYY-MM-DD)."""
+        if not hasattr(self.store, 'get_driver_location_history'):
+            import pandas as pd
+            return pd.DataFrame()
+        return self.store.get_driver_location_history(driver_id, date=date)
+
     def driver_go_online(self, driver_id):
         """Driver accepts terms and goes online (status → available)."""
         self.store.driver_go_online(driver_id)

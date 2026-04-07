@@ -108,12 +108,20 @@ def render(drivers_df, data_manager, orders_df=None):
                 with col_actions:
                     st.markdown("<br>", unsafe_allow_html=True)
                     if st.button("View Orders", key=f"view_{driver_id}", use_container_width=True):
-                        # Toggle view state
                         current_view = st.session_state.get('viewing_driver_orders', None)
                         if current_view == driver_id:
                             st.session_state.pop('viewing_driver_orders', None)
                         else:
                             st.session_state['viewing_driver_orders'] = driver_id
+                            st.session_state.pop('viewing_driver_history', None)
+                        st.rerun()
+                    if st.button("📍 Location History", key=f"hist_{driver_id}", use_container_width=True):
+                        current_hist = st.session_state.get('viewing_driver_history', None)
+                        if current_hist == driver_id:
+                            st.session_state.pop('viewing_driver_history', None)
+                        else:
+                            st.session_state['viewing_driver_history'] = driver_id
+                            st.session_state.pop('viewing_driver_orders', None)
                         st.rerun()
                     if st.button("Edit", key=f"edit_{driver_id}", use_container_width=True):
                         st.session_state['editing_driver'] = driver_id
@@ -125,6 +133,10 @@ def render(drivers_df, data_manager, orders_df=None):
             # Show driver's orders if viewing
             if st.session_state.get('viewing_driver_orders') == driver_id and orders_df is not None:
                 _render_driver_orders(driver, orders_df)
+
+            # Show driver's location history if requested
+            if st.session_state.get('viewing_driver_history') == driver_id:
+                _render_location_history(driver, data_manager)
 
             # Confirm delete dialog
             if st.session_state.get('confirm_delete_driver') == driver_id:
@@ -347,3 +359,106 @@ def _render_driver_orders(driver, orders_df):
         if st.button("Close", key=f"close_orders_{driver_id}", use_container_width=True):
             st.session_state.pop('viewing_driver_orders', None)
             st.rerun()
+
+
+def _render_location_history(driver, data_manager):
+    """Show a map of the driver's location history for a chosen date."""
+    from datetime import date as date_type
+    import pydeck as pdk
+
+    driver_id = driver['driver_id']
+    driver_name = driver['name']
+
+    st.markdown(f"#### 📍 Location History — {driver_name}")
+
+    col_date, col_close = st.columns([2, 1])
+    with col_date:
+        selected_date = st.date_input(
+            "Select date",
+            value=date_type.today(),
+            key=f"hist_date_{driver_id}",
+        )
+    with col_close:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("Close", key=f"close_hist_{driver_id}", use_container_width=True):
+            st.session_state.pop('viewing_driver_history', None)
+            st.rerun()
+
+    history_df = data_manager.get_driver_location_history(
+        driver_id, date=selected_date.strftime('%Y-%m-%d')
+    )
+
+    if history_df.empty:
+        st.info(f"No location data recorded for {driver_name} on {selected_date.strftime('%d/%m/%Y')}.")
+        return
+
+    # Format timestamps for display
+    history_df['recorded_at'] = pd.to_datetime(history_df['recorded_at'])
+    history_df['time_label'] = history_df['recorded_at'].dt.strftime('%H:%M:%S')
+
+    st.caption(f"{len(history_df)} location points recorded on {selected_date.strftime('%d/%m/%Y')}")
+
+    # Time range filter
+    times = history_df['recorded_at'].tolist()
+    if len(times) > 1:
+        min_t = times[0].strftime('%H:%M')
+        max_t = times[-1].strftime('%H:%M')
+        st.caption(f"Active from **{min_t}** to **{max_t}**")
+
+    # Build pydeck map — path layer + scatter layer
+    path_data = [{
+        'path': list(zip(history_df['longitude'].tolist(), history_df['latitude'].tolist())),
+        'name': driver_name,
+    }]
+
+    points_data = history_df[['latitude', 'longitude', 'time_label']].to_dict('records')
+
+    midlat = history_df['latitude'].mean()
+    midlng = history_df['longitude'].mean()
+
+    path_layer = pdk.Layer(
+        'PathLayer',
+        data=path_data,
+        get_path='path',
+        get_color=[102, 126, 234],
+        width_min_pixels=3,
+        pickable=False,
+    )
+
+    scatter_layer = pdk.Layer(
+        'ScatterplotLayer',
+        data=points_data,
+        get_position='[longitude, latitude]',
+        get_fill_color=[102, 126, 234, 200],
+        get_radius=30,
+        pickable=True,
+    )
+
+    # Mark the first point green and last point red
+    start_end = [
+        {'latitude': history_df.iloc[0]['latitude'],  'longitude': history_df.iloc[0]['longitude'],  'color': [16, 185, 129], 'label': 'Start'},
+        {'latitude': history_df.iloc[-1]['latitude'], 'longitude': history_df.iloc[-1]['longitude'], 'color': [239, 68, 68],  'label': 'End'},
+    ]
+    start_end_layer = pdk.Layer(
+        'ScatterplotLayer',
+        data=start_end,
+        get_position='[longitude, latitude]',
+        get_fill_color='color',
+        get_radius=60,
+        pickable=True,
+    )
+
+    view = pdk.ViewState(latitude=midlat, longitude=midlng, zoom=13, pitch=0)
+    deck = pdk.Deck(
+        layers=[path_layer, scatter_layer, start_end_layer],
+        initial_view_state=view,
+        tooltip={'text': '{time_label}'},
+        map_style='mapbox://styles/mapbox/streets-v11',
+    )
+    st.pydeck_chart(deck)
+
+    # Timeline table
+    with st.expander("View full timeline"):
+        display_df = history_df[['time_label', 'latitude', 'longitude']].copy()
+        display_df.columns = ['Time', 'Latitude', 'Longitude']
+        st.dataframe(display_df, use_container_width=True, hide_index=True)

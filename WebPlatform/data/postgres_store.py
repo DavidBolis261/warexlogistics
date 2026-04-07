@@ -208,6 +208,17 @@ class PostgresStore:
                 )
             """))
 
+            # Driver location history table
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS driver_location_history (
+                    id SERIAL PRIMARY KEY,
+                    driver_id TEXT NOT NULL,
+                    latitude DOUBLE PRECISION NOT NULL,
+                    longitude DOUBLE PRECISION NOT NULL,
+                    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+
             # Messages table (driver ↔ admin messaging)
             conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS messages (
@@ -498,7 +509,7 @@ class PostgresStore:
             conn.commit()
 
     def update_driver_location(self, driver_id, latitude, longitude, timestamp=None):
-        """Update driver's current location for real-time tracking."""
+        """Update driver's current location and append to history."""
         from datetime import datetime as dt
 
         if timestamp is None:
@@ -515,9 +526,43 @@ class PostgresStore:
                 'driver_id': driver_id,
                 'latitude': latitude,
                 'longitude': longitude,
-                'timestamp': timestamp
+                'timestamp': timestamp,
+            })
+            conn.execute(text("""
+                INSERT INTO driver_location_history (driver_id, latitude, longitude, recorded_at)
+                VALUES (:driver_id, :latitude, :longitude, :timestamp)
+            """), {
+                'driver_id': driver_id,
+                'latitude': latitude,
+                'longitude': longitude,
+                'timestamp': timestamp,
             })
             conn.commit()
+
+    def get_driver_location_history(self, driver_id, date=None):
+        """Return location history for a driver, optionally filtered to one date (YYYY-MM-DD)."""
+        if date:
+            return pd.read_sql(
+                """
+                SELECT driver_id, latitude, longitude, recorded_at
+                FROM driver_location_history
+                WHERE driver_id = %(driver_id)s
+                  AND recorded_at::date = %(date)s
+                ORDER BY recorded_at ASC
+                """,
+                self.engine,
+                params={'driver_id': driver_id, 'date': date},
+            )
+        return pd.read_sql(
+            """
+            SELECT driver_id, latitude, longitude, recorded_at
+            FROM driver_location_history
+            WHERE driver_id = %(driver_id)s
+            ORDER BY recorded_at ASC
+            """,
+            self.engine,
+            params={'driver_id': driver_id},
+        )
 
     def driver_go_online(self, driver_id):
         """Set driver status to available and clear any pending offline request."""
