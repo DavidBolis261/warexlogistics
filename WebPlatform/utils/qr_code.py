@@ -85,9 +85,6 @@ def generate_shipping_label_html(order_data: dict) -> str:
             <p style="margin: 3px 0; font-size: 14px;">
                 {order_data.get('suburb', '')}, {order_data.get('state', 'NSW')} {order_data.get('postcode', '')}
             </p>
-            <p style="margin: 8px 0; font-size: 14px;">
-                <strong>Phone:</strong> {order_data.get('phone', '')}
-            </p>
         </div>
 
         <!-- Order Info -->
