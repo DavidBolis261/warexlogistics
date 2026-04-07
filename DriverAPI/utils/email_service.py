@@ -39,7 +39,7 @@ RESEND_API_URL = 'https://api.resend.com/emails'
 STATUS_LABELS = {
     'pending': 'Order Placed',
     'allocated': 'Allocated to Driver',
-    'in_transit': 'In Transit',
+    'in_transit': 'Out For Delivery',
     'delivered': 'Delivered',
     'failed': 'Delivery Failed',
 }
@@ -348,7 +348,7 @@ def send_status_update(data_manager, order, new_status, proof_photo=None):
         message = f"Hi {customer}, great news! A driver has been assigned to your delivery and it will be picked up shortly."
     elif new_status == 'in_transit':
         heading = "Your delivery is on the way!"
-        message = f"Hi {customer}, your parcel is now in transit and on its way to you."
+        message = f"Hi {customer}, your parcel is now out for delivery and on its way to you."
     elif new_status == 'delivered':
         heading = "Your delivery is complete!"
         message = (
