@@ -949,7 +949,7 @@ def _render_completed(orders_df):
 **Customer:** {order['customer']}
 **Deliver to:** {order['address']}, {order.get('suburb', '')} {order.get('postcode', '')}
 **Parcels:** {order.get('parcels', 1)}
-**Created:** {created_str}
+
                 """)
 
                 if delivered_at_str:
