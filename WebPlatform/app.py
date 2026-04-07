@@ -321,7 +321,7 @@ with col1:
         <div style="display:flex;align-items:center;">
             {_hdr_logo}
             <div>
-                <h1 class="dashboard-title">{company_name}</h1>
+                <h1 class="dashboard-title">WAREX LOGISTICS</h1>
                 <p class="dashboard-subtitle">{datetime.now().strftime('%A, %d %B %Y')} &bull; Operations Dashboard</p>
             </div>
         </div>
