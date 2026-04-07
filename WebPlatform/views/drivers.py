@@ -453,7 +453,7 @@ def _render_location_history(driver, data_manager):
         layers=[path_layer, scatter_layer, start_end_layer],
         initial_view_state=view,
         tooltip={'text': '{time_label}'},
-        map_style='mapbox://styles/mapbox/streets-v11',
+        map_style='https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
     )
     st.pydeck_chart(deck)
 
