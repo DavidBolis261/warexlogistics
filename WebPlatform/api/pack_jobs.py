@@ -54,6 +54,30 @@ def upsert_pack_job(client: DotWmsClient, job_data: dict):
     return client.post('UpsertPackJob', payload)
 
 
+def get_pack_job_status(client: DotWmsClient, pack_slip_number: str):
+    """Get the current status of a pack job.
+
+    Endpoint: GET /api/1.0/GetPackJobStatus/
+    """
+    return client.get('GetPackJobStatus', {'PackSlipNumber': pack_slip_number})
+
+
+def get_pack_job_manifest(client: DotWmsClient, pack_slip_number: str):
+    """Get the full manifest/details of a pack job (delivery info, line items, etc.).
+
+    Endpoint: GET /api/1.0/GetPackJobManifest/
+    """
+    return client.get('GetPackJobManifest', {'PackSlipNumber': pack_slip_number})
+
+
+def get_open_jobs(client: DotWmsClient):
+    """Get all open pack jobs for this tenant/warehouse.
+
+    Endpoint: GET /api/1.0/GetOpenPackJobsByTenant/
+    """
+    return client.get('GetOpenPackJobsByTenant')
+
+
 def cancel_pack_job(client: DotWmsClient, pack_slip_number: str):
     """Cancel a pack job in .wms.
 

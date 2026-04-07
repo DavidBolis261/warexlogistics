@@ -542,6 +542,171 @@ class DataManager:
             return result
         return {'success': True, 'mock': True}
 
+    # === WMS Inbound / Import ===
+
+    def get_wms_open_jobs(self):
+        """Fetch all open pack jobs from WMS."""
+        if not self.is_live:
+            return {'success': False, 'error': 'WMS not configured'}
+        from api.pack_jobs import get_open_jobs
+        result = get_open_jobs(self.client)
+        self.store.log_api_call(
+            operation='GetOpenPackJobsByTenant',
+            endpoint=f"{wms_config.base_url}/GetOpenPackJobsByTenant/",
+            request_summary='Fetch open pack jobs',
+            success=result.get('success', False),
+            status_code=result.get('status_code'),
+            response_body=json.dumps(result.get('response', '')),
+            error_message=result.get('error'),
+        )
+        return result
+
+    def get_wms_job_manifest(self, pack_slip_number):
+        """Fetch the full manifest for a single pack job."""
+        if not self.is_live:
+            return {'success': False, 'error': 'WMS not configured'}
+        from api.pack_jobs import get_pack_job_manifest
+        result = get_pack_job_manifest(self.client, pack_slip_number)
+        self.store.log_api_call(
+            operation='GetPackJobManifest',
+            endpoint=f"{wms_config.base_url}/GetPackJobManifest/",
+            request_summary=f'Manifest for {pack_slip_number}',
+            success=result.get('success', False),
+            status_code=result.get('status_code'),
+            response_body=json.dumps(result.get('response', '')),
+            error_message=result.get('error'),
+        )
+        return result
+
+    def import_order_from_wms_manifest(self, manifest):
+        """Import a single WMS pack job manifest as a new Warex order.
+
+        Stores the pack slip number in the instructions field as [WMS:PACKSLIP]
+        so duplicate imports can be detected on subsequent syncs.
+
+        Returns dict with 'success', optionally 'skipped' if already imported.
+        """
+        pack_slip = manifest.get('PackSlipNumber') or manifest.get('SalesOrderNumber', '')
+        if not pack_slip:
+            return {'success': False, 'error': 'No PackSlipNumber in manifest'}
+
+        # Duplicate check — scan existing orders for our WMS reference tag
+        ref_tag = f'[WMS:{pack_slip}]'
+        existing_orders = self.store.get_orders()
+        if not existing_orders.empty and 'instructions' in existing_orders.columns:
+            match = existing_orders[
+                existing_orders['instructions'].fillna('').str.contains(ref_tag, regex=False)
+            ]
+            if not match.empty:
+                return {'success': True, 'skipped': True, 'reason': 'already imported'}
+
+        # Parse line items — WMS may return a single dict or a list
+        lines = (
+            manifest.get('Line')
+            or manifest.get('Lines')
+            or manifest.get('PackLines')
+            or []
+        )
+        if isinstance(lines, dict):
+            lines = [lines]
+
+        # Use total quantity across all lines as parcel count
+        parcel_count = 1
+        try:
+            total_qty = sum(int(l.get('Quantity', 1)) for l in lines if isinstance(l, dict))
+            if total_qty > 0:
+                parcel_count = total_qty
+        except Exception:
+            parcel_count = max(len(lines), 1)
+
+        item_code = lines[0].get('ItemCode', 'PARCEL') if lines else 'PARCEL'
+
+        extra_instructions = manifest.get('SpecialInstructions', '') or ''
+        instructions = f'{ref_tag} {extra_instructions}'.strip()
+
+        order_data = {
+            'customer': manifest.get('DeliveryName') or manifest.get('CustomerCode', 'Unknown'),
+            'delivery_company': manifest.get('CustomerCode', ''),
+            'address': manifest.get('DeliveryAddress1', ''),
+            'address2': manifest.get('DeliveryAddress2', ''),
+            'suburb': manifest.get('DeliverySuburb', ''),
+            'state': manifest.get('DeliveryState', 'NSW'),
+            'postcode': str(manifest.get('DeliveryPostcode', '')),
+            'country': manifest.get('DeliveryCountry', 'Australia'),
+            'email': manifest.get('DeliveryEmail', ''),
+            'phone': manifest.get('DeliveryPhone', ''),
+            'parcels': parcel_count,
+            'service_level': 'standard',
+            'item_code': item_code,
+            'instructions': instructions,
+            'special_instructions': instructions,
+        }
+
+        result = self.create_order(order_data)
+        if result.get('success'):
+            result['pack_slip_number'] = pack_slip
+        return result
+
+    def sync_orders_from_wms(self):
+        """Fetch all open WMS pack jobs and import any that haven't been seen yet.
+
+        Returns a summary dict: {imported, skipped, failed, errors, orders}.
+        """
+        summary = {'imported': 0, 'skipped': 0, 'failed': 0, 'errors': [], 'orders': []}
+
+        jobs_result = self.get_wms_open_jobs()
+        if not jobs_result.get('success'):
+            return {'success': False, 'error': jobs_result.get('error', 'Failed to fetch open jobs')}
+
+        # Parse jobs list — handle varying response shapes from the WMS
+        resp = jobs_result.get('response', {})
+        jobs = []
+        if isinstance(resp, list):
+            jobs = resp
+        elif isinstance(resp, dict):
+            for key in ('PackJobs', 'Jobs', 'PackingSlips', 'Results', 'Data', 'PackJob'):
+                if key in resp:
+                    val = resp[key]
+                    jobs = val if isinstance(val, list) else [val]
+                    break
+            if not jobs and resp.get('PackSlipNumber'):
+                jobs = [resp]  # single job returned at root level
+
+        if not jobs:
+            return {'success': True, **summary, 'message': 'No open jobs found in WMS'}
+
+        for job in jobs:
+            pack_slip = job.get('PackSlipNumber') or job.get('SalesOrderNumber', '')
+            if not pack_slip:
+                continue
+
+            manifest_result = self.get_wms_job_manifest(pack_slip)
+            if not manifest_result.get('success'):
+                summary['failed'] += 1
+                summary['errors'].append(f"{pack_slip}: {manifest_result.get('error')}")
+                continue
+
+            manifest = manifest_result.get('response', {})
+            if not isinstance(manifest, dict):
+                summary['failed'] += 1
+                summary['errors'].append(f"{pack_slip}: unexpected manifest format")
+                continue
+
+            import_result = self.import_order_from_wms_manifest(manifest)
+            if import_result.get('skipped'):
+                summary['skipped'] += 1
+            elif import_result.get('success'):
+                summary['imported'] += 1
+                summary['orders'].append({
+                    'pack_slip': pack_slip,
+                    'tracking_number': import_result.get('tracking_number'),
+                })
+            else:
+                summary['failed'] += 1
+                summary['errors'].append(f"{pack_slip}: {import_result.get('error')}")
+
+        return {'success': True, **summary}
+
     # === Connection ===
 
     def test_wms_connection(self):

@@ -89,6 +89,55 @@ class DotWmsClient:
                 'error': f"Request failed: {str(e)}",
             }
 
+    def get(self, operation, extra_params=None, timeout=30):
+        """Send a GET request to a .wms API endpoint with auth as query parameters.
+
+        Used by the inbound read-only endpoints (GetPackJobStatus,
+        GetPackJobManifest, GetOpenPackJobsByTenant) which use GET + query
+        params rather than the POST + JSON body pattern.
+        """
+        url = f"{self.config.base_url}/{operation}/"
+        params = {
+            'InstanceCode': self.config.instance_code,
+            'TenantCode': self.config.tenant_code,
+            'WarehouseCode': self.config.warehouse_code,
+            'APIKey': self.config.api_key,
+        }
+        if extra_params:
+            params.update(extra_params)
+
+        try:
+            response = self.session.get(url, params=params, timeout=timeout)
+            result = {
+                'success': response.ok,
+                'status_code': response.status_code,
+                'response_text': response.text,
+            }
+            try:
+                result['response'] = response.json()
+            except (json.JSONDecodeError, ValueError):
+                result['response'] = response.text
+            if not response.ok:
+                result['error'] = f"HTTP {response.status_code}: {response.text[:500]}"
+            return result
+
+        except requests.exceptions.ConnectionError as e:
+            return {
+                'success': False,
+                'error': f"Connection failed: Could not reach {url}.",
+                'exception': str(e),
+            }
+        except requests.exceptions.Timeout:
+            return {
+                'success': False,
+                'error': f"Request timed out after {timeout}s",
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                'success': False,
+                'error': f"Request failed: {str(e)}",
+            }
+
     def test_connection(self):
         """Test connectivity to the .wms API.
 

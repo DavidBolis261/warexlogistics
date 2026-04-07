@@ -40,8 +40,8 @@ STATUS_LABELS = {
 def render(orders_df, drivers_df, data_manager, zone_filter, service_filter, status_filter):
     st.markdown('<div class="section-header">Order Management</div>', unsafe_allow_html=True)
 
-    tab1, tab2, tab3, tab4 = st.tabs([
-        "Pending", "In Transit", "Completed", "Inbound Receipts",
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "Pending", "In Transit", "Completed", "Inbound Receipts", "WMS Import",
     ])
 
     if not orders_df.empty:
@@ -74,6 +74,9 @@ def render(orders_df, drivers_df, data_manager, zone_filter, service_filter, sta
 
     with tab4:
         _render_inbound_receipts(data_manager)
+
+    with tab5:
+        _render_wms_import(data_manager)
 
 
 def _render_all_orders(orders_df, drivers_df, data_manager):
@@ -1071,3 +1074,79 @@ def _render_inbound_receipts(data_manager):
 """, unsafe_allow_html=True)
     else:
         st.caption("No receipts yet. Create one above.")
+
+
+def _render_wms_import(data_manager):
+    """WMS Import tab — pull open pack jobs from Thomax and create orders."""
+    st.markdown("### Import Orders from WMS")
+
+    if not data_manager.is_live:
+        st.warning(
+            "WMS is not configured. Set the following environment variables in Railway "
+            "then redeploy:\n\n"
+            "- `WMS_CLUSTER` = `e`\n"
+            "- `WMS_INSTANCE_CODE` = `DTS`\n"
+            "- `WMS_TENANT_CODE` = `WAREX`\n"
+            "- `WMS_WAREHOUSE_CODE` = `SYD02`\n"
+            "- `WMS_API_KEY` = *(key from DTS team)*"
+        )
+        return
+
+    st.caption(
+        "Fetches all open pack jobs from the Thomax WMS and imports them as Warex orders. "
+        "Jobs that have already been imported are skipped automatically."
+    )
+
+    col1, col2 = st.columns([1, 3])
+    with col1:
+        run_sync = st.button("Sync from WMS", type="primary", use_container_width=True)
+
+    if run_sync:
+        with st.spinner("Fetching open jobs from WMS..."):
+            result = data_manager.sync_orders_from_wms()
+
+        if not result.get('success'):
+            st.error(f"Sync failed: {result.get('error')}")
+            return
+
+        imported = result.get('imported', 0)
+        skipped = result.get('skipped', 0)
+        failed = result.get('failed', 0)
+        message = result.get('message', '')
+
+        if message:
+            st.info(message)
+        else:
+            m1, m2, m3 = st.columns(3)
+            m1.metric("Imported", imported)
+            m2.metric("Already Existed", skipped)
+            m3.metric("Failed", failed)
+
+            if imported > 0:
+                st.success(f"Successfully imported {imported} order(s).")
+                for o in result.get('orders', []):
+                    st.markdown(f"- Pack slip **{o['pack_slip']}** → tracking `{o['tracking_number']}`")
+                st.rerun()
+
+            if failed > 0:
+                st.error("Some jobs failed to import:")
+                for err in result.get('errors', []):
+                    st.markdown(f"- {err}")
+
+            if imported == 0 and failed == 0:
+                st.info("All jobs already exist in Warex — nothing new to import.")
+
+    # Preview open jobs without importing
+    st.markdown("---")
+    st.markdown("#### Preview Open Jobs")
+    st.caption("Check what jobs are currently open in WMS without importing anything.")
+
+    if st.button("Fetch Open Jobs (preview only)", use_container_width=False):
+        with st.spinner("Fetching..."):
+            preview = data_manager.get_wms_open_jobs()
+
+        if not preview.get('success'):
+            st.error(f"Error: {preview.get('error')}")
+        else:
+            resp = preview.get('response', {})
+            st.json(resp)
