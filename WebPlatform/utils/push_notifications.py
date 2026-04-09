@@ -109,7 +109,7 @@ def send_push_notification(device_token: str, title: str, body: str, data: dict 
                 "title": title,
                 "body": body,
             },
-            "sound": "default",
+            "sound": "notification.caf",
             "badge": 1,
         }
     }
