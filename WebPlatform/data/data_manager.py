@@ -636,6 +636,15 @@ class DataManager:
         extra_instructions = manifest.get('SpecialInstructions', '') or ''
         instructions = f'{ref_tag} {extra_instructions}'.strip()
 
+        # Map carrier service name to a service level
+        carrier = manifest.get('CarrierServiceName', '') or ''
+        if 'express' in carrier.lower():
+            service_level = 'express'
+        elif 'economy' in carrier.lower():
+            service_level = 'economy'
+        else:
+            service_level = 'standard'
+
         order_data = {
             'customer': manifest.get('DeliveryName') or manifest.get('CustomerCode', 'Unknown'),
             'delivery_company': manifest.get('CustomerCode', ''),
@@ -648,7 +657,7 @@ class DataManager:
             'email': manifest.get('DeliveryEmail', ''),
             'phone': manifest.get('DeliveryPhone', ''),
             'parcels': parcel_count,
-            'service_level': 'standard',
+            'service_level': service_level,
             'item_code': item_code,
             'instructions': instructions,
             'special_instructions': instructions,
@@ -697,19 +706,10 @@ class DataManager:
             if not pack_slip:
                 continue
 
-            manifest_result = self.get_wms_job_manifest(pack_slip)
-            if not manifest_result.get('success'):
-                summary['failed'] += 1
-                summary['errors'].append(f"{pack_slip}: {manifest_result.get('error')}")
-                continue
-
-            manifest = manifest_result.get('response', {})
-            if not isinstance(manifest, dict):
-                summary['failed'] += 1
-                summary['errors'].append(f"{pack_slip}: unexpected manifest format")
-                continue
-
-            import_result = self.import_order_from_wms_manifest(manifest)
+            # GetPackJobManifest only works on closed jobs.
+            # Import directly from the open jobs data which already contains
+            # enough fields (DeliveryName, PackSlipNumber, OrderDate etc.).
+            import_result = self.import_order_from_wms_manifest(job)
             if import_result.get('skipped'):
                 summary['skipped'] += 1
             elif import_result.get('success'):
