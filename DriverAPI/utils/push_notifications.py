@@ -5,7 +5,10 @@ Requires env vars:
   APNS_KEY_ID      — Apple key ID (e.g. 5ZL6GNHZM5)
   APNS_TEAM_ID     — Apple Team ID (e.g. 32GJ539AQ2)
   APNS_BUNDLE_ID   — App bundle ID (e.g. tapaway.warexdriver)
-  APNS_PRIVATE_KEY — Full .p8 PEM content (newlines as \\n or real newlines)
+  APNS_PRIVATE_KEY — .p8 key content: either the bare base64 body OR the full
+                     PEM with headers. Newlines may be literal or escaped as \\n.
+  APNS_SANDBOX     — set to "true" for debug/dev builds (installed via Xcode).
+                     Leave unset or "false" for TestFlight / App Store builds.
 """
 
 import os
@@ -14,20 +17,40 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-APNS_KEY_ID     = os.environ.get('APNS_KEY_ID',     '5ZL6GNHZM5')
-APNS_TEAM_ID    = os.environ.get('APNS_TEAM_ID',    '32GJ539AQ2')
-APNS_BUNDLE_ID  = os.environ.get('APNS_BUNDLE_ID',  'tapaway.warexdriver')
+APNS_KEY_ID      = os.environ.get('APNS_KEY_ID',     '5ZL6GNHZM5')
+APNS_TEAM_ID     = os.environ.get('APNS_TEAM_ID',    '32GJ539AQ2')
+APNS_BUNDLE_ID   = os.environ.get('APNS_BUNDLE_ID',  'tapaway.warexdriver')
 APNS_PRIVATE_KEY = os.environ.get('APNS_PRIVATE_KEY', '')
+APNS_SANDBOX     = os.environ.get('APNS_SANDBOX', 'false').lower() == 'true'
 
-APNS_HOST = 'https://api.push.apple.com'
+APNS_HOST = (
+    'https://api.sandbox.push.apple.com'
+    if APNS_SANDBOX else
+    'https://api.push.apple.com'
+)
 
-# Cache the token to avoid regenerating on every push
+# Cache the JWT to avoid regenerating on every push (tokens last ~60 min)
 _cached_token: str = ''
 _token_expiry: int = 0
 
 
+def _normalise_private_key(raw: str) -> str:
+    """Ensure the key is valid PEM, regardless of how it was pasted into Railway."""
+    # Un-escape literal \\n sequences used when pasting into Railway env vars
+    key = raw.replace('\\n', '\n').strip()
+
+    # If the user pasted only the base64 body (no PEM header), wrap it now
+    if '-----' not in key:
+        # Fold the base64 body into 64-char lines as PEM requires
+        body = key.replace('\n', '').replace(' ', '')
+        lines = [body[i:i+64] for i in range(0, len(body), 64)]
+        key = '-----BEGIN PRIVATE KEY-----\n' + '\n'.join(lines) + '\n-----END PRIVATE KEY-----'
+
+    return key
+
+
 def _get_apns_token() -> str:
-    """Return a valid APNs JWT, regenerating if near expiry (tokens last ~60 min)."""
+    """Return a valid APNs JWT, regenerating if near expiry."""
     global _cached_token, _token_expiry
 
     now = int(time.time())
@@ -39,12 +62,10 @@ def _get_apns_token() -> str:
     except ImportError:
         raise RuntimeError("PyJWT is required: pip install PyJWT>=2.8.0")
 
-    private_key = APNS_PRIVATE_KEY
-    if not private_key:
+    if not APNS_PRIVATE_KEY:
         raise ValueError("APNS_PRIVATE_KEY env var is not set")
 
-    # Railway env vars can't contain real newlines — accept \\n as a substitute
-    private_key = private_key.replace('\\n', '\n')
+    private_key = _normalise_private_key(APNS_PRIVATE_KEY)
 
     token = jwt.encode(
         {'iss': APNS_TEAM_ID, 'iat': now},
@@ -54,6 +75,8 @@ def _get_apns_token() -> str:
     )
     _cached_token = token
     _token_expiry = now + 3000  # regenerate after ~50 min
+    env_label = 'sandbox' if APNS_SANDBOX else 'production'
+    logger.info(f"[APNs] Generated new JWT for {env_label}")
     return token
 
 
@@ -63,6 +86,7 @@ def send_push_notification(device_token: str, title: str, body: str, data: dict 
     Returns True on success, False on any failure (never raises).
     """
     if not device_token:
+        logger.warning("[APNs] send_push_notification called with empty device_token")
         return False
 
     try:
@@ -90,7 +114,6 @@ def send_push_notification(device_token: str, title: str, body: str, data: dict 
         }
     }
     if data:
-        # Merge extra data at the top level (not inside aps)
         payload.update({k: v for k, v in data.items() if k != 'aps'})
 
     headers = {
@@ -109,7 +132,7 @@ def send_push_notification(device_token: str, title: str, body: str, data: dict 
             return True
         else:
             logger.warning(
-                f"[APNs] ❌ Push failed HTTP {response.status_code}: {response.text[:200]}"
+                f"[APNs] ❌ Push failed HTTP {response.status_code}: {response.text[:300]}"
             )
             return False
 
