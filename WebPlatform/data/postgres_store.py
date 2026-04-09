@@ -271,13 +271,16 @@ class PostgresStore:
             try:
                 conn = self.engine.connect().execution_options(isolation_level="AUTOCOMMIT")
                 try:
+                    # Short lock_timeout so a busy table fails fast instead of
+                    # blocking for the full statement_timeout per column.
+                    conn.execute(text("SET lock_timeout = '3s'"))
                     conn.execute(text(
                         f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {col} {col_def}"
                     ))
                 finally:
                     conn.close()
             except Exception:
-                pass  # Column exists or other harmless issue
+                pass  # Column exists, table locked, or other harmless issue
 
     # Delegate all methods to use SQL queries
     def get_orders(self):
