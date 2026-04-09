@@ -334,6 +334,17 @@ class DataManager:
         # Batch update all orders to allocated in a single query
         self.store.batch_update_order_status(order_ids, 'allocated', driver_id=driver_name)
 
+        # Push notification — best-effort, never block the run creation
+        try:
+            from utils.push_notifications import notify_driver_new_run
+            device_token = self.store.get_driver_device_token(driver_id)
+            if device_token:
+                notify_driver_new_run(device_token, run_id, len(order_ids))
+            else:
+                logger.info(f"[push] No device token for driver {driver_id} — skipping push")
+        except Exception as exc:
+            logger.warning(f"[push] Failed to notify driver {driver_id}: {exc}")
+
         return {'success': True, 'run_id': run_id}
 
     def update_run_progress(self, run_id, completed):

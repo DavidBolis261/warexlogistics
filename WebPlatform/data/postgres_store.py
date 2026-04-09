@@ -266,6 +266,7 @@ class PostgresStore:
             ('drivers', 'longitude',           'DOUBLE PRECISION'),
             ('drivers', 'location_updated_at', 'TIMESTAMP'),
             ('drivers', 'pending_status',      'TEXT'),
+            ('drivers', 'device_token',        'TEXT'),
         ]
         for table, col, col_def in migrations:
             try:
@@ -541,6 +542,26 @@ class PostgresStore:
                 'timestamp': timestamp,
             })
             conn.commit()
+
+    def save_driver_device_token(self, driver_id: str, token: str):
+        """Store the APNs device token for a driver so push notifications can be sent."""
+        with self.engine.connect() as conn:
+            conn.execute(text("""
+                UPDATE drivers SET device_token = :token WHERE driver_id = :driver_id
+            """), {'driver_id': driver_id, 'token': token})
+            conn.commit()
+
+    def get_driver_device_token(self, driver_id: str):
+        """Return the stored APNs device token for a driver, or None."""
+        try:
+            with self.engine.connect() as conn:
+                result = conn.execute(text(
+                    "SELECT device_token FROM drivers WHERE driver_id = :driver_id"
+                ), {'driver_id': driver_id})
+                row = result.fetchone()
+                return row[0] if row and row[0] else None
+        except Exception:
+            return None
 
     def get_driver_location_history(self, driver_id, date=None):
         """Return location history for a driver, optionally filtered to one date (YYYY-MM-DD)."""

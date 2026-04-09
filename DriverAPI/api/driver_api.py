@@ -477,6 +477,35 @@ def create_driver_api(app: Flask, data_manager):
             'message': 'Location updated'
         }), 200
 
+    # ── Device Token (APNs Push Notifications) ────────────────────────────────
+
+    @app.route('/api/driver/device-token', methods=['POST'])
+    @require_auth
+    def register_device_token():
+        """
+        Register or update the APNs device token for this driver.
+
+        Request body:
+        {
+            "token": "<hex device token from Apple>"
+        }
+        """
+        driver_id = request.driver_id
+        data = request.get_json() or {}
+        token = (data.get('token') or '').strip()
+
+        if not token:
+            return jsonify({'error': 'token is required'}), 400
+
+        try:
+            data_manager.store.save_driver_device_token(driver_id, token)
+        except Exception as exc:
+            logger.warning(f"[device-token] Failed to save for {driver_id}: {exc}")
+            return jsonify({'success': False, 'error': str(exc)}), 500
+
+        logger.info(f"[device-token] Saved token ...{token[-6:]} for driver {driver_id}")
+        return jsonify({'success': True}), 200
+
     # ── Messages ──────────────────────────────────────────────────────────────
 
     @app.route('/api/driver/messages', methods=['GET'])
