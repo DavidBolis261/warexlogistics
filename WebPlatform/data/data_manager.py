@@ -129,6 +129,24 @@ class DataManager:
             result = send_order_confirmation(self, order_data)
             email_sent = result.get('success', False)
 
+        # Push notification — fire when a driver is assigned at order creation time
+        assigned_driver_id = order_data.get('driver_id', '').strip()
+        if assigned_driver_id:
+            try:
+                from utils.push_notifications import send_push_notification
+                device_token = self.store.get_driver_device_token(assigned_driver_id)
+                if device_token:
+                    logger.warning(f"[push] Sending new order notification to driver {assigned_driver_id}")
+                    send_push_notification(
+                        device_token,
+                        title="📦 New Order Assigned",
+                        body=f"A new delivery has been assigned to you.",
+                    )
+                else:
+                    logger.warning(f"[push] No device token for driver {assigned_driver_id}")
+            except Exception as exc:
+                logger.warning(f"[push] Failed to notify driver {assigned_driver_id}: {exc}")
+
         return {
             'success': True,
             'order_id': tracking_number,
