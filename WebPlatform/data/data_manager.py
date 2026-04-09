@@ -593,7 +593,12 @@ class DataManager:
 
         Returns dict with 'success', optionally 'skipped' if already imported.
         """
-        pack_slip = manifest.get('PackSlipNumber') or manifest.get('SalesOrderNumber', '')
+        pack_slip = (
+            manifest.get('PackSlipNumber')
+            or manifest.get('SalesOrderNumber')
+            or manifest.get('OrderNumber')
+            or str(manifest.get('JobID', ''))
+        )
         if not pack_slip:
             return {'success': False, 'error': 'No PackSlipNumber in manifest'}
 
@@ -671,7 +676,7 @@ class DataManager:
         if isinstance(resp, list):
             jobs = resp
         elif isinstance(resp, dict):
-            for key in ('PackJobs', 'Jobs', 'PackingSlips', 'Results', 'Data', 'PackJob'):
+            for key in ('OpenJobsData', 'PackJobs', 'Jobs', 'PackingSlips', 'Results', 'Data', 'PackJob'):
                 if key in resp:
                     val = resp[key]
                     jobs = val if isinstance(val, list) else [val]
@@ -683,7 +688,12 @@ class DataManager:
             return {'success': True, **summary, 'message': 'No open jobs found in WMS'}
 
         for job in jobs:
-            pack_slip = job.get('PackSlipNumber') or job.get('SalesOrderNumber', '')
+            pack_slip = (
+                job.get('PackSlipNumber')
+                or job.get('SalesOrderNumber')
+                or job.get('OrderNumber')
+                or str(job.get('JobID', ''))
+            )
             if not pack_slip:
                 continue
 
