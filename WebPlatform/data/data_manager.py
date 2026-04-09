@@ -179,6 +179,29 @@ class DataManager:
     def allocate_order(self, order_id, driver_name):
         self.store.update_order_status(order_id, 'allocated', driver_id=driver_name)
 
+        # Push notification — look up the driver's actual ID from their name
+        try:
+            from utils.push_notifications import send_push_notification
+            drivers_df = self.store.get_drivers()
+            if not drivers_df.empty and 'name' in drivers_df.columns:
+                match = drivers_df[drivers_df['name'] == driver_name]
+                if not match.empty:
+                    driver_id = match.iloc[0]['driver_id']
+                    device_token = self.store.get_driver_device_token(driver_id)
+                    if device_token:
+                        logger.warning(f"[push] Sending order notification to {driver_name} ({driver_id})")
+                        send_push_notification(
+                            device_token,
+                            title="📦 New Order Assigned",
+                            body=f"A new order has been assigned to you.",
+                        )
+                    else:
+                        logger.warning(f"[push] No device token for driver {driver_name} ({driver_id})")
+                else:
+                    logger.warning(f"[push] Could not find driver with name '{driver_name}'")
+        except Exception as exc:
+            logger.warning(f"[push] Failed to notify driver {driver_name}: {exc}")
+
     def update_order(self, order_id, skip_email=False, **fields):
         """Update order fields (status, zone, driver_id, proof_photo, etc.).
 
@@ -339,9 +362,10 @@ class DataManager:
             from utils.push_notifications import notify_driver_new_run
             device_token = self.store.get_driver_device_token(driver_id)
             if device_token:
+                logger.warning(f"[push] Sending notification to driver {driver_id} token ...{device_token[-6:]}")
                 notify_driver_new_run(device_token, run_id, len(order_ids))
             else:
-                logger.info(f"[push] No device token for driver {driver_id} — skipping push")
+                logger.warning(f"[push] No device token for driver {driver_id} — iOS app needs to register")
         except Exception as exc:
             logger.warning(f"[push] Failed to notify driver {driver_id}: {exc}")
 
