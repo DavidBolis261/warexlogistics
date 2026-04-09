@@ -232,6 +232,15 @@ class PostgresStore:
                 )
             """))
 
+            # ── Indexes ────────────────────────────────────────────────
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_orders_driver_id ON orders(driver_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at DESC)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_orders_driver_status ON orders(driver_id, status)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_run_orders_run_id ON run_orders(run_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_driver_tokens_driver_id ON driver_tokens(driver_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_loc_history_driver_date ON driver_location_history(driver_id, recorded_at DESC)"))
+
             conn.commit()
 
         logger.info("✅ PostgreSQL tables created/verified")
@@ -261,13 +270,16 @@ class PostgresStore:
             try:
                 conn = self.engine.connect().execution_options(isolation_level="AUTOCOMMIT")
                 try:
+                    # Short lock_timeout so a busy table fails fast instead of
+                    # blocking for the full statement_timeout (30 s per column).
+                    conn.execute(text("SET lock_timeout = '3s'"))
                     conn.execute(text(
                         f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {col} {col_def}"
                     ))
                 finally:
                     conn.close()
             except Exception:
-                pass  # Column exists or other harmless issue
+                pass  # Column exists, table locked, or other harmless issue
 
     # Delegate all methods to use SQL queries
     def get_orders(self):
@@ -275,9 +287,14 @@ class PostgresStore:
         return pd.read_sql("SELECT * FROM orders ORDER BY created_at DESC", self.engine)
 
     def get_orders_for_driver(self, driver_id):
-        """Get only the orders assigned to a specific driver — avoids full table scan."""
+        """Get active orders for a driver — excludes old completed/failed orders."""
         return pd.read_sql(
-            "SELECT * FROM orders WHERE driver_id = %(driver_id)s ORDER BY created_at DESC",
+            """
+            SELECT * FROM orders
+            WHERE driver_id = %(driver_id)s
+              AND status NOT IN ('delivered', 'failed')
+            ORDER BY created_at DESC
+            """,
             self.engine,
             params={'driver_id': driver_id},
         )
