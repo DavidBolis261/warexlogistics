@@ -393,7 +393,11 @@ def _render_location_history(driver, data_manager):
         return
 
     # Format timestamps for display
-    history_df['recorded_at'] = pd.to_datetime(history_df['recorded_at'])
+    # Timestamps are stored as UTC — convert to Sydney local time for display
+    history_df['recorded_at'] = (
+        pd.to_datetime(history_df['recorded_at'], utc=True)
+        .dt.tz_convert('Australia/Sydney')
+    )
     history_df['time_label'] = history_df['recorded_at'].dt.strftime('%H:%M:%S')
 
     st.caption(f"{len(history_df)} location points recorded on {selected_date.strftime('%d/%m/%Y')}")

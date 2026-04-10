@@ -571,7 +571,7 @@ class PostgresStore:
                 SELECT driver_id, latitude, longitude, recorded_at
                 FROM driver_location_history
                 WHERE driver_id = %(driver_id)s
-                  AND recorded_at::date = %(date)s
+                  AND (recorded_at AT TIME ZONE 'Australia/Sydney')::date = %(date)s
                 ORDER BY recorded_at ASC
                 """,
                 self.engine,
