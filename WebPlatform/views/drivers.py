@@ -400,25 +400,54 @@ def _render_location_history(driver, data_manager):
     )
     history_df['time_label'] = history_df['recorded_at'].dt.strftime('%H:%M:%S')
 
-    st.caption(f"{len(history_df)} location points recorded on {selected_date.strftime('%d/%m/%Y')}")
-
-    # Time range filter
+    total_points = len(history_df)
     times = history_df['recorded_at'].tolist()
-    if len(times) > 1:
-        min_t = times[0].strftime('%H:%M')
-        max_t = times[-1].strftime('%H:%M')
-        st.caption(f"Active from **{min_t}** to **{max_t}**")
+    min_t = times[0].strftime('%H:%M')
+    max_t = times[-1].strftime('%H:%M')
+    st.caption(f"{total_points} location points · {min_t} → {max_t}")
 
-    # Build pydeck map — path layer + scatter layer
+    # ── Timeline slider ────────────────────────────────────────────────────────
+    selected_idx = st.slider(
+        "Scrub timeline",
+        min_value=0,
+        max_value=total_points - 1,
+        value=0,
+        format="",
+        label_visibility="collapsed",
+    )
+
+    selected_row = history_df.iloc[selected_idx]
+    sel_time = history_df['recorded_at'].iloc[selected_idx].strftime('%H:%M:%S')
+    st.markdown(
+        f"<div style='text-align:center; font-family: Space Mono, monospace; font-size:1.1rem; "
+        f"color:#667eea; margin: 0.25rem 0 0.75rem;'>📍 {sel_time}</div>",
+        unsafe_allow_html=True,
+    )
+
+    # ── Map ───────────────────────────────────────────────────────────────────
+    midlat = history_df['latitude'].mean()
+    midlng = history_df['longitude'].mean()
+
     path_data = [{
         'path': list(zip(history_df['longitude'].tolist(), history_df['latitude'].tolist())),
         'name': driver_name,
     }]
 
-    points_data = history_df[['latitude', 'longitude', 'time_label']].to_dict('records')
+    # All points — small grey dots
+    all_points = history_df[['latitude', 'longitude', 'time_label']].to_dict('records')
 
-    midlat = history_df['latitude'].mean()
-    midlng = history_df['longitude'].mean()
+    # Selected point — large highlight circle
+    highlight = [{
+        'latitude': selected_row['latitude'],
+        'longitude': selected_row['longitude'],
+        'time_label': sel_time,
+    }]
+
+    # Start (green) and end (red) markers
+    start_end = [
+        {'latitude': history_df.iloc[0]['latitude'],  'longitude': history_df.iloc[0]['longitude'],  'color': [16, 185, 129]},
+        {'latitude': history_df.iloc[-1]['latitude'], 'longitude': history_df.iloc[-1]['longitude'], 'color': [239, 68, 68]},
+    ]
 
     path_layer = pdk.Layer(
         'PathLayer',
@@ -428,41 +457,44 @@ def _render_location_history(driver, data_manager):
         width_min_pixels=3,
         pickable=False,
     )
-
-    scatter_layer = pdk.Layer(
+    dots_layer = pdk.Layer(
         'ScatterplotLayer',
-        data=points_data,
+        data=all_points,
         get_position='[longitude, latitude]',
-        get_fill_color=[102, 126, 234, 200],
-        get_radius=30,
+        get_fill_color=[150, 150, 180, 160],
+        get_radius=15,
         pickable=True,
     )
-
-    # Mark the first point green and last point red
-    start_end = [
-        {'latitude': history_df.iloc[0]['latitude'],  'longitude': history_df.iloc[0]['longitude'],  'color': [16, 185, 129], 'label': 'Start'},
-        {'latitude': history_df.iloc[-1]['latitude'], 'longitude': history_df.iloc[-1]['longitude'], 'color': [239, 68, 68],  'label': 'End'},
-    ]
+    highlight_layer = pdk.Layer(
+        'ScatterplotLayer',
+        data=highlight,
+        get_position='[longitude, latitude]',
+        get_fill_color=[255, 220, 0, 240],
+        get_line_color=[255, 150, 0],
+        stroke=True,
+        line_width_min_pixels=2,
+        get_radius=40,
+        pickable=True,
+    )
     start_end_layer = pdk.Layer(
         'ScatterplotLayer',
         data=start_end,
         get_position='[longitude, latitude]',
         get_fill_color='color',
-        get_radius=60,
-        pickable=True,
+        get_radius=30,
+        pickable=False,
     )
 
-    view = pdk.ViewState(latitude=midlat, longitude=midlng, zoom=13, pitch=0)
+    view = pdk.ViewState(
+        latitude=selected_row['latitude'],
+        longitude=selected_row['longitude'],
+        zoom=15,
+        pitch=0,
+    )
     deck = pdk.Deck(
-        layers=[path_layer, scatter_layer, start_end_layer],
+        layers=[path_layer, dots_layer, start_end_layer, highlight_layer],
         initial_view_state=view,
         tooltip={'text': '{time_label}'},
         map_style='https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
     )
     st.pydeck_chart(deck)
-
-    # Timeline table
-    with st.expander("View full timeline"):
-        display_df = history_df[['time_label', 'latitude', 'longitude']].copy()
-        display_df.columns = ['Time', 'Latitude', 'Longitude']
-        st.dataframe(display_df, use_container_width=True, hide_index=True)
