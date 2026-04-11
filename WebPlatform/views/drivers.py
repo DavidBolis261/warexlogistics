@@ -406,18 +406,16 @@ def _render_location_history(driver, data_manager):
     max_t = times[-1].strftime('%H:%M')
     st.caption(f"{total_points} location points · {min_t} → {max_t}")
 
-    # ── Timeline slider ────────────────────────────────────────────────────────
-    selected_idx = st.slider(
+    # ── Timeline slider — snaps to actual recorded times ──────────────────────
+    time_labels = history_df['time_label'].tolist()
+    selected_time = st.select_slider(
         "Scrub timeline",
-        min_value=0,
-        max_value=total_points - 1,
-        value=0,
-        format="",
+        options=time_labels,
         label_visibility="collapsed",
     )
-
+    selected_idx = time_labels.index(selected_time)
     selected_row = history_df.iloc[selected_idx]
-    sel_time = history_df['recorded_at'].iloc[selected_idx].strftime('%H:%M:%S')
+    sel_time = selected_time
     st.markdown(
         f"<div style='text-align:center; font-family: Space Mono, monospace; font-size:1.1rem; "
         f"color:#667eea; margin: 0.25rem 0 0.75rem;'>📍 {sel_time}</div>",
