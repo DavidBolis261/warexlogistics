@@ -20,6 +20,7 @@ from flask import Flask
 from flask_cors import CORS
 from data.data_manager import DataManager
 from api.driver_api import create_driver_api
+from api.external_api import create_external_api
 
 # Configure logging so every [email] line appears in stdout / Railway logs
 logging.basicConfig(
@@ -37,10 +38,15 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB
 # Enable CORS for mobile app access
 CORS(app, resources={
     r"/api/driver/*": {
-        "origins": "*",  # In production, restrict to your mobile app
+        "origins": "*",
         "methods": ["GET", "POST", "PUT", "DELETE"],
-        "allow_headers": ["Content-Type", "Authorization"]
-    }
+        "allow_headers": ["Content-Type", "Authorization"],
+    },
+    r"/api/v1/*": {
+        "origins": "*",
+        "methods": ["GET", "POST"],
+        "allow_headers": ["Content-Type", "X-API-Key"],
+    },
 })
 
 # Initialize data manager
@@ -48,6 +54,9 @@ data_manager = DataManager()
 
 # Register driver API routes
 create_driver_api(app, data_manager)
+
+# Register external partner API routes
+create_external_api(app, data_manager)
 
 # ── Email configuration check (printed once at startup) ──────────────────────
 try:
