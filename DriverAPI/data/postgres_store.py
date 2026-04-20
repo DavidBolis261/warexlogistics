@@ -266,6 +266,7 @@ class PostgresStore:
             ('drivers', 'location_updated_at', 'TIMESTAMP'),
             ('drivers', 'pending_status',      'TEXT'),
             ('drivers', 'device_token',        'TEXT'),
+            ('orders',  'weight',              'NUMERIC(10,2)'),
         ]
         for table, col, col_def in migrations:
             try:

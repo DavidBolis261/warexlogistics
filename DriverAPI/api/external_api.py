@@ -116,6 +116,12 @@ def create_external_api(app, data_manager):
             'zone':                str(body.get('zone', '')).strip(),
         }
 
+        if body.get('weight') is not None:
+            try:
+                order_data['weight'] = float(body['weight'])
+            except (ValueError, TypeError):
+                return jsonify({'success': False, 'error': 'weight must be a number (kg)'}), 400
+
         try:
             result = data_manager.create_order(order_data)
         except Exception as exc:
@@ -185,6 +191,7 @@ def create_external_api(app, data_manager):
                 'state':           order.get('state', ''),
                 'postcode':        order.get('postcode', ''),
                 'parcels':         order.get('parcels', 1),
+                'weight':          order.get('weight'),
                 'service_level':   order.get('service_level', 'standard'),
                 'created_at':      str(order.get('created_at', '')),
                 'driver_id':       order.get('driver_id', ''),
