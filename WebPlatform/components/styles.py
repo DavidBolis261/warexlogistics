@@ -2,11 +2,12 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 # ── Warex brand palette ───────────────────────────────────────────────────────
-# Gold:  #F5B800  (primary accent)
-# Gold2: #C89600  (deep gold — gradient pair)
-# Black: #0a0a0a  (app background)
-# Dark:  #141414  (card / sidebar background)
-# Elev:  #1c1c1c  (elevated surface)
+# Content bg : #FFFFFF  (white)
+# Sidebar    : #0a0a0a  (black — matches logo header/footer)
+# Gold       : #F5B800
+# Gold deep  : #C89600
+# Text       : #1a1a1a  (near-black)
+# Subtle     : #6b7280  (secondary text)
 
 
 def apply_styles(authenticated=False):
@@ -14,21 +15,88 @@ def apply_styles(authenticated=False):
 <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap');
 
-    /* ── Hide Streamlit default branding ── */
-    #MainMenu { visibility: hidden; }
-    footer { visibility: hidden; }
-    header[data-testid="stHeader"] { visibility: hidden; }
+    /* ── Hide Streamlit default chrome ── */
+    #MainMenu, footer, header { visibility: hidden; }
+    .stDeployButton { display: none; }
+    [data-testid="stToolbar"] { display: none; }
+    footer:after { content: ''; display: none; }
 
+    /* ── App shell — white content area ── */
     .stApp {
-        background: linear-gradient(135deg, #0a0a0a 0%, #141414 100%);
+        background: #FFFFFF;
     }
 
     .main .block-container {
         padding-top: 2rem;
         padding-bottom: 2rem;
         max-width: 100%;
+        background: #FFFFFF;
     }
 
+    /* ── Dark sidebar — matches Warex black branding ── */
+    .css-1d391kg, [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0a0a0a 0%, #141414 100%) !important;
+        border-right: 1px solid rgba(245, 184, 0, 0.15);
+    }
+
+    [data-testid="stSidebar"] .stMarkdown,
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] span,
+    [data-testid="stSidebar"] label {
+        color: rgba(255, 255, 255, 0.85) !important;
+    }
+
+    [data-testid="stSidebar"] .stRadio label,
+    [data-testid="stSidebar"] .stSelectbox label {
+        color: rgba(255, 255, 255, 0.85) !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stCaption"] p {
+        color: rgba(255, 255, 255, 0.4) !important;
+    }
+
+    /* Sidebar radio selected item */
+    [data-testid="stSidebar"] .stRadio [aria-checked="true"] + div > p {
+        color: #F5B800 !important;
+        font-weight: 700;
+    }
+
+    /* ── Main content text — dark on white ── */
+    .main p, .main span, .main div, .main label {
+        color: #1a1a1a;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        color: #1a1a1a !important;
+    }
+
+    /* Streamlit auto-generated paragraph text */
+    .stMarkdown p { color: #1a1a1a !important; }
+    .stText       { color: #1a1a1a !important; }
+
+    /* ── Metric widgets ── */
+    [data-testid="stMetric"] {
+        background: #FFFFFF;
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 14px;
+        padding: 1.2rem 1.4rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    [data-testid="stMetricValue"] > div {
+        color: #F5B800 !important;
+        font-family: 'Space Mono', monospace !important;
+        font-weight: 700 !important;
+    }
+
+    [data-testid="stMetricLabel"] > div {
+        color: #6b7280 !important;
+        font-size: 0.8rem !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* ── Dashboard header strip ── */
     .dashboard-header {
         background: linear-gradient(90deg, #F5B800 0%, #C89600 100%);
         padding: 1.5rem 2rem;
@@ -45,29 +113,29 @@ def apply_styles(authenticated=False):
         font-weight: 700;
         color: #0a0a0a;
         margin: 0;
-        letter-spacing: -0.5px;
     }
 
     .dashboard-subtitle {
         font-family: 'Space Mono', monospace;
         font-size: 0.85rem;
-        color: rgba(0,0,0,0.65);
+        color: rgba(0,0,0,0.6);
         margin-top: 0.25rem;
     }
 
+    /* ── Metric card (custom HTML) ── */
     .metric-card {
-        background: rgba(255,255,255,0.04);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255,255,255,0.08);
+        background: #FFFFFF;
+        border: 1px solid rgba(0,0,0,0.07);
         border-radius: 16px;
         padding: 1.5rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
         transition: all 0.3s ease;
     }
 
     .metric-card:hover {
-        transform: translateY(-4px);
+        transform: translateY(-3px);
         border-color: rgba(245, 184, 0, 0.4);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
     }
 
     .metric-value {
@@ -81,21 +149,16 @@ def apply_styles(authenticated=False):
     .metric-label {
         font-family: 'DM Sans', sans-serif;
         font-size: 0.9rem;
-        color: rgba(255,255,255,0.6);
+        color: #6b7280;
         margin-top: 0.5rem;
         text-transform: uppercase;
         letter-spacing: 1px;
     }
 
-    .metric-change {
-        font-family: 'Space Mono', monospace;
-        font-size: 0.8rem;
-        margin-top: 0.75rem;
-    }
-
     .metric-change.positive { color: #10b981; }
     .metric-change.negative { color: #ef4444; }
 
+    /* ── Status badges ── */
     .status-badge {
         display: inline-block;
         padding: 0.35rem 0.75rem;
@@ -113,18 +176,20 @@ def apply_styles(authenticated=False):
     .status-failed     { background: #ef4444; color: white; }
     .status-available  { background: #10b981; color: white; }
     .status-on-route   { background: #3b82f6; color: white; }
-    .status-offline    { background: #6b7280; color: white; }
+    .status-offline    { background: #e5e7eb; color: #6b7280; }
 
+    /* ── DataFrames ── */
     .dataframe {
         font-family: 'DM Sans', sans-serif !important;
-        background: rgba(255,255,255,0.02) !important;
-        border: none !important;
+        background: #FFFFFF !important;
+        border: 1px solid rgba(0,0,0,0.06) !important;
+        border-radius: 8px !important;
     }
 
     .dataframe th {
-        background: rgba(245, 184, 0, 0.15) !important;
-        color: #F5B800 !important;
-        font-weight: 600 !important;
+        background: rgba(245, 184, 0, 0.12) !important;
+        color: #1a1a1a !important;
+        font-weight: 700 !important;
         text-transform: uppercase !important;
         font-size: 0.75rem !important;
         letter-spacing: 1px !important;
@@ -132,42 +197,36 @@ def apply_styles(authenticated=False):
     }
 
     .dataframe td {
-        color: rgba(255,255,255,0.9) !important;
+        color: #1a1a1a !important;
         padding: 0.75rem 1rem !important;
-        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+        border-bottom: 1px solid rgba(0,0,0,0.05) !important;
     }
 
-    .css-1d391kg, [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0a0a0a 0%, #141414 100%);
-        border-right: 1px solid rgba(245,184,0,0.12);
-    }
-
-    [data-testid="stSidebar"] .stMarkdown {
-        color: rgba(255,255,255,0.9);
-    }
-
+    /* ── Section header ── */
     .section-header {
         font-family: 'DM Sans', sans-serif;
         font-size: 1.25rem;
         font-weight: 700;
-        color: white;
+        color: #1a1a1a;
         margin: 2rem 0 1rem 0;
         padding-bottom: 0.75rem;
-        border-bottom: 2px solid rgba(245, 184, 0, 0.3);
+        border-bottom: 2px solid rgba(245, 184, 0, 0.4);
     }
 
+    /* ── Order cards ── */
     .order-card {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.07);
+        background: #FFFFFF;
+        border: 1px solid rgba(0,0,0,0.07);
         border-radius: 12px;
         padding: 1.25rem;
         margin-bottom: 1rem;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
         transition: all 0.2s ease;
     }
 
     .order-card:hover {
-        background: rgba(245, 184, 0, 0.04);
-        border-color: rgba(245, 184, 0, 0.25);
+        border-color: rgba(245, 184, 0, 0.35);
+        box-shadow: 0 4px 16px rgba(245, 184, 0, 0.1);
     }
 
     .order-id {
@@ -180,48 +239,30 @@ def apply_styles(authenticated=False):
     .order-customer {
         font-family: 'DM Sans', sans-serif;
         font-size: 1rem;
-        color: white;
+        color: #1a1a1a;
         margin-top: 0.5rem;
     }
 
     .order-address {
         font-family: 'DM Sans', sans-serif;
         font-size: 0.85rem;
-        color: rgba(255,255,255,0.6);
+        color: #6b7280;
         margin-top: 0.25rem;
     }
 
+    /* ── Driver cards ── */
     .driver-card {
-        background: linear-gradient(135deg, rgba(245, 184, 0, 0.08) 0%, rgba(200, 150, 0, 0.05) 100%);
-        border: 1px solid rgba(245, 184, 0, 0.15);
+        background: linear-gradient(135deg, rgba(245, 184, 0, 0.05) 0%, rgba(200, 150, 0, 0.02) 100%);
+        border: 1px solid rgba(245, 184, 0, 0.18);
         border-radius: 16px;
         padding: 1.5rem;
         margin-bottom: 1rem;
     }
 
-    .driver-name {
-        font-family: 'DM Sans', sans-serif;
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: white;
-    }
-
-    .driver-vehicle {
-        font-family: 'Space Mono', monospace;
-        font-size: 0.8rem;
-        color: rgba(255,255,255,0.5);
-        margin-top: 0.25rem;
-    }
-
-    .driver-stats {
-        display: flex;
-        gap: 1.5rem;
-        margin-top: 1rem;
-    }
-
-    .driver-stat {
-        text-align: center;
-    }
+    .driver-name   { font-family: 'DM Sans', sans-serif; font-size: 1.1rem; font-weight: 700; color: #1a1a1a; }
+    .driver-vehicle{ font-family: 'Space Mono', monospace; font-size: 0.8rem; color: #6b7280; margin-top: 0.25rem; }
+    .driver-stats  { display: flex; gap: 1.5rem; margin-top: 1rem; }
+    .driver-stat   { text-align: center; }
 
     .driver-stat-value {
         font-family: 'Space Mono', monospace;
@@ -233,78 +274,131 @@ def apply_styles(authenticated=False):
     .driver-stat-label {
         font-family: 'DM Sans', sans-serif;
         font-size: 0.7rem;
-        color: rgba(255,255,255,0.5);
+        color: #9ca3af;
         text-transform: uppercase;
     }
 
+    /* ── Buttons ── */
     .stButton > button {
         font-family: 'DM Sans', sans-serif;
         font-weight: 600;
         border-radius: 8px;
         padding: 0.5rem 1.5rem;
         transition: all 0.2s ease;
+        color: #1a1a1a;
+        border: 1px solid rgba(0,0,0,0.12);
+        background: #FFFFFF;
     }
 
     .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 16px rgba(245, 184, 0, 0.3);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px rgba(245, 184, 0, 0.25);
+        border-color: rgba(245, 184, 0, 0.5);
     }
 
-    /* Primary button (type="primary") — gold fill with black text */
-    .stButton > button[kind="primary"] {
+    /* Primary buttons — gold fill with black text */
+    .stButton > button[kind="primary"],
+    .stButton > button[data-testid="baseButton-primary"] {
         background: linear-gradient(90deg, #F5B800, #C89600) !important;
         color: #0a0a0a !important;
         border: none !important;
         font-weight: 700 !important;
     }
 
-    .stButton > button[kind="primary"]:hover {
-        box-shadow: 0 4px 20px rgba(245, 184, 0, 0.5) !important;
+    .stButton > button[kind="primary"]:hover,
+    .stButton > button[data-testid="baseButton-primary"]:hover {
+        box-shadow: 0 4px 18px rgba(245, 184, 0, 0.45) !important;
     }
 
+    /* ── Input fields ── */
+    .stTextInput input,
+    .stTextArea textarea {
+        background: #FFFFFF !important;
+        color: #1a1a1a !important;
+        border: 1px solid rgba(0,0,0,0.15) !important;
+        border-radius: 8px !important;
+    }
+
+    .stTextInput input:focus,
+    .stTextArea textarea:focus {
+        border-color: #F5B800 !important;
+        box-shadow: 0 0 0 3px rgba(245, 184, 0, 0.15) !important;
+    }
+
+    .stTextInput label, .stTextArea label, .stSelectbox label,
+    .stNumberInput label, .stDateInput label {
+        color: #1a1a1a !important;
+        font-weight: 600;
+    }
+
+    /* Selectbox */
+    [data-baseweb="select"] > div {
+        background: #FFFFFF !important;
+        border: 1px solid rgba(0,0,0,0.15) !important;
+        color: #1a1a1a !important;
+    }
+
+    [data-baseweb="select"] span { color: #1a1a1a !important; }
+
+    /* Select dropdown options */
+    [role="listbox"] li {
+        background: #FFFFFF !important;
+        color: #1a1a1a !important;
+    }
+
+    [role="option"]:hover,
+    [role="option"][aria-selected="true"] {
+        background: rgba(245, 184, 0, 0.12) !important;
+        color: #1a1a1a !important;
+    }
+
+    /* Number input */
+    .stNumberInput input {
+        background: #FFFFFF !important;
+        color: #1a1a1a !important;
+        border: 1px solid rgba(0,0,0,0.15) !important;
+    }
+
+    /* ── Tabs ── */
     .stTabs [data-baseweb="tab-list"] {
         gap: 0.5rem;
-        background: rgba(255,255,255,0.02);
-        padding: 0.5rem;
+        background: #F5F5F5;
+        padding: 0.4rem;
         border-radius: 12px;
     }
 
     .stTabs [data-baseweb="tab"] {
         font-family: 'DM Sans', sans-serif;
         font-weight: 600;
-        color: rgba(255,255,255,0.55);
+        color: #6b7280;
         border-radius: 8px;
-        padding: 0.75rem 1.5rem;
+        padding: 0.65rem 1.4rem;
+        background: transparent;
     }
 
     .stTabs [aria-selected="true"] {
-        background: linear-gradient(90deg, #F5B800 0%, #C89600 100%);
+        background: linear-gradient(90deg, #F5B800 0%, #C89600 100%) !important;
         color: #0a0a0a !important;
         font-weight: 700 !important;
     }
 
-    .zone-map {
-        background: linear-gradient(135deg, #0a0a0a 0%, #141414 100%);
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 16px;
-        padding: 2rem;
-        min-height: 400px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        overflow: hidden;
+    /* ── Expander ── */
+    .streamlit-expanderHeader {
+        color: #1a1a1a !important;
+        background: #F9F9F9 !important;
+        border-radius: 8px !important;
+        border: 1px solid rgba(0,0,0,0.08) !important;
     }
 
-    .zone-map::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background:
-            radial-gradient(circle at 20% 30%, rgba(245, 184, 0, 0.07) 0%, transparent 50%),
-            radial-gradient(circle at 80% 70%, rgba(200, 150, 0, 0.05) 0%, transparent 50%);
+    /* ── Checkbox / radio ── */
+    .stCheckbox label, .stRadio label { color: #1a1a1a !important; }
+
+    /* ── Info / warning / error / success boxes ── */
+    .stAlert {
+        border-radius: 10px !important;
     }
 
+    /* ── Live indicator ── */
     .live-indicator {
         display: inline-flex;
         align-items: center;
@@ -329,10 +423,12 @@ def apply_styles(authenticated=False):
         50%       { opacity: 0.5; transform: scale(1.2); }
     }
 
+    /* ── Priority borders ── */
     .priority-express  { border-left: 4px solid #ef4444; }
     .priority-standard { border-left: 4px solid #F5B800; }
-    .priority-economy  { border-left: 4px solid #6b7280; }
+    .priority-economy  { border-left: 4px solid #d1d5db; }
 
+    /* ── Toast ── */
     .toast {
         position: fixed;
         top: 1rem;
@@ -343,7 +439,7 @@ def apply_styles(authenticated=False):
         border-radius: 12px;
         font-family: 'DM Sans', sans-serif;
         font-weight: 700;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
         z-index: 1000;
         animation: slideIn 0.3s ease;
     }
@@ -353,13 +449,11 @@ def apply_styles(authenticated=False):
         to   { transform: translateX(0);    opacity: 1; }
     }
 
-    ::-webkit-scrollbar       { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
-    ::-webkit-scrollbar-thumb {
-        background: rgba(245, 184, 0, 0.25);
-        border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(245, 184, 0, 0.45); }
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar       { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; }
+    ::-webkit-scrollbar-thumb { background: rgba(245,184,0,0.35); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(245,184,0,0.6); }
 
     /* ── Tracking page ── */
     .tracking-timeline {
@@ -383,8 +477,8 @@ def apply_styles(authenticated=False):
         width: 28px;
         height: 28px;
         border-radius: 50%;
-        background: rgba(255,255,255,0.06);
-        border: 2px solid rgba(255,255,255,0.12);
+        background: rgba(0,0,0,0.06);
+        border: 2px solid rgba(0,0,0,0.12);
         z-index: 2;
         position: relative;
     }
@@ -392,7 +486,7 @@ def apply_styles(authenticated=False):
     .timeline-dot.active {
         background: #F5B800;
         border-color: #F5B800;
-        box-shadow: 0 0 16px rgba(245, 184, 0, 0.5);
+        box-shadow: 0 0 14px rgba(245, 184, 0, 0.45);
     }
 
     .timeline-dot.current { animation: pulse 2s infinite; }
@@ -400,14 +494,14 @@ def apply_styles(authenticated=False):
     .timeline-label {
         font-family: 'Space Mono', monospace;
         font-size: 0.65rem;
-        color: rgba(255,255,255,0.3);
+        color: #9ca3af;
         margin-top: 0.6rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         text-align: center;
     }
 
-    .timeline-label.active { color: #F5B800; }
+    .timeline-label.active { color: #C89600; }
 
     .timeline-line {
         position: absolute;
@@ -415,32 +509,24 @@ def apply_styles(authenticated=False):
         right: 50%;
         width: 100%;
         height: 2px;
-        background: rgba(255,255,255,0.07);
+        background: rgba(0,0,0,0.08);
         z-index: 1;
     }
 
     .timeline-line.active { background: #F5B800; }
 
     .tracking-result {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.08);
+        background: #FFFFFF;
+        border: 1px solid rgba(0,0,0,0.08);
         border-radius: 16px;
         padding: 2rem;
         margin-top: 1.5rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
     }
 
-    .tracking-result:hover { border-color: rgba(245, 184, 0, 0.25); }
-
+    .tracking-result:hover { border-color: rgba(245, 184, 0, 0.3); }
     .tracking-failed       { border-color: rgba(239, 68, 68, 0.3); }
     .tracking-failed:hover { border-color: rgba(239, 68, 68, 0.5); }
-
-    /* ── Streamlit chrome removal ── */
-    #MainMenu      { visibility: hidden; }
-    footer         { visibility: hidden; }
-    header         { visibility: hidden; }
-    .stDeployButton{ display: none; }
-    [data-testid="stToolbar"] { display: none; }
-    footer:after   { content: ''; display: none; }
 
     /* ── Sidebar collapse button ── */
     [data-testid="stSidebarCollapseButton"] {
@@ -449,17 +535,16 @@ def apply_styles(authenticated=False):
     }
 
     [data-testid="stSidebarCollapseButton"] button {
-        background: rgba(245, 184, 0, 0.08) !important;
-        border: 1px solid rgba(245, 184, 0, 0.3) !important;
+        background: rgba(245, 184, 0, 0.1) !important;
+        border: 1px solid rgba(245, 184, 0, 0.35) !important;
         border-radius: 8px !important;
         color: #F5B800 !important;
         transition: all 0.2s ease !important;
     }
 
     [data-testid="stSidebarCollapseButton"] button:hover {
-        background: rgba(245, 184, 0, 0.2) !important;
+        background: rgba(245, 184, 0, 0.22) !important;
         border-color: rgba(245, 184, 0, 0.7) !important;
-        box-shadow: 0 0 12px rgba(245, 184, 0, 0.25) !important;
     }
 
     [data-testid="stSidebarCollapseButton"] svg {
@@ -542,7 +627,7 @@ def apply_styles(authenticated=False):
             'cursor:pointer',
             'font-size:15px',
             'line-height:1',
-            'box-shadow:4px 0 16px rgba(0,0,0,0.5)',
+            'box-shadow:4px 0 16px rgba(0,0,0,0.15)',
             'transition:all 0.2s ease',
             'outline:none'
         ].join(';'));
@@ -550,12 +635,12 @@ def apply_styles(authenticated=False):
         btn.addEventListener('mouseenter', function () {
             this.style.background = 'linear-gradient(135deg,#F5B800,#C89600)';
             this.style.color      = '#0a0a0a';
-            this.style.boxShadow  = '4px 0 24px rgba(245,184,0,0.4)';
+            this.style.boxShadow  = '4px 0 20px rgba(245,184,0,0.35)';
         });
         btn.addEventListener('mouseleave', function () {
             this.style.background = 'linear-gradient(135deg,#141414,#1c1c1c)';
             this.style.color      = '#F5B800';
-            this.style.boxShadow  = '4px 0 16px rgba(0,0,0,0.5)';
+            this.style.boxShadow  = '4px 0 16px rgba(0,0,0,0.15)';
         });
         btn.addEventListener('click', toggle);
 
