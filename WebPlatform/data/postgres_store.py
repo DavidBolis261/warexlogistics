@@ -268,6 +268,8 @@ class PostgresStore:
             ('drivers', 'pending_status',      'TEXT'),
             ('drivers', 'device_token',        'TEXT'),
             ('orders',  'weight',              'NUMERIC(10,2)'),
+            ('admin_users', 'role',            "TEXT DEFAULT 'admin'"),
+            ('admin_users', 'company_name',    'TEXT'),
         ]
         for table, col, col_def in migrations:
             try:
@@ -298,17 +300,19 @@ class PostgresStore:
             order_data['driver_id'] = ''
         if 'instructions' not in order_data:
             order_data['instructions'] = ''
+        if 'weight' not in order_data:
+            order_data['weight'] = None
 
         with self.engine.connect() as conn:
             conn.execute(text("""
                 INSERT INTO orders (
                     order_id, customer, email, phone, address, suburb, postcode, state,
                     parcels, service_level, status, zone, driver_id, instructions,
-                    tracking_number, order_date, created_at, updated_at
+                    tracking_number, order_date, created_at, updated_at, weight
                 ) VALUES (
                     :order_id, :customer, :email, :phone, :address, :suburb, :postcode, :state,
                     :parcels, :service_level, :status, :zone, :driver_id, :instructions,
-                    :tracking_number, :order_date, :created_at, :updated_at
+                    :tracking_number, :order_date, :created_at, :updated_at, :weight
                 )
                 ON CONFLICT (order_id) DO UPDATE SET
                     customer = EXCLUDED.customer,
@@ -324,6 +328,7 @@ class PostgresStore:
                     zone = EXCLUDED.zone,
                     driver_id = EXCLUDED.driver_id,
                     instructions = EXCLUDED.instructions,
+                    weight = EXCLUDED.weight,
                     updated_at = CURRENT_TIMESTAMP
             """), order_data)
             conn.commit()
@@ -789,14 +794,30 @@ class PostgresStore:
         )
         return result.iloc[0].to_dict() if not result.empty else None
 
-    def create_admin_user(self, username, password_hash, salt):
-        """Create admin user."""
+    def create_admin_user(self, username, password_hash, salt, role='admin', company_name=''):
+        """Create an admin or client user."""
         with self.engine.connect() as conn:
             conn.execute(text("""
-                INSERT INTO admin_users (username, password_hash, salt, created_at)
-                VALUES (:username, :password_hash, :salt, CURRENT_TIMESTAMP)
-            """), {'username': username, 'password_hash': password_hash, 'salt': salt})
+                INSERT INTO admin_users (username, password_hash, salt, created_at, role, company_name)
+                VALUES (:username, :password_hash, :salt, CURRENT_TIMESTAMP, :role, :company_name)
+            """), {'username': username, 'password_hash': password_hash, 'salt': salt,
+                   'role': role, 'company_name': company_name or ''})
             conn.commit()
+
+    def get_role_for_token(self, token):
+        """Return the role ('admin' or 'client') for a valid session token, or None."""
+        result = pd.read_sql(
+            """
+            SELECT a.role FROM session_tokens s
+            JOIN admin_users a ON a.username = s.username
+            WHERE s.token = %(token)s AND s.expires_at > CURRENT_TIMESTAMP
+            """,
+            self.engine,
+            params={'token': token}
+        )
+        if result.empty:
+            return None
+        return str(result.iloc[0]['role'] or 'admin')
 
     def admin_user_count(self):
         """Count admin users."""

@@ -1,6 +1,13 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
+# ── Warex brand palette ───────────────────────────────────────────────────────
+# Gold:  #F5B800  (primary accent)
+# Gold2: #C89600  (deep gold — gradient pair)
+# Black: #0a0a0a  (app background)
+# Dark:  #141414  (card / sidebar background)
+# Elev:  #1c1c1c  (elevated surface)
+
 
 def apply_styles(authenticated=False):
     st.markdown("""
@@ -13,7 +20,7 @@ def apply_styles(authenticated=False):
     header[data-testid="stHeader"] { visibility: hidden; }
 
     .stApp {
-        background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+        background: linear-gradient(135deg, #0a0a0a 0%, #141414 100%);
     }
 
     .main .block-container {
@@ -23,7 +30,7 @@ def apply_styles(authenticated=False):
     }
 
     .dashboard-header {
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(90deg, #F5B800 0%, #C89600 100%);
         padding: 1.5rem 2rem;
         border-radius: 16px;
         margin-bottom: 2rem;
@@ -36,7 +43,7 @@ def apply_styles(authenticated=False):
         font-family: 'DM Sans', sans-serif;
         font-size: 2rem;
         font-weight: 700;
-        color: white;
+        color: #0a0a0a;
         margin: 0;
         letter-spacing: -0.5px;
     }
@@ -44,14 +51,14 @@ def apply_styles(authenticated=False):
     .dashboard-subtitle {
         font-family: 'Space Mono', monospace;
         font-size: 0.85rem;
-        color: rgba(255,255,255,0.8);
+        color: rgba(0,0,0,0.65);
         margin-top: 0.25rem;
     }
 
     .metric-card {
-        background: rgba(255,255,255,0.05);
+        background: rgba(255,255,255,0.04);
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.08);
         border-radius: 16px;
         padding: 1.5rem;
         transition: all 0.3s ease;
@@ -59,15 +66,15 @@ def apply_styles(authenticated=False):
 
     .metric-card:hover {
         transform: translateY(-4px);
-        border-color: rgba(102, 126, 234, 0.5);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        border-color: rgba(245, 184, 0, 0.4);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
     }
 
     .metric-value {
         font-family: 'Space Mono', monospace;
         font-size: 2.5rem;
         font-weight: 700;
-        color: #667eea;
+        color: #F5B800;
         line-height: 1;
     }
 
@@ -100,13 +107,13 @@ def apply_styles(authenticated=False):
         letter-spacing: 0.5px;
     }
 
-    .status-pending { background: #fbbf24; color: #1a1a2e; }
+    .status-pending    { background: #F5B800; color: #0a0a0a; }
     .status-in-transit { background: #3b82f6; color: white; }
-    .status-delivered { background: #10b981; color: white; }
-    .status-failed { background: #ef4444; color: white; }
-    .status-available { background: #10b981; color: white; }
-    .status-on-route { background: #3b82f6; color: white; }
-    .status-offline { background: #6b7280; color: white; }
+    .status-delivered  { background: #10b981; color: white; }
+    .status-failed     { background: #ef4444; color: white; }
+    .status-available  { background: #10b981; color: white; }
+    .status-on-route   { background: #3b82f6; color: white; }
+    .status-offline    { background: #6b7280; color: white; }
 
     .dataframe {
         font-family: 'DM Sans', sans-serif !important;
@@ -115,8 +122,8 @@ def apply_styles(authenticated=False):
     }
 
     .dataframe th {
-        background: rgba(102, 126, 234, 0.2) !important;
-        color: white !important;
+        background: rgba(245, 184, 0, 0.15) !important;
+        color: #F5B800 !important;
         font-weight: 600 !important;
         text-transform: uppercase !important;
         font-size: 0.75rem !important;
@@ -131,7 +138,8 @@ def apply_styles(authenticated=False):
     }
 
     .css-1d391kg, [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+        background: linear-gradient(180deg, #0a0a0a 0%, #141414 100%);
+        border-right: 1px solid rgba(245,184,0,0.12);
     }
 
     [data-testid="stSidebar"] .stMarkdown {
@@ -145,12 +153,12 @@ def apply_styles(authenticated=False):
         color: white;
         margin: 2rem 0 1rem 0;
         padding-bottom: 0.75rem;
-        border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+        border-bottom: 2px solid rgba(245, 184, 0, 0.3);
     }
 
     .order-card {
         background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.07);
         border-radius: 12px;
         padding: 1.25rem;
         margin-bottom: 1rem;
@@ -158,14 +166,14 @@ def apply_styles(authenticated=False):
     }
 
     .order-card:hover {
-        background: rgba(255,255,255,0.06);
-        border-color: rgba(102, 126, 234, 0.3);
+        background: rgba(245, 184, 0, 0.04);
+        border-color: rgba(245, 184, 0, 0.25);
     }
 
     .order-id {
         font-family: 'Space Mono', monospace;
         font-size: 0.9rem;
-        color: #667eea;
+        color: #F5B800;
         font-weight: 700;
     }
 
@@ -184,8 +192,8 @@ def apply_styles(authenticated=False):
     }
 
     .driver-card {
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-        border: 1px solid rgba(102, 126, 234, 0.2);
+        background: linear-gradient(135deg, rgba(245, 184, 0, 0.08) 0%, rgba(200, 150, 0, 0.05) 100%);
+        border: 1px solid rgba(245, 184, 0, 0.15);
         border-radius: 16px;
         padding: 1.5rem;
         margin-bottom: 1rem;
@@ -219,7 +227,7 @@ def apply_styles(authenticated=False):
         font-family: 'Space Mono', monospace;
         font-size: 1.25rem;
         font-weight: 700;
-        color: #667eea;
+        color: #F5B800;
     }
 
     .driver-stat-label {
@@ -239,7 +247,19 @@ def apply_styles(authenticated=False):
 
     .stButton > button:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 4px 16px rgba(245, 184, 0, 0.3);
+    }
+
+    /* Primary button (type="primary") — gold fill with black text */
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(90deg, #F5B800, #C89600) !important;
+        color: #0a0a0a !important;
+        border: none !important;
+        font-weight: 700 !important;
+    }
+
+    .stButton > button[kind="primary"]:hover {
+        box-shadow: 0 4px 20px rgba(245, 184, 0, 0.5) !important;
     }
 
     .stTabs [data-baseweb="tab-list"] {
@@ -252,19 +272,20 @@ def apply_styles(authenticated=False):
     .stTabs [data-baseweb="tab"] {
         font-family: 'DM Sans', sans-serif;
         font-weight: 600;
-        color: rgba(255,255,255,0.6);
+        color: rgba(255,255,255,0.55);
         border-radius: 8px;
         padding: 0.75rem 1.5rem;
     }
 
     .stTabs [aria-selected="true"] {
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        background: linear-gradient(90deg, #F5B800 0%, #C89600 100%);
+        color: #0a0a0a !important;
+        font-weight: 700 !important;
     }
 
     .zone-map {
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-        border: 1px solid rgba(255,255,255,0.1);
+        background: linear-gradient(135deg, #0a0a0a 0%, #141414 100%);
+        border: 1px solid rgba(255,255,255,0.08);
         border-radius: 16px;
         padding: 2rem;
         min-height: 400px;
@@ -278,13 +299,10 @@ def apply_styles(authenticated=False):
     .zone-map::before {
         content: '';
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        top: 0; left: 0; right: 0; bottom: 0;
         background:
-            radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
-            radial-gradient(circle at 80% 70%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
+            radial-gradient(circle at 20% 30%, rgba(245, 184, 0, 0.07) 0%, transparent 50%),
+            radial-gradient(circle at 80% 70%, rgba(200, 150, 0, 0.05) 0%, transparent 50%);
     }
 
     .live-indicator {
@@ -308,59 +326,42 @@ def apply_styles(authenticated=False):
 
     @keyframes pulse {
         0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.5; transform: scale(1.2); }
+        50%       { opacity: 0.5; transform: scale(1.2); }
     }
 
-    .priority-express {
-        border-left: 4px solid #ef4444;
-    }
-
-    .priority-standard {
-        border-left: 4px solid #3b82f6;
-    }
-
-    .priority-economy {
-        border-left: 4px solid #6b7280;
-    }
+    .priority-express  { border-left: 4px solid #ef4444; }
+    .priority-standard { border-left: 4px solid #F5B800; }
+    .priority-economy  { border-left: 4px solid #6b7280; }
 
     .toast {
         position: fixed;
         top: 1rem;
         right: 1rem;
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        background: linear-gradient(90deg, #F5B800 0%, #C89600 100%);
+        color: #0a0a0a;
         padding: 1rem 1.5rem;
         border-radius: 12px;
         font-family: 'DM Sans', sans-serif;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        font-weight: 700;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.4);
         z-index: 1000;
         animation: slideIn 0.3s ease;
     }
 
     @keyframes slideIn {
         from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
+        to   { transform: translateX(0);    opacity: 1; }
     }
 
-    ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-        background: rgba(255,255,255,0.02);
-    }
-
+    ::-webkit-scrollbar       { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
     ::-webkit-scrollbar-thumb {
-        background: rgba(102, 126, 234, 0.3);
+        background: rgba(245, 184, 0, 0.25);
         border-radius: 4px;
     }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(245, 184, 0, 0.45); }
 
-    ::-webkit-scrollbar-thumb:hover {
-        background: rgba(102, 126, 234, 0.5);
-    }
-
-    /* Tracking page */
+    /* ── Tracking page ── */
     .tracking-timeline {
         display: flex;
         justify-content: center;
@@ -382,21 +383,19 @@ def apply_styles(authenticated=False):
         width: 28px;
         height: 28px;
         border-radius: 50%;
-        background: rgba(255,255,255,0.08);
-        border: 2px solid rgba(255,255,255,0.15);
+        background: rgba(255,255,255,0.06);
+        border: 2px solid rgba(255,255,255,0.12);
         z-index: 2;
         position: relative;
     }
 
     .timeline-dot.active {
-        background: #667eea;
-        border-color: #667eea;
-        box-shadow: 0 0 16px rgba(102, 126, 234, 0.5);
+        background: #F5B800;
+        border-color: #F5B800;
+        box-shadow: 0 0 16px rgba(245, 184, 0, 0.5);
     }
 
-    .timeline-dot.current {
-        animation: pulse 2s infinite;
-    }
+    .timeline-dot.current { animation: pulse 2s infinite; }
 
     .timeline-label {
         font-family: 'Space Mono', monospace;
@@ -408,9 +407,7 @@ def apply_styles(authenticated=False):
         text-align: center;
     }
 
-    .timeline-label.active {
-        color: #667eea;
-    }
+    .timeline-label.active { color: #F5B800; }
 
     .timeline-line {
         position: absolute;
@@ -418,74 +415,56 @@ def apply_styles(authenticated=False):
         right: 50%;
         width: 100%;
         height: 2px;
-        background: rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.07);
         z-index: 1;
     }
 
-    .timeline-line.active {
-        background: #667eea;
-    }
+    .timeline-line.active { background: #F5B800; }
 
     .tracking-result {
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
         border-radius: 16px;
         padding: 2rem;
         margin-top: 1.5rem;
     }
 
-    .tracking-result:hover {
-        border-color: rgba(102, 126, 234, 0.3);
-    }
+    .tracking-result:hover { border-color: rgba(245, 184, 0, 0.25); }
 
-    .tracking-failed {
-        border-color: rgba(239, 68, 68, 0.3);
-    }
+    .tracking-failed       { border-color: rgba(239, 68, 68, 0.3); }
+    .tracking-failed:hover { border-color: rgba(239, 68, 68, 0.5); }
 
-    .tracking-failed:hover {
-        border-color: rgba(239, 68, 68, 0.5);
-    }
+    /* ── Streamlit chrome removal ── */
+    #MainMenu      { visibility: hidden; }
+    footer         { visibility: hidden; }
+    header         { visibility: hidden; }
+    .stDeployButton{ display: none; }
+    [data-testid="stToolbar"] { display: none; }
+    footer:after   { content: ''; display: none; }
 
-    /* Hide Streamlit branding */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-
-    /* Hide "Deploy" button */
-    .stDeployButton {display: none;}
-
-    /* Hide Streamlit header toolbar */
-    [data-testid="stToolbar"] {display: none;}
-
-    /* Hide "Made with Streamlit" footer */
-    footer:after {
-        content: '';
-        display: none;
-    }
-
-    /* Collapse arrow shown inside the sidebar when it is OPEN — keep it styled */
+    /* ── Sidebar collapse button ── */
     [data-testid="stSidebarCollapseButton"] {
         display: flex !important;
         visibility: visible !important;
     }
 
     [data-testid="stSidebarCollapseButton"] button {
-        background: rgba(102, 126, 234, 0.1) !important;
-        border: 1px solid rgba(102, 126, 234, 0.3) !important;
+        background: rgba(245, 184, 0, 0.08) !important;
+        border: 1px solid rgba(245, 184, 0, 0.3) !important;
         border-radius: 8px !important;
-        color: #667eea !important;
+        color: #F5B800 !important;
         transition: all 0.2s ease !important;
     }
 
     [data-testid="stSidebarCollapseButton"] button:hover {
-        background: rgba(102, 126, 234, 0.25) !important;
-        border-color: rgba(102, 126, 234, 0.7) !important;
-        box-shadow: 0 0 12px rgba(102, 126, 234, 0.3) !important;
+        background: rgba(245, 184, 0, 0.2) !important;
+        border-color: rgba(245, 184, 0, 0.7) !important;
+        box-shadow: 0 0 12px rgba(245, 184, 0, 0.25) !important;
     }
 
     [data-testid="stSidebarCollapseButton"] svg {
-        fill: #667eea !important;
-        color: #667eea !important;
+        fill: #F5B800 !important;
+        color: #F5B800 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -494,27 +473,15 @@ def apply_styles(authenticated=False):
         return
 
     # ── Persistent sidebar toggle button ───────────────────────────────────────
-    # Injected only for authenticated admin dashboard — not on public pages.
-    # Inspected Streamlit 1.50's minified JS bundle to get the EXACT selectors:
-    #   Collapse btn: data-testid="stSidebarCollapseButton" (inside sidebar, visibility:hidden until hover)
-    #   Expand btn:   data-testid="stExpandSidebarButton"   (in the header, only present when collapsed)
-    #   Sidebar state: aria-expanded="true" (open) / aria-expanded="false" (collapsed)
-    #   Streamlit hides the sidebar via transform:translateX + minWidth:0 (NOT display:none)
-    #
-    # We inject a floating button into window.parent.document.body.
-    # Each iframe instance gets a unique KEY; stale buttons from previous
-    # iframe lifecycles are detected by KEY mismatch and replaced with fresh ones
-    # (prevents "zombie" event listeners after Streamlit re-renders the iframe).
     components.html("""
 <script>
 (function () {
     var ID  = 'warex-sidebar-toggle';
-    var KEY = Date.now().toString(); /* unique per iframe instance */
+    var KEY = Date.now().toString();
 
     function doc()     { return window.parent.document; }
     function sidebar() { return doc().querySelector('[data-testid="stSidebar"]'); }
 
-    /* Streamlit sets aria-expanded="true" when open, "false" when collapsed */
     function isOpen() {
         var sb = sidebar();
         return !sb || sb.getAttribute('aria-expanded') !== 'false';
@@ -522,7 +489,7 @@ def apply_styles(authenticated=False):
 
     function updateArrow() {
         var btn = doc().getElementById(ID);
-        if (btn) btn.innerHTML = isOpen() ? '&#9664;' : '&#9654;'; /* ◀ / ▶ */
+        if (btn) btn.innerHTML = isOpen() ? '&#9664;' : '&#9654;';
     }
 
     function toggle() {
@@ -531,49 +498,26 @@ def apply_styles(authenticated=False):
         var el;
 
         if (open) {
-            /* ── Collapse ────────────────────────────────────────────────────
-               Button is inside the sidebar (visibility:hidden until hover).
-               visibility:hidden still allows programmatic clicking.          */
             el = d.querySelector('[data-testid="stSidebarCollapseButton"] button') ||
                  d.querySelector('[data-testid="stSidebarCollapseButton"]');
-
-            if (el) {
-                /* dispatchEvent works regardless of visibility:hidden */
-                el.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true}));
-            }
-
+            if (el) el.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true}));
         } else {
-            /* ── Expand ──────────────────────────────────────────────────────
-               Button is inside [data-testid="stToolbar"] which our CSS hides
-               with display:none.  el.click() silently fails on display:none
-               ancestors, but dispatchEvent fires the event directly without
-               the browser's hit-testing, so React's delegated listener still
-               catches it at the document root.                                */
             el = d.querySelector('[data-testid="stExpandSidebarButton"]') ||
                  d.querySelector('[data-testid="stExpandSidebarButton"] button');
-
-            if (el) {
-                el.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true}));
-            }
+            if (el) el.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true}));
         }
 
-        /* Streamlit animates the sidebar at 300ms — poll twice to sync arrow */
         setTimeout(updateArrow, 350);
         setTimeout(updateArrow, 750);
     }
 
-    /* ── Button creation / zombie detection ───────────────────────────── */
     function createBtn() {
         var d   = doc();
         var old = d.getElementById(ID);
 
-        /* Same iframe: button is alive, just refresh the arrow */
         if (old && old.dataset.frameKey === KEY) { updateArrow(); return; }
-
-        /* Different iframe key → stale button with dead listeners.  Rebuild. */
         if (old) old.remove();
 
-        /* Clean up any stale CSS override from previous approach */
         var staleStyle = d.getElementById('warex-sb-override');
         if (staleStyle) staleStyle.remove();
 
@@ -589,37 +533,35 @@ def apply_styles(authenticated=False):
             'top:50%',
             'transform:translateY(-50%)',
             'z-index:2147483647',
-            'background:linear-gradient(135deg,#1a1a2e,#16213e)',
-            'border:1px solid rgba(102,126,234,0.5)',
+            'background:linear-gradient(135deg,#141414,#1c1c1c)',
+            'border:1px solid rgba(245,184,0,0.45)',
             'border-left:none',
             'border-radius:0 10px 10px 0',
-            'color:#667eea',
+            'color:#F5B800',
             'padding:14px 10px',
             'cursor:pointer',
             'font-size:15px',
             'line-height:1',
-            'box-shadow:4px 0 16px rgba(0,0,0,0.4)',
+            'box-shadow:4px 0 16px rgba(0,0,0,0.5)',
             'transition:all 0.2s ease',
             'outline:none'
         ].join(';'));
 
         btn.addEventListener('mouseenter', function () {
-            this.style.background = 'linear-gradient(135deg,#667eea,#764ba2)';
-            this.style.color      = 'white';
-            this.style.boxShadow  = '4px 0 24px rgba(102,126,234,0.4)';
+            this.style.background = 'linear-gradient(135deg,#F5B800,#C89600)';
+            this.style.color      = '#0a0a0a';
+            this.style.boxShadow  = '4px 0 24px rgba(245,184,0,0.4)';
         });
         btn.addEventListener('mouseleave', function () {
-            this.style.background = 'linear-gradient(135deg,#1a1a2e,#16213e)';
-            this.style.color      = '#667eea';
-            this.style.boxShadow  = '4px 0 16px rgba(0,0,0,0.4)';
+            this.style.background = 'linear-gradient(135deg,#141414,#1c1c1c)';
+            this.style.color      = '#F5B800';
+            this.style.boxShadow  = '4px 0 16px rgba(0,0,0,0.5)';
         });
         btn.addEventListener('click', toggle);
 
         d.body.appendChild(btn);
         updateArrow();
 
-        /* MutationObserver keeps arrow in sync when Streamlit changes aria-expanded
-           (e.g. user clicks native button, or window resizes past breakpoint) */
         var sb = sidebar();
         if (sb) {
             new MutationObserver(updateArrow)
@@ -627,7 +569,6 @@ def apply_styles(authenticated=False):
         }
     }
 
-    /* Staggered retries — Streamlit's React DOM renders asynchronously */
     [100, 400, 900, 2000].forEach(function (ms) { setTimeout(createBtn, ms); });
 })();
 </script>

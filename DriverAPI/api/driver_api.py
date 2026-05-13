@@ -231,8 +231,8 @@ def create_driver_api(app: Flask, data_manager):
                         'suburb': row.get('suburb') or '',
                         'postcode': row.get('postcode') or '',
                         'state': row.get('state') or 'NSW',
-                        'latitude': -33.8688,
-                        'longitude': 151.2093,
+                        'latitude': None,
+                        'longitude': None,
                     },
                     'parcels': int(row.get('parcels') or 1),
                     'serviceLevel': row.get('service_level') or 'standard',
@@ -356,8 +356,7 @@ def create_driver_api(app: Flask, data_manager):
 
         driver = driver_match.iloc[0].to_dict()
 
-        orders_df = data_manager.get_orders()
-        driver_orders = orders_df[orders_df['driver_id'] == driver_id] if not orders_df.empty else pd.DataFrame()
+        driver_orders = data_manager.store.get_all_orders_for_driver(driver_id)
 
         today = _now().strftime('%Y-%m-%d')
         deliveries_today = len(driver_orders[

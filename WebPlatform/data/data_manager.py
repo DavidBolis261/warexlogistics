@@ -825,7 +825,7 @@ class DataManager:
         return pw_hash, salt
 
     def authenticate(self, username, password):
-        """Verify username/password. Returns session token if valid, None otherwise."""
+        """Verify username/password. Returns {'token', 'role', 'username'} if valid, None otherwise."""
         user = self.store.get_admin_user(username)
         if not user:
             return None
@@ -836,7 +836,32 @@ class DataManager:
         token = secrets.token_urlsafe(32)
         expires = (_now() + timedelta(days=7)).isoformat()
         self.store.create_session_token(token, user['username'], expires)
-        return token
+        role = str(user.get('role') or 'admin')
+        return {'token': token, 'role': role, 'username': user['username']}
+
+    def get_role_for_token(self, token):
+        """Return the role for a session token — used to restore role after page refresh."""
+        if not token:
+            return 'admin'
+        try:
+            return self.store.get_role_for_token(token) or 'admin'
+        except Exception:
+            return 'admin'
+
+    def create_client(self, username, password, company_name=''):
+        """Register a new client (partner) account."""
+        if self.store.get_admin_user(username):
+            return {'success': False, 'error': 'Username already taken'}
+        if len(username) < 3:
+            return {'success': False, 'error': 'Username must be at least 3 characters'}
+        if len(password) < 8:
+            return {'success': False, 'error': 'Password must be at least 8 characters'}
+        pw_hash, salt = self._hash_password(password)
+        self.store.create_admin_user(username, pw_hash, salt, role='client', company_name=company_name)
+        token = secrets.token_urlsafe(32)
+        expires = (_now() + timedelta(days=7)).isoformat()
+        self.store.create_session_token(token, username, expires)
+        return {'success': True, 'token': token, 'role': 'client'}
 
     def validate_session_token(self, token):
         """Check if a session token is valid and not expired."""
@@ -855,12 +880,12 @@ class DataManager:
         if self.store.get_admin_user(username):
             return {'success': False, 'error': 'Username already exists'}
         pw_hash, salt = self._hash_password(password)
-        self.store.create_admin_user(username, pw_hash, salt)
+        self.store.create_admin_user(username, pw_hash, salt, role='admin')
         # Auto-login: create session token
         token = secrets.token_urlsafe(32)
         expires = (_now() + timedelta(days=7)).isoformat()
         self.store.create_session_token(token, username, expires)
-        return {'success': True, 'token': token}
+        return {'success': True, 'token': token, 'role': 'admin'}
 
     def admin_exists(self):
         """Check if any admin user exists."""

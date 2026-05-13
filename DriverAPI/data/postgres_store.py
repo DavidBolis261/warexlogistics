@@ -301,6 +301,18 @@ class PostgresStore:
             params={'driver_id': driver_id},
         )
 
+    def get_all_orders_for_driver(self, driver_id):
+        """Get all orders for a driver including delivered/failed — used for stats."""
+        return pd.read_sql(
+            """
+            SELECT status, order_date FROM orders
+            WHERE driver_id = %(driver_id)s
+            ORDER BY created_at DESC
+            """,
+            self.engine,
+            params={'driver_id': driver_id},
+        )
+
     def save_order(self, order_data, wms_response=None, pushed=False):
         """Save an order."""
         # Ensure all required fields have defaults if not provided
@@ -310,17 +322,19 @@ class PostgresStore:
             order_data['driver_id'] = ''
         if 'instructions' not in order_data:
             order_data['instructions'] = ''
+        if 'weight' not in order_data:
+            order_data['weight'] = None
 
         with self.engine.connect() as conn:
             conn.execute(text("""
                 INSERT INTO orders (
                     order_id, customer, email, phone, address, suburb, postcode, state,
                     parcels, service_level, status, zone, driver_id, instructions,
-                    tracking_number, order_date, created_at, updated_at
+                    tracking_number, order_date, created_at, updated_at, weight
                 ) VALUES (
                     :order_id, :customer, :email, :phone, :address, :suburb, :postcode, :state,
                     :parcels, :service_level, :status, :zone, :driver_id, :instructions,
-                    :tracking_number, :order_date, :created_at, :updated_at
+                    :tracking_number, :order_date, :created_at, :updated_at, :weight
                 )
                 ON CONFLICT (order_id) DO UPDATE SET
                     customer = EXCLUDED.customer,
@@ -336,6 +350,7 @@ class PostgresStore:
                     zone = EXCLUDED.zone,
                     driver_id = EXCLUDED.driver_id,
                     instructions = EXCLUDED.instructions,
+                    weight = EXCLUDED.weight,
                     updated_at = CURRENT_TIMESTAMP
             """), order_data)
             conn.commit()

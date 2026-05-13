@@ -1150,3 +1150,135 @@ def _render_wms_import(data_manager):
         else:
             resp = preview.get('response', {})
             st.json(resp)
+
+
+# ── Client / Partner read-only portal ─────────────────────────────────────────
+
+_CLIENT_STATUS_COLOUR = {
+    'pending':    ('#fbbf24', '#1c1400'),   # amber
+    'allocated':  ('#818cf8', '#0c0c1f'),   # indigo
+    'in_transit': ('#38bdf8', '#01131f'),   # sky blue
+    'delivered':  ('#4ade80', '#031a0b'),   # green
+    'failed':     ('#f87171', '#1f0404'),   # red
+}
+
+
+def render_client_view(orders_df, company_name: str):
+    """Read-only order status view shown to partner/client accounts."""
+
+    st.markdown(f"""
+    <div style="padding: 1rem 0 0.5rem;">
+        <div style="font-family: 'DM Sans', sans-serif; font-size: 1.6rem; font-weight: 700; color: white;">
+            📋 Order Status
+        </div>
+        <div style="font-family: 'Space Mono', monospace; font-size: 0.75rem;
+                    color: rgba(255,255,255,0.4); margin-top: 0.25rem; text-transform: uppercase;
+                    letter-spacing: 1px;">
+            {company_name} &mdash; Partner Portal
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if orders_df is None or orders_df.empty:
+        st.info("No orders found.")
+        return
+
+    # ── Search / filter bar ────────────────────────────────────────────────────
+    col_search, col_status = st.columns([3, 1])
+    with col_search:
+        search = st.text_input(
+            "Search", placeholder="Tracking number, customer, address…",
+            label_visibility="collapsed"
+        )
+    with col_status:
+        status_filter = st.selectbox(
+            "Status", ["All"] + STATUS_OPTIONS,
+            label_visibility="collapsed"
+        )
+
+    df = orders_df.copy()
+
+    if search:
+        s = search.lower()
+        mask = (
+            df.get('tracking_number', df.get('order_id', '')).astype(str).str.lower().str.contains(s, na=False)
+            | df.get('customer', '').astype(str).str.lower().str.contains(s, na=False)
+            | df.get('address', '').astype(str).str.lower().str.contains(s, na=False)
+            | df.get('suburb', '').astype(str).str.lower().str.contains(s, na=False)
+            | df.get('instructions', '').astype(str).str.lower().str.contains(s, na=False)
+        )
+        df = df[mask]
+
+    if status_filter and status_filter != 'All':
+        df = df[df['status'] == status_filter]
+
+    # Sort newest first
+    if 'created_at' in df.columns:
+        df = df.sort_values('created_at', ascending=False)
+
+    # ── Summary counts ─────────────────────────────────────────────────────────
+    all_orders = orders_df  # counts always from unfiltered set
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Total Orders",  len(all_orders))
+    m2.metric("Pending",       len(all_orders[all_orders['status'].isin(['pending', 'allocated'])]))
+    m3.metric("In Transit",    len(all_orders[all_orders['status'] == 'in_transit']))
+    m4.metric("Delivered",     len(all_orders[all_orders['status'] == 'delivered']))
+
+    st.markdown("---")
+
+    if df.empty:
+        st.info("No orders match your search.")
+        return
+
+    # ── Order cards ────────────────────────────────────────────────────────────
+    for _, row in df.iterrows():
+        status      = str(row.get('status', 'pending'))
+        label       = STATUS_LABELS.get(status, status.replace('_', ' ').title())
+        badge_bg, badge_fg = _CLIENT_STATUS_COLOUR.get(status, ('#6b7280', '#fff'))
+
+        tracking    = row.get('tracking_number') or row.get('order_id', '—')
+        customer    = row.get('customer', '—')
+        address     = row.get('address', '')
+        suburb      = row.get('suburb', '')
+        postcode    = row.get('postcode', '')
+        parcels     = int(row.get('parcels', 1))
+        svc         = str(row.get('service_level', 'standard')).capitalize()
+        created_str = _fmt_sydney(row.get('created_at'))
+        instructions = str(row.get('instructions', '') or '')
+
+        # Extract external reference if present ([REF:xxx])
+        ref_display = ''
+        if '[REF:' in instructions:
+            try:
+                ref_display = instructions.split('[REF:')[1].split(']')[0]
+            except Exception:
+                pass
+
+        full_addr = ', '.join(filter(None, [address, suburb, postcode]))
+
+        st.markdown(f"""
+        <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+                    border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem;">
+                <div>
+                    <span style="font-family: 'Space Mono', monospace; font-size: 0.95rem;
+                                 font-weight: 700; color: #a78bfa;">{tracking}</span>
+                    {f'<span style="font-family: Space Mono, monospace; font-size: 0.7rem; color: rgba(255,255,255,0.4); margin-left: 0.75rem;">REF: {ref_display}</span>' if ref_display else ''}
+                </div>
+                <span style="background: {badge_bg}; color: {badge_fg}; font-size: 0.72rem;
+                             font-weight: 700; padding: 3px 10px; border-radius: 20px;
+                             text-transform: uppercase; letter-spacing: 0.5px;">{label}</span>
+            </div>
+            <div style="margin-top: 0.5rem; color: rgba(255,255,255,0.85); font-size: 0.9rem;">
+                {customer}
+            </div>
+            <div style="margin-top: 0.2rem; color: rgba(255,255,255,0.45); font-size: 0.8rem;">
+                {full_addr}
+            </div>
+            <div style="margin-top: 0.5rem; display: flex; gap: 1.5rem; font-size: 0.75rem; color: rgba(255,255,255,0.4);">
+                <span>📦 {parcels} parcel{'s' if parcels != 1 else ''}</span>
+                <span>⚡ {svc}</span>
+                <span>🕐 {created_str}</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)

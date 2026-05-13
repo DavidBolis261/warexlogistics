@@ -182,13 +182,21 @@ def _render_tracking_result(order, company_name):
 
 
 def render_login_page(dm, company_name):
-    """Admin login form."""
+    """Admin / Partner login form with tab switcher to registration."""
 
+    if 'login_tab' not in st.session_state:
+        st.session_state.login_tab = 'login'  # 'login' or 'register'
+
+    tab = st.session_state.login_tab
+
+    # ── Header ────────────────────────────────────────────────────────────────
+    icon = '🔐' if tab == 'login' else '🤝'
+    title = 'Sign In' if tab == 'login' else 'Partner Registration'
     st.markdown(f"""
     <div style="text-align: center; padding: 2rem 0 1rem;">
-        <div style="font-size: 2.5rem;">🔐</div>
+        <div style="font-size: 2.5rem;">{icon}</div>
         <div style="font-family: 'DM Sans', sans-serif; font-size: 1.5rem; font-weight: 700; color: white; margin-top: 0.5rem;">
-            Admin Login
+            {title}
         </div>
         <div style="font-family: 'Space Mono', monospace; font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-top: 0.25rem;">
             {company_name}
@@ -200,26 +208,76 @@ def render_login_page(dm, company_name):
 
     col_pad_l, col_form, col_pad_r = st.columns([1, 1.5, 1])
     with col_form:
-        with st.form("login_form"):
-            username = st.text_input("Username")
-            password = st.text_input("Password", type="password")
-            submitted = st.form_submit_button("Sign In", use_container_width=True, type="primary")
 
-            if submitted:
-                if not username or not password:
-                    st.error("Please enter both username and password.")
-                else:
-                    token = dm.authenticate(username, password)
-                    if token:
-                        st.session_state.authenticated = True
-                        st.session_state.show_login = False
-                        st.session_state.session_token = token
-                        st.query_params['token'] = token
-                        st.rerun()
+        if tab == 'login':
+            # ── Login form ────────────────────────────────────────────────────
+            with st.form("login_form"):
+                username = st.text_input("Username")
+                password = st.text_input("Password", type="password")
+                submitted = st.form_submit_button("Sign In", use_container_width=True, type="primary")
+
+                if submitted:
+                    if not username or not password:
+                        st.error("Please enter both username and password.")
                     else:
-                        st.error("Invalid username or password.")
+                        result = dm.authenticate(username, password)
+                        if result:
+                            token = result['token'] if isinstance(result, dict) else result
+                            role  = result.get('role', 'admin') if isinstance(result, dict) else 'admin'
+                            st.session_state.authenticated = True
+                            st.session_state.show_login    = False
+                            st.session_state.session_token = token
+                            st.session_state.user_role     = role
+                            st.query_params['token'] = token
+                            st.rerun()
+                        else:
+                            st.error("Invalid username or password.")
 
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown('<div style="text-align:center; color:rgba(255,255,255,0.5); font-size:0.85rem;">New partner?</div>', unsafe_allow_html=True)
+            if st.button("Create a partner account →", use_container_width=True):
+                st.session_state.login_tab = 'register'
+                st.rerun()
+
+        else:
+            # ── Registration form ─────────────────────────────────────────────
+            with st.form("register_form"):
+                company_input = st.text_input("Company Name")
+                username      = st.text_input("Username")
+                password      = st.text_input("Password", type="password")
+                confirm       = st.text_input("Confirm Password", type="password")
+                submitted     = st.form_submit_button("Create Account", use_container_width=True, type="primary")
+
+                if submitted:
+                    if not company_input.strip():
+                        st.error("Please enter your company name.")
+                    elif not username or len(username.strip()) < 3:
+                        st.error("Username must be at least 3 characters.")
+                    elif not password or len(password) < 8:
+                        st.error("Password must be at least 8 characters.")
+                    elif password != confirm:
+                        st.error("Passwords do not match.")
+                    else:
+                        result = dm.create_client(username.strip(), password, company_input.strip())
+                        if result['success']:
+                            token = result['token']
+                            st.session_state.authenticated = True
+                            st.session_state.show_login    = False
+                            st.session_state.session_token = token
+                            st.session_state.user_role     = 'client'
+                            st.query_params['token'] = token
+                            st.rerun()
+                        else:
+                            st.error(result.get('error', 'Registration failed.'))
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("← Back to Sign In", use_container_width=True):
+                st.session_state.login_tab = 'login'
+                st.rerun()
+
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Back to Tracking", use_container_width=True):
+            st.session_state.login_tab = 'login'
             st.session_state.show_login = False
             st.rerun()
 
@@ -263,6 +321,7 @@ def render_first_run_setup(dm):
                         st.session_state.authenticated = True
                         st.session_state.show_login = False
                         st.session_state.session_token = token
+                        st.session_state.user_role = 'admin'
                         if token:
                             st.query_params['token'] = token
                         st.rerun()

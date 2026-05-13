@@ -16,6 +16,45 @@ from components.styles import apply_styles
 from config.settings import wms_config
 from data.data_manager import DataManager
 
+
+def _render_client_portal(dm, company_name):
+    """Read-only order status portal for partner/client accounts."""
+    from views.orders import render_client_view
+
+    # Minimal sidebar — just logout
+    with st.sidebar:
+        _logo_tag = (
+            f'<img src="{_load_logo_b64()}" style="width:130px;height:auto;border-radius:12px;" />'
+            if _load_logo_b64() else '<div style="font-size:2.5rem;">📦</div>'
+        )
+        st.markdown(f"""
+        <div style="text-align: center; padding: 1.2rem 0 0.6rem;">
+            {_logo_tag}
+            <div style="font-family: 'Space Mono', monospace; font-size: 0.7rem;
+                        color: rgba(255,255,255,0.45); text-transform: uppercase;
+                        letter-spacing: 2px; margin-top: 0.5rem;">
+                Partner Portal
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown("---")
+        st.caption(f"Last updated: {datetime.now().strftime('%H:%M:%S')}")
+        if st.button("🔄 Refresh", use_container_width=True):
+            st.cache_data.clear()
+            st.rerun()
+        st.markdown("---")
+        if st.button("🚪 Logout", use_container_width=True):
+            dm.logout_token(st.session_state.get('session_token'))
+            st.session_state.authenticated = False
+            st.session_state.show_login = False
+            st.session_state.session_token = None
+            st.session_state.user_role = 'admin'
+            st.query_params.clear()
+            st.rerun()
+
+    orders_df = dm.get_orders()
+    render_client_view(orders_df, company_name)
+
 # ── Logo helpers ──────────────────────────────────────────────────────────────
 _LOGO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'warex_logo.png')
 
@@ -93,6 +132,8 @@ if 'show_login' not in st.session_state:
     st.session_state.show_login = False
 if 'session_token' not in st.session_state:
     st.session_state.session_token = None
+if 'user_role' not in st.session_state:
+    st.session_state.user_role = 'admin'
 
 # Restore session from query param token (survives page refresh)
 if not st.session_state.authenticated:
@@ -100,6 +141,8 @@ if not st.session_state.authenticated:
     if token_from_url and dm.validate_session_token(token_from_url):
         st.session_state.authenticated = True
         st.session_state.session_token = token_from_url
+        # Restore role — important for clients refreshing the page
+        st.session_state.user_role = dm.get_role_for_token(token_from_url)
 
 # Apply custom CSS — pass auth state so sidebar toggle is only injected for admins
 apply_styles(authenticated=st.session_state.authenticated)
@@ -166,9 +209,12 @@ if not dm.admin_exists():
     render_first_run_setup(dm)
     st.stop()
 
-# Authenticated — show admin dashboard
+# Authenticated — route by role
 if st.session_state.authenticated:
-    pass  # Fall through to admin dashboard below
+    if st.session_state.get('user_role') == 'client':
+        _render_client_portal(dm, company_name)
+        st.stop()
+    # else fall through to admin dashboard below
 
 # Login page
 elif st.session_state.show_login:
@@ -286,6 +332,7 @@ with st.sidebar:
         st.session_state.authenticated = False
         st.session_state.show_login = False
         st.session_state.session_token = None
+        st.session_state.user_role = 'admin'
         st.query_params.clear()
         st.rerun()
 
