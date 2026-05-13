@@ -61,6 +61,21 @@ def apply_styles(authenticated=False):
         font-weight: 700;
     }
 
+    /* ── Sidebar buttons — dark bg, visible on black sidebar ── */
+    [data-testid="stSidebar"] .stButton > button {
+        background: rgba(255, 255, 255, 0.07) !important;
+        color: rgba(255, 255, 255, 0.85) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        font-weight: 600 !important;
+    }
+
+    [data-testid="stSidebar"] .stButton > button:hover {
+        background: rgba(245, 184, 0, 0.18) !important;
+        border-color: rgba(245, 184, 0, 0.55) !important;
+        color: #F5B800 !important;
+        box-shadow: none !important;
+    }
+
     /* ── Main content text — dark on white ── */
     .main p, .main span, .main div, .main label {
         color: #1a1a1a;
@@ -382,16 +397,72 @@ def apply_styles(authenticated=False):
         font-weight: 700 !important;
     }
 
-    /* ── Expander ── */
-    .streamlit-expanderHeader {
+    /* ── Expander — covers both legacy and modern Streamlit ── */
+    .streamlit-expanderHeader,
+    [data-testid="stExpanderHeader"],
+    details > summary {
         color: #1a1a1a !important;
         background: #F9F9F9 !important;
         border-radius: 8px !important;
         border: 1px solid rgba(0,0,0,0.08) !important;
     }
 
+    /* Expander wrapper */
+    [data-testid="stExpander"],
+    .streamlit-expander {
+        border: 1px solid rgba(0,0,0,0.08) !important;
+        border-radius: 10px !important;
+        background: #FFFFFF !important;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Expander body / content area */
+    [data-testid="stExpanderDetails"],
+    .streamlit-expanderContent,
+    details[open] > div {
+        background: #FFFFFF !important;
+        color: #1a1a1a !important;
+    }
+
+    /* Text inside expander headers */
+    [data-testid="stExpanderHeader"] p,
+    [data-testid="stExpanderHeader"] span,
+    details > summary p,
+    details > summary span {
+        color: #1a1a1a !important;
+    }
+
+    /* Expander toggle arrow */
+    [data-testid="stExpanderHeader"] svg,
+    details > summary svg {
+        fill: #6b7280 !important;
+    }
+
     /* ── Checkbox / radio ── */
     .stCheckbox label, .stRadio label { color: #1a1a1a !important; }
+
+    /* ── General dark-on-white overrides — catch Streamlit default dark remnants ── */
+    .main [data-testid="stMarkdown"] p,
+    .main [data-testid="stMarkdown"] span,
+    .main [data-testid="stMarkdown"] li,
+    .main [data-testid="stMarkdown"] td,
+    .main [data-testid="stMarkdown"] th {
+        color: #1a1a1a !important;
+    }
+
+    /* Code blocks inside markdown */
+    .main code {
+        background: rgba(0,0,0,0.05) !important;
+        color: #C89600 !important;
+        border-radius: 4px;
+        padding: 0.1rem 0.3rem;
+    }
+
+    /* Pagination / helper text */
+    .main [data-testid="stText"] {
+        color: #6b7280 !important;
+    }
 
     /* ── Info / warning / error / success boxes ── */
     .stAlert {
