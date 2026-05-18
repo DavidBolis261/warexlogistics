@@ -30,10 +30,10 @@ def render_tracking_page(dm, company_name):
     #         st.image(logo_path, width=100)
     st.markdown(f"""
     <div style="text-align: center; padding: 0.25rem 0 1rem;">
-        <div style="font-family: 'DM Sans', sans-serif; font-size: 2rem; font-weight: 700; color: white; margin-top: 0.5rem;">
+        <div style="font-family: 'DM Sans', sans-serif; font-size: 2rem; font-weight: 700; color: #1a1a1a; margin-top: 0.5rem;">
             {company_name}
         </div>
-        <div style="font-family: 'Space Mono', monospace; font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 2px;">
+        <div style="font-family: 'Space Mono', monospace; font-size: 0.85rem; color: #6b7280; margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 2px;">
             Track Your Delivery
         </div>
     </div>
@@ -72,7 +72,7 @@ def render_tracking_page(dm, company_name):
     # Footer
     st.markdown(f"""
     <div style="text-align: center; padding: 3rem 0 1rem; margin-top: 3rem;">
-        <div style="font-family: 'Space Mono', monospace; font-size: 0.7rem; color: rgba(255,255,255,0.2);">
+        <div style="font-family: 'Space Mono', monospace; font-size: 0.7rem; color: #9ca3af;">
             {company_name} &bull; Powered by Warex Logistics
         </div>
     </div>
@@ -90,10 +90,10 @@ def _render_tracking_result(order, company_name):
         # Tracking number header
         st.markdown(f"""
         <div style="text-align: center; margin-bottom: 1.5rem;">
-            <div style="font-family: 'Space Mono', monospace; font-size: 0.8rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px;">
+            <div style="font-family: 'Space Mono', monospace; font-size: 0.8rem; color: #6b7280; text-transform: uppercase; letter-spacing: 1px;">
                 Tracking Number
             </div>
-            <div style="font-family: 'Space Mono', monospace; font-size: 1.5rem; font-weight: 700; color: #667eea; margin-top: 0.25rem;">
+            <div style="font-family: 'Space Mono', monospace; font-size: 1.5rem; font-weight: 700; color: #F5B800; margin-top: 0.25rem;">
                 {order.get('tracking_number', 'N/A')}
             </div>
         </div>
@@ -102,11 +102,11 @@ def _render_tracking_result(order, company_name):
         # Build status timeline HTML inline (avoids Streamlit nested unsafe_allow_html issues)
         if status == 'failed':
             timeline_html = (
-                '<div style="text-align: center; padding: 1.5rem; background: rgba(239, 68, 68, 0.1); '
+                '<div style="text-align: center; padding: 1.5rem; background: rgba(239, 68, 68, 0.08); '
                 'border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; margin-bottom: 1.5rem;">'
                 '<div style="font-family: DM Sans, sans-serif; font-size: 1.25rem; font-weight: 700; color: #ef4444;">'
                 'Delivery Failed</div>'
-                '<div style="font-family: DM Sans, sans-serif; font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-top: 0.5rem;">'
+                '<div style="font-family: DM Sans, sans-serif; font-size: 0.9rem; color: #6b7280; margin-top: 0.5rem;">'
                 'Please contact us for assistance.</div></div>'
             )
         else:
@@ -158,13 +158,13 @@ def _render_tracking_result(order, company_name):
             eta_val = str(order['eta'])
             eta_html = (
                 '<div>'
-                '<div style="font-family: Space Mono, monospace; font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;">ETA</div>'
-                f'<div style="font-family: DM Sans, sans-serif; font-size: 1rem; color: white; font-weight: 600; margin-top: 0.25rem;">{eta_val}</div>'
+                '<div style="font-family: Space Mono, monospace; font-size: 0.7rem; color: #6b7280; text-transform: uppercase; letter-spacing: 1px;">ETA</div>'
+                f'<div style="font-family: DM Sans, sans-serif; font-size: 1rem; color: #1a1a1a; font-weight: 600; margin-top: 0.25rem;">{eta_val}</div>'
                 '</div>'
             )
 
-        label_style = 'font-family: Space Mono, monospace; font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;'
-        value_style = 'font-family: DM Sans, sans-serif; font-size: 1rem; color: white; font-weight: 600; margin-top: 0.25rem;'
+        label_style = 'font-family: Space Mono, monospace; font-size: 0.7rem; color: #6b7280; text-transform: uppercase; letter-spacing: 1px;'
+        value_style = 'font-family: DM Sans, sans-serif; font-size: 1rem; color: #1a1a1a; font-weight: 600; margin-top: 0.25rem;'
 
         details_html = (
             f'<div class="tracking-result {result_class}">'
@@ -195,10 +195,10 @@ def render_login_page(dm, company_name):
     st.markdown(f"""
     <div style="text-align: center; padding: 2rem 0 1rem;">
         <div style="font-size: 2.5rem;">{icon}</div>
-        <div style="font-family: 'DM Sans', sans-serif; font-size: 1.5rem; font-weight: 700; color: white; margin-top: 0.5rem;">
+        <div style="font-family: 'DM Sans', sans-serif; font-size: 1.5rem; font-weight: 700; color: #1a1a1a; margin-top: 0.5rem;">
             {title}
         </div>
-        <div style="font-family: 'Space Mono', monospace; font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-top: 0.25rem;">
+        <div style="font-family: 'Space Mono', monospace; font-size: 0.8rem; color: #6b7280; margin-top: 0.25rem;">
             {company_name}
         </div>
     </div>
@@ -234,7 +234,7 @@ def render_login_page(dm, company_name):
                             st.error("Invalid username or password.")
 
             st.markdown("<br>", unsafe_allow_html=True)
-            st.markdown('<div style="text-align:center; color:rgba(255,255,255,0.5); font-size:0.85rem;">New partner?</div>', unsafe_allow_html=True)
+            st.markdown('<div style="text-align:center; color:#6b7280; font-size:0.85rem;">New partner?</div>', unsafe_allow_html=True)
             if st.button("Create a partner account →", use_container_width=True):
                 st.session_state.login_tab = 'register'
                 st.rerun()
@@ -288,10 +288,10 @@ def render_first_run_setup(dm):
     st.markdown("""
     <div style="text-align: center; padding: 2rem 0 1rem;">
         <div style="font-size: 2.5rem;">🚀</div>
-        <div style="font-family: 'DM Sans', sans-serif; font-size: 1.75rem; font-weight: 700; color: white; margin-top: 0.5rem;">
+        <div style="font-family: 'DM Sans', sans-serif; font-size: 1.75rem; font-weight: 700; color: #1a1a1a; margin-top: 0.5rem;">
             Welcome! Let's set up your admin account
         </div>
-        <div style="font-family: 'DM Sans', sans-serif; font-size: 0.95rem; color: rgba(255,255,255,0.6); margin-top: 0.5rem;">
+        <div style="font-family: 'DM Sans', sans-serif; font-size: 0.95rem; color: #6b7280; margin-top: 0.5rem;">
             This account will be used to access the admin dashboard.
         </div>
     </div>

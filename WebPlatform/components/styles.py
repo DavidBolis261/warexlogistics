@@ -341,12 +341,14 @@ def apply_styles(authenticated=False):
     }
 
     .stTextInput label, .stTextArea label, .stSelectbox label,
-    .stNumberInput label, .stDateInput label {
+    .stNumberInput label, .stDateInput label,
+    .stMultiSelect label, [data-testid="stMultiSelect"] label,
+    [data-testid="stWidgetLabel"] p {
         color: #1a1a1a !important;
         font-weight: 600;
     }
 
-    /* Selectbox */
+    /* Selectbox + Multiselect shared container */
     [data-baseweb="select"] > div {
         background: #FFFFFF !important;
         border: 1px solid rgba(0,0,0,0.15) !important;
@@ -354,6 +356,38 @@ def apply_styles(authenticated=False):
     }
 
     [data-baseweb="select"] span { color: #1a1a1a !important; }
+
+    /* Multiselect placeholder text */
+    [data-testid="stMultiSelect"] [data-baseweb="select"] input::placeholder,
+    [data-testid="stMultiSelect"] input { color: #6b7280 !important; }
+
+    /* Multiselect selected tags / pills */
+    [data-baseweb="tag"] {
+        background: rgba(245, 184, 0, 0.15) !important;
+        border: 1px solid rgba(245, 184, 0, 0.35) !important;
+        border-radius: 6px !important;
+    }
+
+    [data-baseweb="tag"] span {
+        color: #1a1a1a !important;
+        font-weight: 600 !important;
+    }
+
+    /* Tag close (×) button */
+    [data-baseweb="tag"] [role="button"] {
+        color: #6b7280 !important;
+    }
+
+    /* st.info / st.warning / st.success / st.error text */
+    [data-testid="stAlert"] p,
+    [data-testid="stAlert"] div {
+        color: inherit !important;
+    }
+
+    /* Ensure all widget labels in main area are dark */
+    .main [data-testid="stWidgetLabel"] {
+        color: #1a1a1a !important;
+    }
 
     /* Select dropdown options */
     [role="listbox"] li {
