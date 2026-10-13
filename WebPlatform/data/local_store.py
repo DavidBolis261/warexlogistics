@@ -211,6 +211,10 @@ class LocalStore:
 
     def _migrate(self):
         """Add columns that may not exist in older databases."""
+        admin_columns = {row[1] for row in self.conn.execute("PRAGMA table_info(admin_users)")}
+        for column, definition in [("role", "TEXT DEFAULT 'admin'"), ("company_name", "TEXT")]:
+            if column not in admin_columns:
+                self.conn.execute(f"ALTER TABLE admin_users ADD COLUMN {column} {definition}")
         existing = {row[1] for row in self.conn.execute("PRAGMA table_info(orders)").fetchall()}
         new_cols = {
             'pickup_address': 'TEXT',
@@ -718,10 +722,10 @@ class LocalStore:
 
     # === Admin Users ===
 
-    def create_admin_user(self, username, password_hash, salt):
+    def create_admin_user(self, username, password_hash, salt, role="admin", company_name=""):
         self.conn.execute(
-            "INSERT INTO admin_users (username, password_hash, salt) VALUES (?, ?, ?)",
-            (username, password_hash, salt),
+            "INSERT INTO admin_users (username, password_hash, salt, role, company_name) VALUES (?, ?, ?, ?, ?)",
+            (username, password_hash, salt, role, company_name),
         )
         self.conn.commit()
 
