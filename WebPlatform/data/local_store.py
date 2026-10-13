@@ -730,9 +730,17 @@ class LocalStore:
         self.conn.commit()
 
     def get_admin_user(self, username):
-        return self.conn.execute(
+        row = self.conn.execute(
             "SELECT * FROM admin_users WHERE LOWER(username) = LOWER(?)", (username,)
         ).fetchone()
+        return dict(row) if row else None
+
+    def get_role_for_token(self, token):
+        row = self.conn.execute(
+            "SELECT a.role FROM session_tokens s JOIN admin_users a ON a.username = s.username "
+            "WHERE s.token = ? AND s.expires_at > ?", (token, _now().isoformat())
+        ).fetchone()
+        return row['role'] if row else None
 
     def admin_user_count(self):
         row = self.conn.execute("SELECT COUNT(*) as cnt FROM admin_users").fetchone()
