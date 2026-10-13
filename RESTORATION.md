@@ -41,3 +41,7 @@ Validation: `python -m unittest discover -s tests -v` covers partner order isola
 The driver API now returns dispatch-created runs and preserves their stop order. Orders assigned directly are shown separately as unplanned deliveries. Run progress follows saved delivery outcomes; cancellation preserves delivered/failed orders and releases only unfinished assignments. Dashboard actions read fresh operational data on rerun. The browser driver portal also exposes profile, online/offline requests, run selection, closed stops, and refresh controls.
 
 Local regression tests cover the dispatch-to-driver workflow, evidence persistence, run progress/completion, cancellation, profile, availability requests, location updates and two-way messages, plus the access-control tests. All 14 dashboard pages render with the populated test database. These checks do not verify external WMS, Google Places or APNs without their credentials, nor do they recover historical records or the native app.
+
+## Starshipit
+
+The administrator Starshipit page supports incoming order sync and queued supported writeback. Credentials and background syncing remain unset by default. See [Starshipit integration](STARSHIPIT_INTEGRATION.md) for configuration, tests and API limitations.

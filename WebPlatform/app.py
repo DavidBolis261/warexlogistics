@@ -294,6 +294,7 @@ with st.sidebar:
             "📦 Inventory",
             "📈 Analytics",
             msg_label,
+            "🚀 Starshipit",
             "🔌 Integrations",
             "⚙️ Settings",
         ],
@@ -389,6 +390,10 @@ elif page in ["📍 Driver Tracking", "📷 Delivery Evidence", "🤝 Partners",
     {"📍 Driver Tracking": operations.tracking, "📷 Delivery Evidence": operations.evidence,
      "🤝 Partners": operations.partners, "🔑 Driver Access": operations.driver_access,
      "🔌 Integrations": operations.integrations}[page](dm)
+
+elif page == "🚀 Starshipit":
+    from views.starshipit import render
+    render(dm)
 
 elif page == "⚙️ Settings":
     from views.settings_page import render

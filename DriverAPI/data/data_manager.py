@@ -215,6 +215,12 @@ class DataManager:
         self.store.update_order_fields(order_id, **fields)
         if 'status' in fields:
             self.access.sync_run_progress()
+            if fields['status'] == 'delivered':
+                try:
+                    from integrations.starshipit import StarshipitSync
+                    StarshipitSync(self).reconcile_deliveries()
+                except Exception:
+                    logger.error('Starshipit delivery queue needs retry; local delivery was saved.')
 
         # Step 2 — send email only when the status actually transitions to a
         # new value.  Skips duplicate emails when e.g. the dashboard sets

@@ -259,6 +259,16 @@ class PostgresStore:
         as an extra safety net — if one fails the rest still execute.
         """
         migrations = [
+            ('orders', 'country', 'TEXT'),
+            ('orders', 'address2', 'TEXT'),
+            ('orders', 'delivery_company', 'TEXT'),
+            ('orders', 'pickup_address', 'TEXT'),
+            ('orders', 'pickup_suburb', 'TEXT'),
+            ('orders', 'pickup_state', 'TEXT'),
+            ('orders', 'pickup_postcode', 'TEXT'),
+            ('orders', 'pickup_contact', 'TEXT'),
+            ('orders', 'pickup_phone', 'TEXT'),
+
             # (table, column_name, column_definition)
             ('orders', 'proof_photo',          'TEXT'),
             ('orders', 'proof_signature',      'TEXT'),

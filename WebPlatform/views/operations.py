@@ -141,6 +141,7 @@ def integrations(dm):
     st.caption('Connection status and the remaining configuration for your platform.')
     from utils.email_service import is_email_configured
     configs=[
+        ('Starshipit',bool(os.getenv('STARSHIPIT_API_KEY') and os.getenv('STARSHIPIT_SUBSCRIPTION_KEY')),'Order imports and delivery updates. Open Starshipit in the sidebar.','STARSHIPIT_API_KEY, STARSHIPIT_SUBSCRIPTION_KEY'),
         ('Transactional email',is_email_configured(dm),'Order confirmations and delivery updates.','RESEND_API_KEY, EMAIL_FROM_ADDRESS'),
         ('Address autocomplete',bool(os.getenv('GOOGLE_PLACES_API_KEY')),'Pickup and delivery address suggestions. Manual entry is always available.','GOOGLE_PLACES_API_KEY'),
         ('Thomax WMS',wms_config.is_configured,'Warehouse orders, receipts, inventory and stock operations.','Configure credentials in Settings → WMS Integration'),

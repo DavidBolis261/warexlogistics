@@ -58,6 +58,9 @@ create_driver_api(app, data_manager)
 # Register external partner API routes
 create_external_api(app, data_manager)
 
+from integrations.starshipit_worker import start_worker
+start_worker()
+
 # ── Email configuration check (printed once at startup) ──────────────────────
 try:
     from utils.email_service import is_email_configured, _get_email_config
