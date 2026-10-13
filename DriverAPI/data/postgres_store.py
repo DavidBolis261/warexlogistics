@@ -309,7 +309,7 @@ class PostgresStore:
         """Get all orders for a driver including delivered/failed — used for stats."""
         return pd.read_sql(
             """
-            SELECT status, order_date FROM orders
+            SELECT status, order_date, delivered_at FROM orders
             WHERE driver_id = %(driver_id)s
             ORDER BY created_at DESC
             """,
