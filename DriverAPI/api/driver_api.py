@@ -6,6 +6,7 @@ Provides authentication and data access for drivers.
 from flask import Flask, request, jsonify
 from functools import wraps
 import secrets
+import os
 from datetime import datetime, timedelta, timezone
 import logging
 import pandas as pd
@@ -103,6 +104,8 @@ def create_driver_api(app: Flask, data_manager):
         }
         """
         data = request.get_json()
+        if os.environ.get('ENABLE_DRIVER_LOGIN', 'false').lower() != 'true':
+            return jsonify({'error': 'Driver sign-in is temporarily unavailable during restoration'}), 503
         phone = data.get('phone', '').strip()
 
         if not phone:

@@ -1,6 +1,7 @@
 import streamlit as st
 from datetime import datetime
 import os
+import secrets
 
 TRACKING_STATUSES = ['pending', 'in_transit', 'delivered']
 STATUS_LABELS = {
@@ -46,13 +47,14 @@ def render_tracking_page(dm, company_name):
     with col_search:
         tracking_input = st.text_input(
             "Tracking Number",
+            value=st.query_params.get("tracking", ""),
             placeholder="e.g. WRX-2602-A3F7B1",
             label_visibility="collapsed",
         )
         track_btn = st.button("Track Order", use_container_width=True, type="primary")
 
     # Search logic
-    if track_btn and tracking_input:
+    if (track_btn or st.query_params.get("tracking")) and tracking_input:
         tracking_input = tracking_input.strip().upper()
         order = dm.get_order_by_tracking(tracking_input)
 
@@ -188,6 +190,8 @@ def render_login_page(dm, company_name):
         st.session_state.login_tab = 'login'  # 'login' or 'register'
 
     tab = st.session_state.login_tab
+    if os.environ.get("ALLOW_PARTNER_REGISTRATION", "false").lower() != "true":
+        tab = "login"
 
     # ── Header ────────────────────────────────────────────────────────────────
     icon = '🔐' if tab == 'login' else '🤝'
@@ -234,8 +238,7 @@ def render_login_page(dm, company_name):
                             st.error("Invalid username or password.")
 
             st.markdown("<br>", unsafe_allow_html=True)
-            st.markdown('<div style="text-align:center; color:#6b7280; font-size:0.85rem;">New partner?</div>', unsafe_allow_html=True)
-            if st.button("Create a partner account →", use_container_width=True):
+            if os.environ.get("ALLOW_PARTNER_REGISTRATION", "false").lower() == "true" and st.button("Create a partner account →", use_container_width=True):
                 st.session_state.login_tab = 'register'
                 st.rerun()
 
@@ -283,7 +286,11 @@ def render_login_page(dm, company_name):
 
 
 def render_first_run_setup(dm):
-    """First-run setup — create the initial admin account."""
+    """First-run setup protected by a deployment-specific secret."""
+    expected_token = os.environ.get("ADMIN_SETUP_TOKEN", "")
+    if not expected_token:
+        st.info("Administrator setup is awaiting configuration.")
+        return
 
     st.markdown("""
     <div style="text-align: center; padding: 2rem 0 1rem;">
@@ -302,13 +309,18 @@ def render_first_run_setup(dm):
     col_pad_l, col_form, col_pad_r = st.columns([1, 1.5, 1])
     with col_form:
         with st.form("setup_form"):
+            setup_token = st.text_input("Setup code", type="password")
             username = st.text_input("Username")
             password = st.text_input("Password", type="password")
             confirm = st.text_input("Confirm Password", type="password")
             submitted = st.form_submit_button("Create Admin Account", use_container_width=True, type="primary")
 
             if submitted:
-                if not username or len(username) < 3:
+                if not secrets.compare_digest(setup_token, expected_token):
+                    st.error("Invalid setup code.")
+                elif dm.admin_exists():
+                    st.error("An administrator already exists. Reload to sign in.")
+                elif not username or len(username) < 3:
                     st.error("Username must be at least 3 characters.")
                 elif not password or len(password) < 8:
                     st.error("Password must be at least 8 characters.")

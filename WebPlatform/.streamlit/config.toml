@@ -1,12 +1,12 @@
 [server]
 headless = true
-enableCORS = false
-enableXsrfProtection = false
+enableCORS = true
+enableXsrfProtection = true
 maxMessageSize = 200
 
 [browser]
 gatherUsageStats = false
-serverAddress = "warexlogistics.up.railway.app"
+serverAddress = "app.warexlogistics.com.au"
 
 [client]
 toolbarMode = "minimal"

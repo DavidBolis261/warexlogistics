@@ -273,7 +273,7 @@ def send_order_confirmation(data_manager, order):
     service = order.get('service_level', 'standard').capitalize()
     parcels = order.get('parcels', 1)
 
-    domain = data_manager.get_setting('site_domain', '')
+    domain = (data_manager.get_setting('site_domain', '') or os.environ.get('SITE_DOMAIN', ''))
     tracking_url = f"https://{domain}?tracking={tracking_number}" if domain else ''
 
     content_html = (
@@ -340,7 +340,7 @@ def send_status_update(data_manager, order, new_status, proof_photo=None):
     customer = order.get('customer', 'Customer')
     status_label = STATUS_LABELS.get(new_status, new_status.replace('_', ' ').capitalize())
 
-    domain = data_manager.get_setting('site_domain', '')
+    domain = (data_manager.get_setting('site_domain', '') or os.environ.get('SITE_DOMAIN', ''))
     tracking_url = f"https://{domain}?tracking={tracking_number}" if domain else ''
 
     if new_status == 'allocated':

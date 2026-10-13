@@ -29,6 +29,8 @@ class LocalStore:
         self.conn.execute("PRAGMA journal_mode=WAL")
         self._create_tables()
         self._migrate()
+        self.conn.execute("CREATE INDEX IF NOT EXISTS idx_orders_zone ON orders(zone)")
+        self.conn.commit()
 
     def _create_tables(self):
         self.conn.executescript('''
@@ -195,7 +197,6 @@ class LocalStore:
             CREATE INDEX IF NOT EXISTS idx_orders_driver_id ON orders(driver_id);
             CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
             CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
-            CREATE INDEX IF NOT EXISTS idx_orders_zone ON orders(zone);
             CREATE INDEX IF NOT EXISTS idx_run_orders_run_id ON run_orders(run_id);
             CREATE INDEX IF NOT EXISTS idx_run_orders_order_id ON run_orders(order_id);
             CREATE INDEX IF NOT EXISTS idx_runs_status ON runs(status);

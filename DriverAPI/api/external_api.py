@@ -11,6 +11,7 @@ Endpoints:
 """
 
 import os
+import secrets
 import logging
 from functools import wraps
 from flask import request, jsonify
@@ -18,15 +19,16 @@ from flask import request, jsonify
 logger = logging.getLogger(__name__)
 
 # ── API key ───────────────────────────────────────────────────────────────────
-# Set EXTERNAL_API_KEY in Railway env vars.  The hardcoded fallback is used in
-# development only — change it before giving a key to any external partner.
-_EXTERNAL_API_KEY = os.environ.get('EXTERNAL_API_KEY', 'WAREX-PARTNER-KEY-2026')
+# Partner access remains unavailable until an explicit key is configured.
+_EXTERNAL_API_KEY = os.environ.get('EXTERNAL_API_KEY', '')
 
 
 def _require_api_key(f):
     """Decorator — rejects requests that don't carry the correct API key."""
     @wraps(f)
     def decorated(*args, **kwargs):
+        if not _EXTERNAL_API_KEY:
+            return jsonify({'error': 'Partner API is not configured'}), 503
         key = request.headers.get('X-API-Key', '').strip()
         if not key:
             return jsonify({
@@ -34,7 +36,7 @@ def _require_api_key(f):
                 'error': 'Missing API key',
                 'hint': 'Pass your key in the X-API-Key header',
             }), 401
-        if key != _EXTERNAL_API_KEY:
+        if not secrets.compare_digest(key, _EXTERNAL_API_KEY):
             logger.warning(f"[external-api] Invalid API key attempt from {request.remote_addr}")
             return jsonify({'success': False, 'error': 'Invalid API key'}), 403
         return f(*args, **kwargs)

@@ -81,7 +81,17 @@ except Exception as _e:
 # Health check endpoint
 @app.route('/health', methods=['GET'])
 def health_check():
-    return {'status': 'healthy', 'service': 'Sydney Metro Courier Driver API'}, 200
+    try:
+        store = data_manager.store
+        if hasattr(store, 'engine'):
+            from sqlalchemy import text
+            with store.engine.connect() as connection:
+                connection.execute(text('SELECT 1'))
+        else:
+            store.conn.execute('SELECT 1')
+    except Exception:
+        return {'status': 'unhealthy', 'service': 'Warex Driver API'}, 503
+    return {'status': 'healthy', 'service': 'Warex Driver API'}, 200
 
 # API documentation endpoint
 @app.route('/api/driver/docs', methods=['GET'])

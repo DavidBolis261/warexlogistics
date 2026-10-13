@@ -212,7 +212,7 @@ if not dm.admin_exists():
 # Authenticated — route by role
 if st.session_state.authenticated:
     if st.session_state.get('user_role') == 'client':
-        _render_client_portal(dm, company_name)
+        st.info('Partner access is temporarily unavailable while the platform is being restored.')
         st.stop()
     # else fall through to admin dashboard below
 
