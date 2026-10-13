@@ -39,9 +39,19 @@ STATUS_LABELS = {
 
 def render(orders_df, drivers_df, data_manager, zone_filter, service_filter, status_filter):
     st.markdown('<div class="section-header">Order Management</div>', unsafe_allow_html=True)
+    orders_df = orders_df.copy()
+    if not orders_df.empty and not drivers_df.empty:
+        names = dict(zip(drivers_df.driver_id, drivers_df.name))
+        orders_df['driver_id'] = orders_df['driver_id'].map(lambda value: names.get(value, value))
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "Pending", "In Transit", "Completed", "Inbound Receipts", "WMS Import",
+    if st.session_state.get('show_new_order_form'):
+        _render_new_order_form(data_manager)
+        if st.button('Close new order form'):
+            st.session_state.show_new_order_form = False
+            st.rerun()
+
+    tab_all, tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "All Orders", "Pending", "In Transit", "Completed", "Inbound Receipts", "WMS Import",
     ])
 
     if not orders_df.empty:
@@ -62,6 +72,9 @@ def render(orders_df, drivers_df, data_manager, zone_filter, service_filter, sta
             filtered_df = filtered_df[filtered_df['status'].isin(status_filter)]
     else:
         filtered_df = orders_df
+
+    with tab_all:
+        _render_all_orders(filtered_df, drivers_df, data_manager)
 
     with tab1:
         _render_pending(filtered_df, drivers_df, data_manager)
@@ -89,10 +102,8 @@ def _render_all_orders(orders_df, drivers_df, data_manager):
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("New Order", use_container_width=True):
             st.session_state['show_new_order_form'] = True
+            st.rerun()
 
-    # New order form
-    if st.session_state.get('show_new_order_form'):
-        _render_new_order_form(data_manager)
 
     if orders_df.empty:
         st.info("No orders yet. Click 'New Order' to create your first order.")
@@ -299,6 +310,8 @@ def _render_new_order_form(data_manager):
     # Address autocomplete OUTSIDE the form (interactive components can't be in forms)
     has_api_key = bool(os.environ.get('GOOGLE_PLACES_API_KEY'))
 
+    if not has_api_key:
+        st.info('Address suggestions are awaiting setup. You can enter the full address manually below. See Integrations for connection status.')
     if has_api_key:
         st.markdown("### 📍 Address Autocomplete")
         col1, col2 = st.columns(2)
@@ -513,10 +526,8 @@ def _render_pending(orders_df, drivers_df, data_manager):
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("New Order", use_container_width=True, key="pending_new_order"):
             st.session_state['show_new_order_form'] = True
+            st.rerun()
 
-    # New order form
-    if st.session_state.get('show_new_order_form'):
-        _render_new_order_form(data_manager)
 
     if orders_df.empty:
         st.info("No orders to display.")
@@ -789,7 +800,7 @@ def _render_in_transit(orders_df, drivers_df, data_manager):
         status_label = "In Transit" if order['status'] == 'in_transit' else "Assigned"
         badge_class = "status-in-transit" if order['status'] == 'in_transit' else "status-allocated"
         tracking = order.get('tracking_number', '')
-        tracking_line = f"<div style='font-family: monospace; font-size: 0.75rem; color: rgba(255,255,255,0.4);'>#{tracking}</div>" if tracking else ''
+        tracking_line = f"<div style='font-family: monospace; font-size: 0.75rem; color: #64748b;'>#{tracking}</div>" if tracking else ''
         eta_line = f"ETA {order['eta']}" if order.get('eta') else ''
 
         with st.expander(
@@ -1168,11 +1179,11 @@ def render_client_view(orders_df, company_name: str):
 
     st.markdown(f"""
     <div style="padding: 1rem 0 0.5rem;">
-        <div style="font-family: 'DM Sans', sans-serif; font-size: 1.6rem; font-weight: 700; color: white;">
+        <div style="font-family: 'DM Sans', sans-serif; font-size: 1.6rem; font-weight: 700; color: #17212f;">
             📋 Order Status
         </div>
         <div style="font-family: 'Space Mono', monospace; font-size: 0.75rem;
-                    color: rgba(255,255,255,0.4); margin-top: 0.25rem; text-transform: uppercase;
+                    color: #64748b; margin-top: 0.25rem; text-transform: uppercase;
                     letter-spacing: 1px;">
             {company_name} &mdash; Partner Portal
         </div>
@@ -1263,7 +1274,7 @@ def render_client_view(orders_df, company_name: str):
                 <div>
                     <span style="font-family: 'Space Mono', monospace; font-size: 0.95rem;
                                  font-weight: 700; color: #a78bfa;">{tracking}</span>
-                    {f'<span style="font-family: Space Mono, monospace; font-size: 0.7rem; color: rgba(255,255,255,0.4); margin-left: 0.75rem;">REF: {ref_display}</span>' if ref_display else ''}
+                    {f'<span style="font-family: Space Mono, monospace; font-size: 0.7rem; color: #64748b; margin-left: 0.75rem;">REF: {ref_display}</span>' if ref_display else ''}
                 </div>
                 <span style="background: {badge_bg}; color: {badge_fg}; font-size: 0.72rem;
                              font-weight: 700; padding: 3px 10px; border-radius: 20px;
@@ -1275,7 +1286,7 @@ def render_client_view(orders_df, company_name: str):
             <div style="margin-top: 0.2rem; color: rgba(255,255,255,0.45); font-size: 0.8rem;">
                 {full_addr}
             </div>
-            <div style="margin-top: 0.5rem; display: flex; gap: 1.5rem; font-size: 0.75rem; color: rgba(255,255,255,0.4);">
+            <div style="margin-top: 0.5rem; display: flex; gap: 1.5rem; font-size: 0.75rem; color: #64748b;">
                 <span>📦 {parcels} parcel{'s' if parcels != 1 else ''}</span>
                 <span>⚡ {svc}</span>
                 <span>🕐 {created_str}</span>

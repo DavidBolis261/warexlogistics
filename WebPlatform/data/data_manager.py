@@ -56,6 +56,8 @@ class DataManager:
             self.store = LocalStore()
             print("✅ Using SQLite database (Development)")
 
+        from data.access import AccessStore
+        self.access = AccessStore(self.store)
         self._client = None
         # Optional override set by the Streamlit dashboard (e.g. 'demo').
         # Never set by the Flask API server — keeps Streamlit out of this class.
@@ -195,7 +197,11 @@ class DataManager:
         return {'success': True}
 
     def allocate_order(self, order_id, driver_name):
-        self.store.update_order_status(order_id, 'allocated', driver_id=driver_name)
+        drivers = self.get_drivers()
+        match = drivers[(drivers['driver_id'] == driver_name) | (drivers['name'] == driver_name)]
+        if len(match) != 1:
+            raise ValueError('Select a unique driver before allocating an order.')
+        self.store.update_order_status(order_id, 'allocated', driver_id=match.iloc[0]['driver_id'])
 
         # Push notification — look up the driver's actual ID from their name
         try:
@@ -229,6 +235,12 @@ class DataManager:
         False so the existing auto-email behaviour is preserved, but emails
         are only sent when the status actually transitions to a new value.
         """
+        if fields.get('driver_id'):
+            drivers = self.get_drivers()
+            matches = drivers[(drivers['driver_id'] == fields['driver_id']) | (drivers['name'] == fields['driver_id'])]
+            if len(matches) != 1:
+                raise ValueError('Select a unique driver.')
+            fields['driver_id'] = matches.iloc[0]['driver_id']
         new_status = fields.get('status') if not skip_email else None
 
         # Capture old status before the update so we can detect real changes.
@@ -373,7 +385,7 @@ class DataManager:
         self.store.save_run_orders(run_id, order_ids)
 
         # Batch update all orders to allocated in a single query
-        self.store.batch_update_order_status(order_ids, 'allocated', driver_id=driver_name)
+        self.store.batch_update_order_status(order_ids, 'allocated', driver_id=driver_id)
 
         # Push notification — best-effort, never block the run creation
         try:
@@ -842,11 +854,11 @@ class DataManager:
     def get_role_for_token(self, token):
         """Return the role for a session token — used to restore role after page refresh."""
         if not token:
-            return 'admin'
+            return None
         try:
-            return self.store.get_role_for_token(token) or 'admin'
+            return self.store.get_role_for_token(token)
         except Exception:
-            return 'admin'
+            return None
 
     def create_client(self, username, password, company_name=''):
         """Register a new client (partner) account."""

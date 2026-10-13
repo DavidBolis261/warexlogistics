@@ -18,9 +18,15 @@ def render_tracking_page(dm, company_name):
     # Admin login button in top right
     col_spacer, col_login = st.columns([5, 1])
     with col_login:
-        if st.button("Admin Login", use_container_width=True):
+        if st.button("Sign in", use_container_width=True):
             st.session_state.show_login = True
             st.rerun()
+
+    left, right = st.columns(2)
+    with left:
+        st.link_button('Partner portal', '/?portal=partner', use_container_width=True)
+    with right:
+        st.link_button('Driver portal', '/?portal=driver', use_container_width=True)
 
     # Header
     # logo_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'static', 'warex_logo.png')
@@ -190,7 +196,7 @@ def render_login_page(dm, company_name):
         st.session_state.login_tab = 'login'  # 'login' or 'register'
 
     tab = st.session_state.login_tab
-    if os.environ.get("ALLOW_PARTNER_REGISTRATION", "false").lower() != "true":
+    if os.environ.get("ALLOW_PARTNER_REGISTRATION", "true").lower() != "true":
         tab = "login"
 
     # ── Header ────────────────────────────────────────────────────────────────
@@ -238,7 +244,7 @@ def render_login_page(dm, company_name):
                             st.error("Invalid username or password.")
 
             st.markdown("<br>", unsafe_allow_html=True)
-            if os.environ.get("ALLOW_PARTNER_REGISTRATION", "false").lower() == "true" and st.button("Create a partner account →", use_container_width=True):
+            if os.environ.get("ALLOW_PARTNER_REGISTRATION", "true").lower() == "true" and st.button("Create a partner account →", use_container_width=True):
                 st.session_state.login_tab = 'register'
                 st.rerun()
 
@@ -280,6 +286,7 @@ def render_login_page(dm, company_name):
 
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Back to Tracking", use_container_width=True):
+            st.query_params.pop("portal", None)
             st.session_state.login_tab = 'login'
             st.session_state.show_login = False
             st.rerun()

@@ -1,4 +1,5 @@
 import json
+import os
 import streamlit as st
 from datetime import datetime
 
@@ -116,13 +117,14 @@ def _render_email_settings(data_manager):
     with st.form("email_settings_form"):
         enabled = st.toggle(
             "Enable email notifications",
-            value=data_manager.get_setting('email_notifications_enabled', 'false').lower() == 'true',
+            value=bool(os.getenv('RESEND_API_KEY')) or data_manager.get_setting('email_notifications_enabled', 'false').lower() == 'true',
+            disabled=bool(os.getenv('RESEND_API_KEY')),
+            help='Managed through Railway when RESEND_API_KEY is set.',
         )
 
         st.markdown("### Resend API")
         st.caption("Sign up at [resend.com](https://resend.com), add your domain, and get your API key.")
 
-        import os
         api_key_env = os.environ.get('RESEND_API_KEY', '')
 
         col1, col2 = st.columns(2)
@@ -145,7 +147,8 @@ def _render_email_settings(data_manager):
         with col2:
             from_email = st.text_input(
                 "From Email Address",
-                value=data_manager.get_setting('email_from_address', ''),
+                value=os.getenv('EMAIL_FROM_ADDRESS') or data_manager.get_setting('email_from_address', ''),
+                disabled=bool(os.getenv('EMAIL_FROM_ADDRESS')),
                 placeholder="info@warexlogistics.com.au",
                 help="Must match a verified domain in your Resend account",
             )
@@ -153,7 +156,8 @@ def _render_email_settings(data_manager):
         st.markdown("### Website")
         site_domain = st.text_input(
             "Your Website Domain (for tracking links in emails)",
-            value=data_manager.get_setting('site_domain', ''),
+            value=os.getenv('SITE_DOMAIN') or data_manager.get_setting('site_domain', ''),
+            disabled=bool(os.getenv('SITE_DOMAIN')),
             placeholder="warexlogistics.com.au",
         )
 
@@ -434,38 +438,16 @@ def _render_zones(data_manager):
                 st.rerun()
 
     st.markdown("---")
-    # st.markdown("### Routing Preferences")
-
-    # with st.form("routing_prefs_form"):
-    #     max_stops = st.slider(
-    #         "Default max stops per run",
-    #         5, 30,
-    #         int(data_manager.get_setting('max_stops_per_run', '15')),
-    #     )
-    #     # max_duration = st.slider(
-    #     #     "Max run duration (hours)",
-    #     #     2, 8,
-    #     #     int(data_manager.get_setting('max_run_duration', '4')),
-    #     # )
-    #     avoid_tolls = st.checkbox(
-    #         "Avoid toll roads",
-    #         value=data_manager.get_setting('avoid_tolls', 'False') == 'True',
-    #     )
-    #     express_priority = st.checkbox(
-    #         "Prioritize express deliveries",
-    #         value=data_manager.get_setting('express_priority', 'True') == 'True',
-    #     )
-
-    #     submitted = st.form_submit_button("Save Routing Preferences", use_container_width=True)
-
-    #     if submitted:
-    #         data_manager.save_settings({
-    #             'max_stops_per_run': str(max_stops),
-    #             'max_run_duration': str(max_duration),
-    #             'avoid_tolls': str(avoid_tolls),
-    #             'express_priority': str(express_priority),
-    #         })
-    #         st.success("Routing preferences saved!")
+    st.markdown("### Routing preferences")
+    st.caption("Planning defaults for dispatch. Toll avoidance and express priority are preferences for dispatch; automated route optimisation is not connected.")
+    with st.form("routing_prefs_form"):
+        max_stops = st.slider("Default max stops per run", 5, 50, int(data_manager.get_setting('max_stops_per_run', '15')))
+        max_duration = st.slider("Target run duration (hours)", 2, 12, int(data_manager.get_setting('max_run_duration', '4')))
+        avoid_tolls = st.checkbox("Prefer avoiding toll roads", value=data_manager.get_setting('avoid_tolls', 'False') == 'True')
+        express_priority = st.checkbox("Prioritise express deliveries", value=data_manager.get_setting('express_priority', 'True') == 'True')
+        if st.form_submit_button("Save routing preferences"):
+            data_manager.save_settings({'max_stops_per_run':str(max_stops),'max_run_duration':str(max_duration),'avoid_tolls':str(avoid_tolls),'express_priority':str(express_priority)})
+            st.success("Routing preferences saved.")
 
 
 def _render_api_log(data_manager):

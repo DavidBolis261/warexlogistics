@@ -202,10 +202,12 @@ def render(orders_df, drivers_df, runs_df, data_manager):
         if zone_orders.empty:
             st.warning("No pending orders in this zone. Create orders first or select a different zone.")
         else:
+            max_stops = int(data_manager.get_setting('max_stops_per_run', '15'))
+            st.caption(f"Planning target: up to {max_stops} stops · {data_manager.get_setting('max_run_duration', '4')} hours")
             selected_order_ids = st.multiselect(
                 "Select orders for this run",
                 zone_orders['order_id'].tolist(),
-                default=zone_orders['order_id'].tolist()[:5] if len(zone_orders) > 0 else []
+                default=zone_orders['order_id'].tolist()[:max_stops] if len(zone_orders) > 0 else []
             )
 
             # Driver selection
@@ -237,7 +239,7 @@ def render(orders_df, drivers_df, runs_df, data_manager):
                         """, unsafe_allow_html=True)
 
                 if st.button("Create Run", use_container_width=True, type="primary",
-                             disabled=not selected_order_ids):
+                             disabled=not selected_order_ids or len(selected_order_ids) > max_stops):
                     if not selected_order_ids:
                         st.error("Select at least one order for the run.")
                     else:

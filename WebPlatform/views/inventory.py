@@ -4,6 +4,9 @@ import streamlit as st
 def render(data_manager):
     st.markdown('<div class="section-header">Inventory Management</div>', unsafe_allow_html=True)
 
+    if not data_manager.is_live:
+        st.info('Warehouse connection required for stock, ULD and kitting operations. Configure Thomax in Settings → WMS Integration. The forms below show the available tools.')
+
     tab1, tab2, tab3, tab4 = st.tabs([
         "Item Master", "ULD Management", "Stock Adjustments", "Kitting",
     ])
@@ -12,13 +15,23 @@ def render(data_manager):
         _render_item_master(data_manager)
 
     with tab2:
-        _render_uld_management(data_manager)
+        with st.container():
+            if data_manager.is_live:
+                _render_uld_management(data_manager)
+            else:
+                st.info("ULD creation and removal require a warehouse connection. Configure it in Settings → WMS Integration.")
 
     with tab3:
-        _render_stock_adjustments(data_manager)
+        if data_manager.is_live:
+            _render_stock_adjustments(data_manager)
+        else:
+            st.info("Stock adjustments require a warehouse connection.")
 
     with tab4:
-        _render_kitting(data_manager)
+        if data_manager.is_live:
+            _render_kitting(data_manager)
+        else:
+            st.info("Kitting jobs require a warehouse connection.")
 
 
 def _render_item_master(data_manager):

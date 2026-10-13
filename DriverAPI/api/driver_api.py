@@ -41,6 +41,9 @@ def create_driver_api(app: Flask, data_manager):
         store = data_manager.store
         if hasattr(store, 'get_driver_token'):
             row = store.get_driver_token(token)
+            if not row:
+                _mem_tokens.pop(token, None)
+                return None
             if row:
                 # Refresh memory cache
                 _mem_tokens[token] = row
@@ -96,17 +99,20 @@ def create_driver_api(app: Flask, data_manager):
     @app.route('/api/driver/login', methods=['POST'])
     def driver_login():
         """
-        Authenticate driver using phone number (their driver ID).
+        Authenticate a driver using their phone number and dispatch-issued password.
 
         Request body:
         {
-            "phone": "0412345678"
+            "phone": "0412345678",
+            "password": "your-driver-password"
         }
         """
-        data = request.get_json()
-        if os.environ.get('ENABLE_DRIVER_LOGIN', 'false').lower() != 'true':
+        data = request.get_json(silent=True) or {}
+        if os.environ.get('ENABLE_DRIVER_LOGIN', 'true').lower() != 'true':
             return jsonify({'error': 'Driver sign-in is temporarily unavailable during restoration'}), 503
-        phone = data.get('phone', '').strip()
+        if not isinstance(data, dict):
+            return jsonify({'error': 'A JSON object is required'}), 400
+        phone = str(data.get('phone') or '').strip()
 
         if not phone:
             return jsonify({'error': 'Phone number is required'}), 400
@@ -115,15 +121,19 @@ def create_driver_api(app: Flask, data_manager):
         drivers_df = data_manager.get_drivers()
 
         if drivers_df.empty:
-            return jsonify({'error': 'No drivers found'}), 404
+            return jsonify({'error': 'Invalid phone number or password'}), 401
 
         # Find driver by phone number
         driver_match = drivers_df[drivers_df['phone'] == phone]
 
         if driver_match.empty:
-            return jsonify({'error': 'Driver not found', 'message': 'No driver with this phone number'}), 404
+            return jsonify({'error': 'Invalid phone number or password'}), 401
 
+        if len(driver_match) != 1:
+            return jsonify({'error': 'Invalid phone number or password'}), 401
         driver = driver_match.iloc[0].to_dict()
+        if not data_manager.access.verify_driver(driver['driver_id'], str(data.get('password', ''))):
+            return jsonify({'error': 'Invalid credentials or temporarily locked. Contact dispatch.'}), 401
 
         # Generate auth token (valid for 30 days)
         token = secrets.token_urlsafe(32)
@@ -263,6 +273,9 @@ def create_driver_api(app: Flask, data_manager):
 
         At least one of status or media must be present.
         """
+        order = data_manager.store.get_order_by_id(stop_id)
+        if order is None or str(order.get('driver_id', '')) != str(request.driver_id):
+            return jsonify({'error': 'Stop not found'}), 404
         raw_data = request.get_json(force=True, silent=True)
         if raw_data is None:
             # JSON parsing failed — log details for debugging
@@ -306,7 +319,9 @@ def create_driver_api(app: Flask, data_manager):
                 'delivered': 'delivered',
                 'failed': 'failed',
             }
-            backend_status = status_map.get(new_status, 'allocated')
+            if new_status not in status_map:
+                return jsonify({'error': 'Invalid delivery status'}), 400
+            backend_status = status_map[new_status]
             update_fields['status'] = backend_status
             if notes:
                 update_fields['delivery_notes'] = notes
@@ -401,6 +416,9 @@ def create_driver_api(app: Flask, data_manager):
 
         Request body: { "status": "delivered" }  (optional — defaults to 'delivered')
         """
+        order = data_manager.store.get_order_by_id(stop_id)
+        if order is None or str(order.get('driver_id', '')) != str(request.driver_id):
+            return jsonify({'error': 'Stop not found'}), 404
         from utils.email_service import send_status_update, is_email_configured
 
         data = request.get_json() or {}

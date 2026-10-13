@@ -13,6 +13,25 @@ Both use Railpack and Python 3.12. Set SITE_DOMAIN=app.warexlogistics.com.au, TZ
 
 The first administrator must supply ADMIN_SETUP_TOKEN from the protected local handover file, then choose a username and password. The setup screen disappears once an administrator exists. Remove ADMIN_SETUP_TOKEN after setup. Never set RESET_ADMIN in production.
 
-Partner registration and the client portal are unavailable during restoration because company data isolation needs repair. Driver login remains disabled until the iOS authentication flow is secured; ENABLE_DRIVER_LOGIN must remain false. The external API fails closed unless EXTERNAL_API_KEY is explicitly configured. Do not enable these entry points with live customer data without addressing those issues.
+## Restored access and pages
 
-The new database intentionally contains no historical orders or accounts. Proof-of-delivery upload storage and APNs must be reviewed during iOS restoration before driver operations resume.
+Partner registration is available with `ALLOW_PARTNER_REGISTRATION=true` on Dashboard. New accounts wait for approval in **Partners**. An administrator explicitly assigns orders to each account; company-name matches never grant access. Suspending an account removes portal access immediately.
+
+Driver login uses phone + a password of at least 12 characters, configured in **Driver Access**. Set `ENABLE_DRIVER_LOGIN=true` on DriverAPI and `DRIVER_API_URL=https://driverapi-production-b594.up.railway.app` on Dashboard. Password changes revoke existing driver sessions. Five unsuccessful password attempts lock the account for 15 minutes. The browser portal supports assigned deliveries, status updates, photo/signature uploads and messages. A restored iOS app must adopt this password login contract.
+
+Dashboard navigation includes Driver Tracking (live positions/history), Delivery Evidence, Partners, Driver Access, Inventory and Integrations, alongside the existing operational pages. Orders includes All Orders. Settings includes routing preferences. Maximum stops is enforced when creating a run; duration, toll and express preferences are dispatch guidance, not automatic route optimization.
+
+## Remaining provider configuration
+
+| Feature | Variables / setup | Service |
+| --- | --- | --- |
+| Address suggestions | `GOOGLE_PLACES_API_KEY` with Places access | Dashboard |
+| Thomax WMS | `WMS_CLUSTER`, `WMS_INSTANCE_CODE`, `WMS_TENANT_CODE`, `WMS_WAREHOUSE_CODE`, `WMS_API_KEY`, or Settings → WMS Integration | Dashboard |
+| Apple push | `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_BUNDLE_ID`, `APNS_PRIVATE_KEY`, `APNS_SANDBOX` | DriverAPI (and Dashboard for its push sender) |
+| External order API | `EXTERNAL_API_KEY` for authorized integrations | DriverAPI |
+
+Do not use dummy secret values. Missing-provider pages remain visible with setup instructions. Manual addresses and local item-master management remain available without provider credentials. Email already uses Railway-managed Resend configuration.
+
+The new database intentionally contains no historical orders or accounts. Delivery evidence is stored in the database. Browser sign-in does not provide background GPS or iOS push registration; those need the iOS app. The missing Swift source has not been recovered by this website update.
+
+Validation: `python -m unittest discover -s tests -v` covers partner order isolation/approval/suspension, password-required driver login, lockout, session revocation, and assigned-order API authorization. Streamlit AppTest and browser checks cover navigation with empty and populated local databases.

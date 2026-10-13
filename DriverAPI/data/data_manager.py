@@ -55,6 +55,8 @@ class DataManager:
             self.store = LocalStore()
             print("✅ Using SQLite database (Development)")
 
+        from data.access import AccessStore
+        self.access = AccessStore(self.store)
         self._client = None
         # Optional override set by the Streamlit dashboard (e.g. 'demo').
         # Never set by the Flask API server — keeps Streamlit out of this class.
@@ -176,7 +178,11 @@ class DataManager:
         return {'success': True}
 
     def allocate_order(self, order_id, driver_name):
-        self.store.update_order_status(order_id, 'allocated', driver_id=driver_name)
+        drivers = self.get_drivers()
+        match = drivers[(drivers['driver_id'] == driver_name) | (drivers['name'] == driver_name)]
+        if len(match) != 1:
+            raise ValueError('Select a unique driver before allocating an order.')
+        self.store.update_order_status(order_id, 'allocated', driver_id=match.iloc[0]['driver_id'])
 
     def update_order(self, order_id, skip_email=False, **fields):
         """Update order fields (status, zone, driver_id, proof_photo, etc.).
@@ -187,6 +193,12 @@ class DataManager:
         the email).  All other status changes auto-send the notification here,
         but only when the status actually changes to a new value.
         """
+        if fields.get('driver_id'):
+            drivers = self.get_drivers()
+            matches = drivers[(drivers['driver_id'] == fields['driver_id']) | (drivers['name'] == fields['driver_id'])]
+            if len(matches) != 1:
+                raise ValueError('Select a unique driver.')
+            fields['driver_id'] = matches.iloc[0]['driver_id']
         new_status = fields.get('status') if not skip_email else None
 
         # Capture old status before the update so we can detect real changes.

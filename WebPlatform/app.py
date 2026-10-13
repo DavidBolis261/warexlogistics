@@ -52,7 +52,12 @@ def _render_client_portal(dm, company_name):
             st.query_params.clear()
             st.rerun()
 
-    orders_df = dm.get_orders()
+    session = dm.store.get_session_token(st.session_state.get('session_token'))
+    if not session or not dm.access.approved(session['username']):
+        st.title('Partner portal')
+        st.info('Your registration is awaiting approval by Warex. Orders will appear here once dispatch approves your account and assigns them to you.')
+        return
+    orders_df = dm.access.partner_orders(st.session_state.get('session_token'))
     render_client_view(orders_df, company_name)
 
 # ── Logo helpers ──────────────────────────────────────────────────────────────
@@ -144,6 +149,16 @@ if not st.session_state.authenticated:
         # Restore role — important for clients refreshing the page
         st.session_state.user_role = dm.get_role_for_token(token_from_url)
 
+# Revalidate server-side role on every rerun, never grant admin on lookup failure.
+if st.session_state.authenticated:
+    role = dm.get_role_for_token(st.session_state.get('session_token'))
+    if role not in ('admin', 'client'):
+        st.session_state.authenticated = False
+        st.session_state.session_token = None
+        st.query_params.pop('token', None)
+    else:
+        st.session_state.user_role = role
+
 # Apply custom CSS — pass auth state so sidebar toggle is only injected for admins
 apply_styles(authenticated=st.session_state.authenticated)
 
@@ -204,6 +219,14 @@ if os.environ.get('RESET_ADMIN', '').lower() == 'true':
     except Exception as _e:
         print(f"⚠️ Admin reset failed: {_e}")
 
+# Public portal entry points are separate from administrator navigation.
+if not st.session_state.authenticated and st.query_params.get('portal') == 'driver':
+    from views.driver_portal import render as render_driver_portal
+    render_driver_portal()
+    st.stop()
+if not st.session_state.authenticated and st.query_params.get('portal') == 'partner':
+    st.session_state.show_login = True
+
 # First-run setup — no admin exists yet
 if not dm.admin_exists():
     render_first_run_setup(dm)
@@ -212,7 +235,7 @@ if not dm.admin_exists():
 # Authenticated — route by role
 if st.session_state.authenticated:
     if st.session_state.get('user_role') == 'client':
-        st.info('Partner access is temporarily unavailable while the platform is being restored.')
+        _render_client_portal(dm, company_name)
         st.stop()
     # else fall through to admin dashboard below
 
@@ -262,62 +285,26 @@ with st.sidebar:
             "📊 Dashboard",
             "📋 Orders",
             "🚚 Drivers",
+            "📍 Driver Tracking",
+            "🔑 Driver Access",
             "🗺️ Route Planning",
             "🖨️ Print Labels",
+            "📷 Delivery Evidence",
+            "🤝 Partners",
+            "📦 Inventory",
             "📈 Analytics",
             msg_label,
+            "🔌 Integrations",
             "⚙️ Settings",
         ],
         label_visibility="collapsed",
     )
 
-    # st.markdown("---")
-
-    # # Quick filters
-    # st.markdown("### Quick Filters")
-
-    # zone_filter = st.multiselect(
-    #     "Zones",
-    #     ["Inner West", "Eastern Suburbs", "CBD", "South Sydney", "Inner City"],
-    #     default=[],
-    # )
-
-    # service_filter = st.multiselect(
-    #     "Service Level",
-    #     ["express", "standard", "economy"],
-    #     default=[],
-    # )
-
-    # status_filter = st.multiselect(
-    #     "Status",
-    #     ["pending", "allocated", "in_transit", "delivered", "failed"],
-    #     default=[],
-    # )
-
-    # st.markdown("---")
-
-    # # Connection status
-    # if wms_config.is_configured:
-    #     mode = dm.data_mode
-    #     if mode == 'live':
-    #         dot_color = "#10b981"
-    #         label = "Live - WMS Connected"
-    #     elif mode == 'local':
-    #         dot_color = "#fbbf24"
-    #         label = "Local Only"
-    #     else:
-    #         dot_color = "#6b7280"
-    #         label = "Demo Mode"
-    # else:
-    #     dot_color = "#6b7280"
-    #     label = "Demo Mode"
-
-    # st.markdown(f"""
-    # <div class="live-indicator" style="color: {dot_color};">
-    #     <div class="live-dot" style="background: {dot_color};"></div>
-    #     {label}
-    # </div>
-    # """, unsafe_allow_html=True)
+    with st.expander("Quick filters"):
+        zone_filter = st.multiselect("Zones", dm.store.get_zones()['zone_name'].tolist())
+        service_filter = st.multiselect("Service level", ["express", "standard", "economy"])
+        status_filter = st.multiselect("Order status", ["pending", "allocated", "in_transit", "delivered", "failed"])
+    st.caption("WMS connected" if wms_config.is_configured else "Warehouse integration not connected")
 
     st.caption(f"Last updated: {datetime.now().strftime('%H:%M:%S')}")
 
@@ -338,15 +325,15 @@ with st.sidebar:
 
 
 # LOAD DATA — cached with 30-second TTL to avoid redundant DB queries on every rerun
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=30, show_spinner=False)
 def _cached_get_orders(_dm_id):
     return dm.get_orders()
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=30, show_spinner=False)
 def _cached_get_drivers(_dm_id):
     return dm.get_drivers()
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=30, show_spinner=False)
 def _cached_get_runs(_dm_id):
     return dm.get_runs()
 
@@ -357,8 +344,7 @@ runs_df = _cached_get_runs(_dm_id)
 
 
 # HEADER
-col1, col2 = st.columns([3, 1])
-with col1:
+with st.container():
     _hdr_logo = (
         f'<img src="{_logo_b64}" style="height:56px;width:auto;border-radius:10px;margin-right:1rem;flex-shrink:0;" />'
         if _logo_b64 else ''
@@ -376,10 +362,7 @@ with col1:
     """, unsafe_allow_html=True)
 
 
-# Sidebar filters are currently disabled — default to empty (no filtering)
-zone_filter = []
-service_filter = []
-status_filter = []
+
 
 # PAGE ROUTING
 if page == "📊 Dashboard":
@@ -413,6 +396,12 @@ elif page == "📈 Analytics":
 elif page.startswith("💬 Messages"):
     from views.messages import render
     render(dm)
+
+elif page in ["📍 Driver Tracking", "📷 Delivery Evidence", "🤝 Partners", "🔑 Driver Access", "🔌 Integrations"]:
+    from views import operations
+    {"📍 Driver Tracking": operations.tracking, "📷 Delivery Evidence": operations.evidence,
+     "🤝 Partners": operations.partners, "🔑 Driver Access": operations.driver_access,
+     "🔌 Integrations": operations.integrations}[page](dm)
 
 elif page == "⚙️ Settings":
     from views.settings_page import render
