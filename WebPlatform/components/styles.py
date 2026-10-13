@@ -11,7 +11,7 @@ def apply_styles(authenticated=False):
     [data-testid="stAppViewContainer"] > .main {background:#f5f7fa;}
     [data-testid="stMainBlockContainer"],.main .block-container {padding:2rem 2.5rem 3rem;max-width:1600px;}
     [data-testid="stHeader"] {background:transparent;}
-    #MainMenu,footer,.stDeployButton,[data-testid="stToolbar"] {display:none;}
+    #MainMenu,footer,.stDeployButton {display:none;}
     [data-testid="stSidebar"] {background:#17212f;border-right:1px solid #293548;}
     [data-testid="stSidebar"] p,[data-testid="stSidebar"] label,[data-testid="stSidebar"] h3 {color:#e6edf6;}
     [data-testid="stSidebar"] [data-testid="stCaptionContainer"] p {color:#aab8ca;}
