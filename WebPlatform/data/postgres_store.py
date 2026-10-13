@@ -30,6 +30,10 @@ class PostgresStore:
         if not self.database_url:
             raise ValueError("DATABASE_URL environment variable not set")
 
+        # Use the installed driver explicitly; SQLAlchemy 2.1 changed its default.
+        from sqlalchemy.engine import make_url
+        self.database_url = make_url(self.database_url).set(drivername="postgresql+psycopg2")
+
         # Create SQLAlchemy engine with connection timeouts for Railway
         self.engine = create_engine(
             self.database_url,
