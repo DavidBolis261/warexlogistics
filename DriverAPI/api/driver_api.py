@@ -177,35 +177,24 @@ def create_driver_api(app: Flask, data_manager):
         """Get delivery run for the authenticated driver."""
         driver_id = request.driver_id
 
-        driver_orders = data_manager.store.get_orders_for_driver(driver_id)
-
-        if driver_orders.empty:
-            return jsonify({'runs': [], 'total': 0}), 200
-
-        total_stops = len(driver_orders)
-        completed = len(driver_orders[driver_orders['status'].isin(['delivered', 'completed'])])
-
-        if completed == 0:
-            status = 'Pending'
-        elif completed < total_stops:
-            status = 'Active'
-        else:
-            status = 'Completed'
-
-        today = _now().strftime("%Y%m%d")
-        run = {
-            'id': f'RUN-{driver_id}-{today}',
-            'runNumber': f'RUN-{today}',
-            'zone': "Today's Deliveries",
-            'date': _now().isoformat(),
-            'status': status,
-            'totalStops': total_stops,
-            'completedStops': completed,
-            'estimatedDuration': total_stops * 600,
-            'totalDistance': total_stops * 2.5,
-        }
-
-        return jsonify({'runs': [run], 'total': 1}), 200
+        data_manager.access.sync_run_progress()
+        runs = []
+        for row in data_manager.access.driver_runs(driver_id):
+            runs.append({
+                'id':row['run_id'], 'runNumber':row['run_id'], 'zone':row.get('zone') or '',
+                'date':str(row['created_at']), 'status':row['status'].title(),
+                'totalStops':int(row['actual_stops']), 'completedStops':int(row['delivered']),
+                'estimatedDuration':int(row['actual_stops'])*600, 'totalDistance':0,
+            })
+        unplanned = data_manager.access.driver_run_orders(driver_id, 'unplanned')
+        if not unplanned.empty:
+            runs.insert(0, {'id':'unplanned','runNumber':'Unplanned deliveries','zone':'Assigned directly',
+                'date':_now().isoformat(),'status':'Active','totalStops':len(unplanned),
+                'completedStops':0,'estimatedDuration':len(unplanned)*600,'totalDistance':0})
+        requested_status = request.args.get('status','').lower()
+        if requested_status:
+            runs = [run for run in runs if run['status'].lower() == requested_status]
+        return jsonify({'runs':runs,'total':len(runs)}),200
 
     # ── Stops ─────────────────────────────────────────────────────────────────
 
@@ -215,7 +204,7 @@ def create_driver_api(app: Flask, data_manager):
         """Get all delivery stops (orders) for the driver."""
         driver_id = request.driver_id
 
-        driver_orders = data_manager.store.get_orders_for_driver(driver_id)
+        driver_orders = data_manager.access.driver_run_orders(driver_id, run_id)
 
         if driver_orders.empty:
             return jsonify({'stops': [], 'total': 0}), 200
@@ -376,11 +365,12 @@ def create_driver_api(app: Flask, data_manager):
 
         driver_orders = data_manager.store.get_all_orders_for_driver(driver_id)
 
-        today = _now().strftime('%Y-%m-%d')
-        deliveries_today = len(driver_orders[
-            (driver_orders['status'] == 'delivered') &
-            (driver_orders['order_date'] == today)
-        ]) if not driver_orders.empty else 0
+        today = _now().date()
+        date_column = 'delivered_at' if 'delivered_at' in driver_orders else 'order_date'
+        deliveries_today = 0
+        if not driver_orders.empty:
+            dates = pd.to_datetime(driver_orders[date_column], errors='coerce', utc=True).dt.date
+            deliveries_today = int(((driver_orders['status']=='delivered') & (dates==today)).sum())
 
         total_delivered = len(driver_orders[driver_orders['status'] == 'delivered']) if not driver_orders.empty else 0
 

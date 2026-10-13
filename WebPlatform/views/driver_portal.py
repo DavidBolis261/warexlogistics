@@ -46,9 +46,30 @@ def render():
         call('POST','/api/driver/logout',{})
         st.session_state.pop('driver_token',None)
         st.rerun()
+    profile = call('GET','/api/driver/profile')
+    if profile:
+        driver = profile['driver']
+        st.subheader(driver['name'])
+        st.caption(f"Status: {driver['status']} · {driver.get('vehicleType','')} · {driver.get('plateNumber','')}")
+        if driver.get('pendingStatus') == 'offline':
+            st.info('Your request to go offline is awaiting dispatch approval.')
+        elif driver['status'] == 'offline':
+            if st.button('Go online'):
+                if call('POST','/api/driver/go-online',{}):st.rerun()
+        elif st.button('Request to go offline'):
+            if call('POST','/api/driver/request-offline',{}):st.rerun()
+    if st.button('Refresh deliveries and messages'):st.rerun()
+    if st.session_state.pop('delivery_saved',False):st.success('Delivery update saved.')
+    if st.session_state.pop('delivery_email_warning',False):st.warning('Delivery saved, but its email notification needs checking by dispatch.')
     deliveries,messages=st.tabs(['My deliveries','Messages'])
     with deliveries:
-        result=call('GET','/api/driver/runs/current/stops')
+        runs_result=call('GET','/api/driver/runs')
+        runs=(runs_result or {}).get('runs',[])
+        selected_run='current'
+        if runs:
+            run_lookup={run['id']:run for run in runs}
+            selected_run=st.selectbox('Delivery run',list(run_lookup),format_func=lambda value:f"{run_lookup[value]['runNumber']} · {run_lookup[value]['status']} · {run_lookup[value]['completedStops']}/{run_lookup[value]['totalStops']} delivered")
+        result=call('GET','/api/driver/runs/'+quote(selected_run,safe='')+'/stops')
         if result is not None:
             if not result.get('stops'):
                 st.info('No deliveries assigned. Your next allocated orders will appear here.')
@@ -58,6 +79,9 @@ def render():
                     st.write(order['address']['street'],order['address']['suburb'],order['address']['postcode'])
                     st.caption(f"{order['parcels']} parcels · {stop['status']}")
                     st.write(order.get('specialInstructions') or 'No special instructions.')
+                    if stop['status'] in ('delivered','failed'):
+                        st.caption('This stop is closed. Contact dispatch if a correction is needed.')
+                        continue
                     with st.form('stop_'+stop['id']):
                         status=st.selectbox('Update status',['inProgress','delivered','failed'],format_func=lambda x:{'inProgress':'Out for delivery','delivered':'Delivered','failed':'Delivery failed'}[x])
                         notes=st.text_area('Delivery notes')
@@ -76,8 +100,9 @@ def render():
                                     if status=='delivered':
                                         notification=call('POST','/api/driver/stops/'+quote(stop['id'],safe='')+'/notify',{'status':'delivered'})
                                         if not notification or not notification.get('success'):
-                                            st.warning('Delivery saved, but its email notification needs checking by dispatch.')
-                                    st.success('Delivery update saved.')
+                                            st.session_state.delivery_email_warning=True
+                                    st.session_state.delivery_saved=True
+                                    st.rerun()
         st.caption('Automatic GPS reporting and Apple push notifications require the iOS app. This web portal does not track your location in the background.')
     with messages:
         result=call('GET','/api/driver/messages')

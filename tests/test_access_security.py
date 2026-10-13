@@ -73,5 +73,56 @@ class AccessTests(unittest.TestCase):
         self.assertTrue(self.access.partner_orders('token2').empty)
         self.assertTrue(self.access.partner_orders('unknown').empty)
 
+    def test_dispatch_run_delivery_evidence_and_driver_workflow(self):
+        from data.data_manager import DataManager
+        manager=DataManager.__new__(DataManager)
+        manager.store=self.store;manager.access=self.access
+        manager._mode_override='local';manager._client=None
+        app=Flask('workflow');create_driver_api(app,manager)
+        client=app.test_client()
+        self.access.set_driver_password('d1','long-test-password')
+        login=client.post('/api/driver/login',json={'phone':'0400000001','password':'long-test-password'})
+        headers={'Authorization':'Bearer '+login.json['token']}
+        with patch('data.data_manager.is_email_configured',return_value=False):
+            run=manager.create_run('CBD','d1','Driver One',['o1'])['run_id']
+            listed=client.get('/api/driver/runs',headers=headers)
+            self.assertEqual(listed.json['runs'][0]['id'],run)
+            stops=client.get('/api/driver/runs/'+run+'/stops',headers=headers)
+            self.assertEqual([x['id'] for x in stops.json['stops']],['o1'])
+            self.assertEqual(client.get('/api/driver/runs/unknown/stops',headers=headers).json['stops'],[])
+            import base64
+            photo=base64.b64encode(b'local-test-media').decode()
+            result=client.post('/api/driver/stops/o1/update',headers=headers,json={'status':'delivered','photo':photo,'signature':photo,'notes':'At reception'})
+            self.assertEqual(result.status_code,200)
+            saved=self.store.get_order_by_id('o1')
+            self.assertEqual(saved['proof_photo'],photo)
+            self.assertEqual(saved['proof_signature'],photo)
+            runs=manager.get_runs()
+            self.assertEqual(runs.iloc[0]['status'],'completed')
+            self.assertEqual(runs.iloc[0]['progress'],100)
+            self.assertEqual(client.get('/api/driver/runs?status=active',headers=headers).json['runs'],[])
+        self.assertEqual(client.get('/api/driver/profile',headers=headers).status_code,200)
+        self.assertEqual(client.post('/api/driver/go-online',headers=headers,json={}).status_code,200)
+        self.assertEqual(client.post('/api/driver/request-offline',headers=headers,json={}).status_code,200)
+        self.assertEqual(client.get('/api/driver/profile',headers=headers).json['driver']['pendingStatus'],'offline')
+        self.assertEqual(client.post('/api/driver/location',headers=headers,json={'latitude':-33.86,'longitude':151.2}).status_code,200)
+        self.assertEqual(float(self.store.get_drivers().set_index('driver_id').loc['d1','latitude']),-33.86)
+        self.assertEqual(client.post('/api/driver/messages',headers=headers,json={'body':'Local workflow test'}).status_code,200)
+        self.store.save_message('d1','Driver One','Dispatch reply',direction='outbound')
+        messages=client.get('/api/driver/messages',headers=headers)
+        self.assertEqual([m['body'] for m in messages.json['messages']],['Local workflow test','Dispatch reply'])
+
+    def test_run_cancellation_preserves_deliveries_and_releases_unfinished(self):
+        self.store.save_run({'run_id':'r1','driver_id':'d1','driver_name':'Driver One','zone':'CBD','total_stops':2})
+        self.store.save_run_orders('r1',['o1','o2'])
+        self.access.execute("UPDATE orders SET driver_id='d1'")
+        self.access.execute("UPDATE orders SET status='delivered', proof_photo='saved' WHERE order_id='o1'")
+        self.access.cancel_run('r1')
+        self.assertEqual(self.store.get_order_by_id('o1')['status'],'delivered')
+        self.assertEqual(self.store.get_order_by_id('o1')['proof_photo'],'saved')
+        self.assertEqual(self.store.get_order_by_id('o2')['status'],'pending')
+        self.assertIsNone(self.store.get_order_by_id('o2')['driver_id'])
+        self.assertTrue(self.access.driver_run_orders('d1','r1').empty)
+
 
 if __name__=='__main__':unittest.main()

@@ -35,3 +35,9 @@ Do not use dummy secret values. Missing-provider pages remain visible with setup
 The new database intentionally contains no historical orders or accounts. Delivery evidence is stored in the database. Browser sign-in does not provide background GPS or iOS push registration; those need the iOS app. The missing Swift source has not been recovered by this website update.
 
 Validation: `python -m unittest discover -s tests -v` covers partner order isolation/approval/suspension, password-required driver login, lockout, session revocation, and assigned-order API authorization. Streamlit AppTest and browser checks cover navigation with empty and populated local databases.
+
+## Workflow verification, 13 October 2026
+
+The driver API now returns dispatch-created runs and preserves their stop order. Orders assigned directly are shown separately as unplanned deliveries. Run progress follows saved delivery outcomes; cancellation preserves delivered/failed orders and releases only unfinished assignments. Dashboard actions read fresh operational data on rerun. The browser driver portal also exposes profile, online/offline requests, run selection, closed stops, and refresh controls.
+
+Local regression tests cover the dispatch-to-driver workflow, evidence persistence, run progress/completion, cancellation, profile, availability requests, location updates and two-way messages, plus the access-control tests. All 14 dashboard pages render with the populated test database. These checks do not verify external WMS, Google Places or APNs without their credentials, nor do they recover historical records or the native app.

@@ -860,4 +860,4 @@ class LocalStore:
         return pd.read_sql_query("SELECT * FROM orders WHERE driver_id=? AND status NOT IN ('delivered','failed') ORDER BY created_at DESC", self.conn, params=(driver_id,))
 
     def get_all_orders_for_driver(self, driver_id):
-        return pd.read_sql_query("SELECT status, created_at AS order_date FROM orders WHERE driver_id=? ORDER BY created_at DESC", self.conn, params=(driver_id,))
+        return pd.read_sql_query("SELECT *, created_at AS order_date FROM orders WHERE driver_id=? ORDER BY created_at DESC", self.conn, params=(driver_id,))

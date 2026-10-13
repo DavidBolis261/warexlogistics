@@ -24,11 +24,11 @@ def _render_client_portal(dm, company_name):
     # Minimal sidebar — just logout
     with st.sidebar:
         _logo_tag = (
-            f'<img src="{_load_logo_b64()}" style="width:130px;height:auto;border-radius:12px;" />'
+            f'<img src="{_load_logo_b64()}" style="width:88px;height:auto;border-radius:12px;" />'
             if _load_logo_b64() else '<div style="font-size:2.5rem;">📦</div>'
         )
         st.markdown(f"""
-        <div style="text-align: center; padding: 1.2rem 0 0.6rem;">
+        <div style="text-align: center; padding: 0.3rem 0 0.2rem;">
             {_logo_tag}
             <div style="font-family: 'Space Mono', monospace; font-size: 0.7rem;
                         color: rgba(255,255,255,0.45); text-transform: uppercase;
@@ -257,11 +257,11 @@ else:
 # SIDEBAR
 with st.sidebar:
     _logo_tag = (
-        f'<img src="{_logo_b64}" style="width:130px;height:auto;border-radius:12px;" />'
+        f'<img src="{_logo_b64}" style="width:88px;height:auto;border-radius:12px;" />'
         if _logo_b64 else '<div style="font-size:2.5rem;">📦</div>'
     )
     st.markdown(f"""
-    <div style="text-align: center; padding: 1.2rem 0 0.6rem;">
+    <div style="text-align: center; padding: 0.3rem 0 0.2rem;">
         {_logo_tag}
         <div style="font-family: 'Space Mono', monospace; font-size: 0.7rem; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 2px; margin-top: 0.5rem;">
             Dashboard
@@ -324,23 +324,10 @@ with st.sidebar:
         st.rerun()
 
 
-# LOAD DATA — cached with 30-second TTL to avoid redundant DB queries on every rerun
-@st.cache_data(ttl=30, show_spinner=False)
-def _cached_get_orders(_dm_id):
-    return dm.get_orders()
-
-@st.cache_data(ttl=30, show_spinner=False)
-def _cached_get_drivers(_dm_id):
-    return dm.get_drivers()
-
-@st.cache_data(ttl=30, show_spinner=False)
-def _cached_get_runs(_dm_id):
-    return dm.get_runs()
-
-_dm_id = id(dm)
-orders_df = _cached_get_orders(_dm_id)
-drivers_df = _cached_get_drivers(_dm_id)
-runs_df = _cached_get_runs(_dm_id)
+# Read fresh operational data after every action/rerun.
+orders_df = dm.get_orders()
+drivers_df = dm.get_drivers()
+runs_df = dm.get_runs()
 
 
 # HEADER

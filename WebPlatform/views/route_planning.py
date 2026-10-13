@@ -288,13 +288,8 @@ def render(orders_df, drivers_df, runs_df, data_manager):
                     """, unsafe_allow_html=True)
 
                     # Action buttons per run
-                    col_a, col_b, col_c = st.columns(3)
-                    with col_a:
-                        if st.button("+ Stop", key=f"stop_{run['run_id']}",
-                                     use_container_width=True,
-                                     disabled=completed >= total_stops):
-                            data_manager.update_run_progress(run['run_id'], completed + 1)
-                            st.rerun()
+                    st.caption('Progress updates automatically as drivers finish deliveries.')
+                    col_b, col_c = st.columns(2)
                     with col_b:
                         if st.button("Complete", key=f"complete_{run['run_id']}",
                                      use_container_width=True):

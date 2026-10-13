@@ -66,3 +66,44 @@ class AccessStore:
             return False
         self.execute('UPDATE driver_credentials SET failures=0, locked_until=0 WHERE driver_id=:id', {'id':driver_id})
         return True
+
+    def driver_runs(self, driver_id):
+        return self.execute("""SELECT r.*, COUNT(o.order_id) AS actual_stops,
+            COALESCE(SUM(CASE WHEN o.status='delivered' THEN 1 ELSE 0 END),0) AS delivered,
+            COALESCE(SUM(CASE WHEN o.status IN ('delivered','failed') THEN 1 ELSE 0 END),0) AS finished
+            FROM runs r LEFT JOIN run_orders ro ON ro.run_id=r.run_id
+            LEFT JOIN orders o ON o.order_id=ro.order_id AND o.driver_id=r.driver_id
+            WHERE r.driver_id=:driver AND r.status<>'cancelled'
+            GROUP BY r.run_id ORDER BY r.created_at DESC""", {'driver':driver_id}, True)
+
+    def driver_run_orders(self, driver_id, run_id):
+        if run_id == 'current':
+            return pd.DataFrame(self.execute("SELECT * FROM orders WHERE driver_id=:driver AND status NOT IN ('delivered','failed') ORDER BY created_at", {'driver':driver_id}, True))
+        if run_id == 'unplanned':
+            return pd.DataFrame(self.execute("""SELECT o.* FROM orders o WHERE o.driver_id=:driver
+                AND o.status NOT IN ('delivered','failed') AND NOT EXISTS
+                (SELECT 1 FROM run_orders ro JOIN runs r ON r.run_id=ro.run_id
+                 WHERE ro.order_id=o.order_id AND r.driver_id=:driver AND r.status='active')
+                ORDER BY o.created_at""", {'driver':driver_id}, True))
+        return pd.DataFrame(self.execute("""SELECT o.* FROM orders o
+            JOIN run_orders ro ON ro.order_id=o.order_id JOIN runs r ON r.run_id=ro.run_id
+            WHERE r.run_id=:run AND r.driver_id=:driver AND o.driver_id=:driver
+            AND r.status<>'cancelled' ORDER BY ro.stop_sequence""", {'driver':driver_id,'run':run_id}, True))
+
+    def sync_run_progress(self):
+        # Only active runs are refreshed; cancelled runs stay cancelled.
+        self.execute("""UPDATE runs SET completed=(SELECT COUNT(*) FROM run_orders ro
+            JOIN orders o ON o.order_id=ro.order_id WHERE ro.run_id=runs.run_id
+            AND o.status='delivered') WHERE status='active'""")
+        self.execute("""UPDATE runs SET status='completed' WHERE status='active'
+            AND EXISTS (SELECT 1 FROM run_orders ro WHERE ro.run_id=runs.run_id)
+            AND NOT EXISTS (SELECT 1 FROM run_orders ro JOIN orders o ON o.order_id=ro.order_id
+                WHERE ro.run_id=runs.run_id AND o.status NOT IN ('delivered','failed'))""")
+
+    def cancel_run(self, run_id):
+        # Preserve evidence and terminal outcomes; release only unfinished assignments.
+        self.execute("""UPDATE orders SET status='pending', driver_id=NULL WHERE order_id IN
+            (SELECT ro.order_id FROM run_orders ro JOIN runs r ON r.run_id=ro.run_id
+             WHERE r.run_id=:run AND r.driver_id=orders.driver_id)
+            AND status NOT IN ('delivered','failed')""", {'run':run_id})
+        self.execute("UPDATE runs SET status='cancelled' WHERE run_id=:run", {'run':run_id})

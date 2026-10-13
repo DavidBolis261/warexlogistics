@@ -256,6 +256,8 @@ class DataManager:
         # Step 1 — always update the DB first.  This MUST succeed; any error
         # here is a real problem and should propagate up to the caller.
         self.store.update_order_fields(order_id, **fields)
+        if 'status' in fields:
+            self.access.sync_run_progress()
 
         # Step 2 — send email only when the status actually transitions to a
         # new value.  Prevents duplicate emails when multiple paths touch the
@@ -365,7 +367,11 @@ class DataManager:
     def get_runs(self):
         if self.data_mode == 'demo':
             return generate_mock_runs(15)
-        return self.store.get_runs()
+        self.access.sync_run_progress()
+        runs = self.store.get_runs()
+        if not runs.empty:
+            runs['progress'] = (runs['completed'] / runs['total_stops'].replace(0, 1) * 100).clip(0, 100)
+        return runs
 
     def create_run(self, zone, driver_id, driver_name, order_ids):
         today = _now().strftime('%y%m%d')
@@ -415,11 +421,7 @@ class DataManager:
         return {'success': True}
 
     def cancel_run(self, run_id):
-        self.store.update_run_status(run_id, 'cancelled')
-        # Batch revert orders back to pending
-        run_orders = self.store.get_run_orders(run_id)
-        if not run_orders.empty:
-            self.store.batch_update_order_status(run_orders['order_id'].tolist(), 'pending')
+        self.access.cancel_run(run_id)
         return {'success': True}
 
     def get_run_orders(self, run_id):
