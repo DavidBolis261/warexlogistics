@@ -1,0 +1,549 @@
+[
+  {
+    "name": "ABBOTSFORD",
+    "outside_fraction": 0.003463684736225547,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 0.003463684736225545
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "BALMAIN",
+    "outside_fraction": 0.005375760572571447,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 0.005375760572566253
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "BARANGAROO",
+    "outside_fraction": 0.018932313424478986,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 0.01893231342447898
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "BARGO",
+    "outside_fraction": 0.12345802687706392,
+    "overlaps": [
+      {
+        "lga": "WINGECARRIBEE",
+        "fraction_of_locality": 0.12345802687706378
+      }
+    ],
+    "category": "other_boundary_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "BELL",
+    "outside_fraction": 0.5138054688866927,
+    "overlaps": [
+      {
+        "lga": "LITHGOW CITY",
+        "fraction_of_locality": 0.5138054688866918
+      }
+    ],
+    "category": "other_boundary_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "BIRCHGROVE",
+    "outside_fraction": 0.0008611755765383848,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 0.0008611755765383846
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "BIRRABANG",
+    "outside_fraction": 4.781297879866537e-12,
+    "overlaps": [
+      {
+        "lga": "LITHGOW CITY",
+        "fraction_of_locality": 4.781297879866537e-12
+      }
+    ],
+    "category": "other_boundary_overlap",
+    "tiny_sliver_candidate": true
+  },
+  {
+    "name": "BOTANY BAY",
+    "outside_fraction": 0.7866692904010686,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - BOTANY BAY AREA",
+        "fraction_of_locality": 0.7866692904010697
+      }
+    ],
+    "category": "other_boundary_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "BUCKETTY",
+    "outside_fraction": 0.7112274176971815,
+    "overlaps": [
+      {
+        "lga": "CESSNOCK",
+        "fraction_of_locality": 0.7112274176971791
+      }
+    ],
+    "category": "other_boundary_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "BUXTON",
+    "outside_fraction": 0.3267103900387604,
+    "overlaps": [
+      {
+        "lga": "WINGECARRIBEE",
+        "fraction_of_locality": 0.32671039003876035
+      }
+    ],
+    "category": "other_boundary_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "CATARACT",
+    "outside_fraction": 0.6048914316110751,
+    "overlaps": [
+      {
+        "lga": "WOLLONGONG",
+        "fraction_of_locality": 0.6048914316110751
+      }
+    ],
+    "category": "other_boundary_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "CONCORD WEST",
+    "outside_fraction": 2.110920112037319e-09,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 2.110920112037319e-09
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": true
+  },
+  {
+    "name": "DARKES FOREST",
+    "outside_fraction": 0.6102863657190096,
+    "overlaps": [
+      {
+        "lga": "WOLLONGONG",
+        "fraction_of_locality": 0.61028636571901
+      }
+    ],
+    "category": "other_boundary_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "DAWES POINT",
+    "outside_fraction": 0.3242119863975065,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 0.32421198639750626
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "DOUBLE BAY",
+    "outside_fraction": 0.0050963955750215045,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 0.005096395575021504
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "DRUMMOYNE",
+    "outside_fraction": 1.8692543507284878e-07,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 1.8692543507284878e-07
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": true
+  },
+  {
+    "name": "GARIE",
+    "outside_fraction": 0.033905040512062196,
+    "overlaps": [
+      {
+        "lga": "WOLLONGONG",
+        "fraction_of_locality": 0.03390504051206222
+      }
+    ],
+    "category": "other_boundary_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "GLADESVILLE",
+    "outside_fraction": 1.5294539173520544e-05,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 1.5294539173520544e-05
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "GREENWICH",
+    "outside_fraction": 6.369607921855079e-10,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 6.369607921854877e-10
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": true
+  },
+  {
+    "name": "HUNTERS HILL",
+    "outside_fraction": 3.726284749400643e-05,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 3.726284749400643e-05
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "KANANGRA",
+    "outside_fraction": 0.9999999999621944,
+    "overlaps": [
+      {
+        "lga": "OBERON",
+        "fraction_of_locality": 0.9999999999621944
+      }
+    ],
+    "category": "other_boundary_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "KURRABA POINT",
+    "outside_fraction": 1.3143097463609192e-05,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 1.3143097463609192e-05
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "LILYVALE",
+    "outside_fraction": 0.8158287423301913,
+    "overlaps": [
+      {
+        "lga": "WOLLONGONG",
+        "fraction_of_locality": 0.815828742330192
+      }
+    ],
+    "category": "other_boundary_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "LITTLE HARTLEY",
+    "outside_fraction": 0.9999999999903298,
+    "overlaps": [
+      {
+        "lga": "LITHGOW CITY",
+        "fraction_of_locality": 0.9999999999903284
+      }
+    ],
+    "category": "other_boundary_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "MANLY",
+    "outside_fraction": 0.0024645750872499313,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 0.0024645750872499313
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "MEGALONG VALLEY",
+    "outside_fraction": 0.1166280417379874,
+    "overlaps": [
+      {
+        "lga": "LITHGOW CITY",
+        "fraction_of_locality": 0.11662804173798741
+      }
+    ],
+    "category": "other_boundary_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "MIDDLE HARBOUR",
+    "outside_fraction": 0.8120586683551211,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 0.8120586683551225
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "MILLERS POINT",
+    "outside_fraction": 0.05201855159461154,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 0.052018551594611544
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "MOSMAN",
+    "outside_fraction": 2.273582298922637e-05,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 2.273582298922637e-05
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "MOUNT IRVINE",
+    "outside_fraction": 6.786521861356391e-12,
+    "overlaps": [
+      {
+        "lga": "LITHGOW CITY",
+        "fraction_of_locality": 6.786521861353875e-12
+      }
+    ],
+    "category": "other_boundary_overlap",
+    "tiny_sliver_candidate": true
+  },
+  {
+    "name": "MOUNT WILSON",
+    "outside_fraction": 2.468214257188463e-12,
+    "overlaps": [
+      {
+        "lga": "LITHGOW CITY",
+        "fraction_of_locality": 2.468214257188463e-12
+      }
+    ],
+    "category": "other_boundary_overlap",
+    "tiny_sliver_candidate": true
+  },
+  {
+    "name": "NEUTRAL BAY",
+    "outside_fraction": 0.00011740735567695967,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 0.00011740735567695967
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "NORTHBRIDGE",
+    "outside_fraction": 1.0365238885088445e-10,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 1.0365238885088445e-10
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": true
+  },
+  {
+    "name": "PALONA",
+    "outside_fraction": 0.00018545532394406453,
+    "overlaps": [
+      {
+        "lga": "WOLLONGONG",
+        "fraction_of_locality": 0.00018545532394406456
+      }
+    ],
+    "category": "other_boundary_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "PUTTY",
+    "outside_fraction": 0.975977676508669,
+    "overlaps": [
+      {
+        "lga": "SINGLETON",
+        "fraction_of_locality": 0.9759776765086743
+      }
+    ],
+    "category": "other_boundary_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "QUEENSCLIFF",
+    "outside_fraction": 1.2848353735650863e-05,
+    "overlaps": [],
+    "category": "other_boundary_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "ROZELLE",
+    "outside_fraction": 1.7488985728828213e-08,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 1.7488985728828213e-08
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": true
+  },
+  {
+    "name": "SYDNEY",
+    "outside_fraction": 0.05106192900864993,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 0.051061929008649906
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "TEN MILE HOLLOW",
+    "outside_fraction": 0.45126351113777313,
+    "overlaps": [
+      {
+        "lga": "CENTRAL COAST",
+        "fraction_of_locality": 0.45126351113777324
+      }
+    ],
+    "category": "other_boundary_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "TENNYSON POINT",
+    "outside_fraction": 0.0001136897651036602,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 0.0001136897651036602
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "VAUCLUSE",
+    "outside_fraction": 4.283414208672847e-05,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 4.283414208672847e-05
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "WATSONS BAY",
+    "outside_fraction": 0.00015795123885778596,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 0.00015795123885778596
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "WISEMANS FERRY",
+    "outside_fraction": 0.08628968973106034,
+    "overlaps": [
+      {
+        "lga": "CENTRAL COAST",
+        "fraction_of_locality": 0.08628968973106037
+      }
+    ],
+    "category": "other_boundary_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "WOLLANGAMBE",
+    "outside_fraction": 0.999999999998036,
+    "overlaps": [
+      {
+        "lga": "LITHGOW CITY",
+        "fraction_of_locality": 0.9999999999980346
+      }
+    ],
+    "category": "other_boundary_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "WOOLLOOMOOLOO",
+    "outside_fraction": 0.07388995000230984,
+    "overlaps": [
+      {
+        "lga": "UNINCORPORATED - SYDNEY HARBOUR AREA",
+        "fraction_of_locality": 0.07388995000230986
+      }
+    ],
+    "category": "harbour_administrative_overlap",
+    "tiny_sliver_candidate": false
+  },
+  {
+    "name": "WORONORA DAM",
+    "outside_fraction": 0.7376559117690183,
+    "overlaps": [
+      {
+        "lga": "WOLLONGONG",
+        "fraction_of_locality": 0.737655911769019
+      }
+    ],
+    "category": "other_boundary_overlap",
+    "tiny_sliver_candidate": false
+  }
+]

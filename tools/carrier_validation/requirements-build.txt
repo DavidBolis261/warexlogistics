@@ -1,0 +1,3 @@
+# Isolated geometry build only; never include in DriverAPI runtime
+shapely==2.0.7
+numpy==2.0.2

@@ -1,0 +1,12 @@
+{
+  "server_version": "18.6 (Homebrew)",
+  "migration": "additive and repeatable",
+  "race": "8 writers, one record",
+  "conflict": "rejected without overwrite",
+  "partner_scope": "isolated",
+  "restart": "persisted",
+  "api": "auth/create/replay/PDF passed",
+  "existing_route": "unchanged",
+  "tcp": "disabled",
+  "temporary_cluster": "stopped and removed"
+}

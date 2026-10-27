@@ -1,0 +1,7 @@
+# Tested top-level versions; not a complete transitive/hash lock
+Flask==3.1.2
+SQLAlchemy==2.0.50
+psycopg2-binary==2.9.12
+reportlab==4.4.10
+pypdf==6.9.2
+requests==2.32.5

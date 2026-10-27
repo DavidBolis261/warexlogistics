@@ -58,6 +58,10 @@ create_driver_api(app, data_manager)
 # Register external partner API routes
 create_external_api(app, data_manager)
 
+# Dormant unless separately enabled; does not create tables or operational orders.
+from integrations.carrier_setup import configure_carrier_uat
+configure_carrier_uat(app, data_manager.store, os.environ)
+
 from integrations.starshipit_worker import start_worker
 start_worker()
 

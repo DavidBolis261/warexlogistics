@@ -15,3 +15,6 @@ PyJWT>=2.8.0
 cryptography>=41.0.0
 httpx[http2]>=0.25.0
 gunicorn>=23.0.0,<24
+
+# Carrier test-label PDF and vector QR rendering
+reportlab==4.4.10

@@ -1,0 +1,1339 @@
+[
+  {
+    "file": "layer1-ids0.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/1/query?objectIds=3%2C4%2C6%2C7%2C9%2C11%2C15%2C18%2C19%2C20%2C21%2C22%2C23%2C25%2C26%2C27%2C28%2C31%2C32%2C34%2C37%2C38%2C41%2C42%2C43&outFields=OBJECTID%2CCADID%2CLGANAME%2CCOUNCILNAME%2CABSCODE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "5cfdb6ad90c9ac49cea051d5d18032e81805271cfa00044b31947759c37f5279",
+    "retrieved_at": "2026-10-27T10:28:41.406638+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer1-ids25.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/1/query?objectIds=45%2C46%2C47%2C48%2C49%2C52%2C54%2C55%2C56%2C57%2C59%2C60%2C61%2C62%2C65%2C66%2C67%2C68%2C69%2C70%2C71%2C73%2C74%2C75%2C76&outFields=OBJECTID%2CCADID%2CLGANAME%2CCOUNCILNAME%2CABSCODE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "1952dd2e139e47c24a2fc584457ea04e807e30171ebf02c3fab533ce43902123",
+    "retrieved_at": "2026-10-27T10:28:43.564850+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer1-ids50.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/1/query?objectIds=77%2C79%2C80%2C81%2C82%2C83%2C84%2C85%2C86%2C87%2C88%2C91%2C92%2C98%2C99%2C100%2C102%2C103%2C105%2C106%2C107%2C108%2C111%2C112%2C114&outFields=OBJECTID%2CCADID%2CLGANAME%2CCOUNCILNAME%2CABSCODE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "27fd6783e44a32de8045ceaa594cd2918841f284ed60f5333ce8fb0dfa9cce29",
+    "retrieved_at": "2026-10-27T10:28:45.948385+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer1-ids75.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/1/query?objectIds=115%2C116%2C119%2C120%2C121%2C123%2C124%2C125%2C126%2C129%2C131%2C132%2C134%2C135%2C136%2C139%2C140%2C141%2C142%2C143%2C144%2C145%2C146%2C147%2C148&outFields=OBJECTID%2CCADID%2CLGANAME%2CCOUNCILNAME%2CABSCODE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "75cc19f3b5bddb891b878bcd9ca8dfbb22a323d74f13beb7deb1e4482ffc6314",
+    "retrieved_at": "2026-10-27T10:28:48.968467+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer1-ids100.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/1/query?objectIds=149%2C150%2C151%2C152%2C153%2C155%2C156%2C157%2C158%2C159%2C160%2C577%2C578%2C579%2C1378%2C1379%2C1380%2C1381%2C1382%2C1383%2C1384%2C1385%2C1778%2C1779%2C2178&outFields=OBJECTID%2CCADID%2CLGANAME%2CCOUNCILNAME%2CABSCODE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "17ecab21fea7b414e5c727a0a9a6c0dac373abdd20dc5b0ffce83b3a57f6dd74",
+    "retrieved_at": "2026-10-27T10:28:52.649016+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer1-ids125.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/1/query?objectIds=2179%2C2180%2C2181%2C2182%2C2183%2C2186%2C2194&outFields=OBJECTID%2CCADID%2CLGANAME%2CCOUNCILNAME%2CABSCODE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "0283a48b57ab4daae827f4ea0c1477259af616d4986cc178e1d13f5e16bbe611",
+    "retrieved_at": "2026-10-27T10:28:53.578341+00:00",
+    "count": 7
+  },
+  {
+    "file": "layer0-ids0.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1%2C2%2C3%2C4%2C5%2C6%2C7%2C8%2C9%2C10%2C11%2C12%2C13%2C14%2C15%2C16%2C17%2C18%2C19%2C20%2C21%2C22%2C23%2C24%2C25&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "571d7f99d2425e12d6885bffcb7e2fc658e15cb21bee5078ef6425cda65db42a",
+    "retrieved_at": "2026-10-27T10:28:55.264235+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids25.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=26%2C27%2C28%2C29%2C30%2C31%2C32%2C33%2C34%2C35%2C36%2C37%2C38%2C39%2C40%2C41%2C42%2C43%2C44%2C45%2C46%2C47%2C48%2C49%2C50&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "7c656193dbe7084f381caa4cd7a79c4555a8951777679051d4b538272064931b",
+    "retrieved_at": "2026-10-27T10:28:55.736227+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids50.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=51%2C52%2C53%2C54%2C55%2C56%2C57%2C58%2C59%2C60%2C61%2C62%2C63%2C64%2C65%2C66%2C67%2C68%2C69%2C70%2C71%2C72%2C73%2C74%2C75&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "3492e2d30774c120c573f54dc1eba887fa2c46e192282dab210113186b0f0032",
+    "retrieved_at": "2026-10-27T10:28:55.984036+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids75.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=76%2C77%2C78%2C79%2C80%2C81%2C82%2C83%2C84%2C85%2C86%2C87%2C88%2C89%2C90%2C91%2C92%2C93%2C94%2C95%2C96%2C97%2C98%2C99%2C100&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "10cd488e0fe96229b9529daac52939d2665940f9b47e1341e9bb28c5a359feec",
+    "retrieved_at": "2026-10-27T10:28:56.202926+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids100.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=101%2C102%2C103%2C104%2C105%2C106%2C107%2C108%2C109%2C110%2C111%2C112%2C113%2C114%2C115%2C116%2C117%2C118%2C120%2C121%2C122%2C123%2C124%2C125%2C126&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "a727b756287179113d897f9440192e2a3201eedb0163d086cf82a0b1f844849d",
+    "retrieved_at": "2026-10-27T10:28:56.410836+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids125.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=127%2C128%2C129%2C130%2C131%2C132%2C133%2C134%2C135%2C136%2C137%2C138%2C139%2C140%2C141%2C142%2C143%2C144%2C145%2C146%2C147%2C148%2C150%2C151%2C152&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "66450a47dc068ce9d026de52ed4d1e03dfdc50a950f67fb473bb26f6073ac2c0",
+    "retrieved_at": "2026-10-27T10:28:56.644375+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids150.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=153%2C154%2C155%2C156%2C157%2C158%2C159%2C160%2C161%2C162%2C163%2C164%2C165%2C166%2C167%2C168%2C169%2C170%2C171%2C172%2C173%2C174%2C175%2C176%2C177&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "3b67228e3ce7ab4ce292894ea4ed74757bc7dc3736f87292c0a62f475a1d259f",
+    "retrieved_at": "2026-10-27T10:28:56.882491+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids175.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=178%2C179%2C180%2C181%2C182%2C183%2C184%2C185%2C186%2C187%2C188%2C189%2C190%2C191%2C192%2C193%2C194%2C195%2C196%2C197%2C198%2C199%2C201%2C202%2C203&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "ee43375d2896c7ae0ef93b1d4b8bdae71c1a4a05499fc751a62e6be97998e9ed",
+    "retrieved_at": "2026-10-27T10:28:57.268337+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids200.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=204%2C205%2C206%2C207%2C208%2C209%2C210%2C211%2C212%2C213%2C214%2C215%2C216%2C217%2C218%2C219%2C220%2C221%2C222%2C223%2C224%2C225%2C226%2C227%2C228&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "12cbc3d23ecbcdf779dcec7cb49879d034853e11940112cc723878fa3e49610e",
+    "retrieved_at": "2026-10-27T10:28:57.625845+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids225.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=229%2C230%2C231%2C232%2C233%2C234%2C235%2C236%2C237%2C238%2C239%2C241%2C242%2C244%2C245%2C246%2C247%2C248%2C249%2C250%2C251%2C252%2C253%2C254%2C255&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "df4026ac43069122ba102e09361df73d603263068d4af4b8c8442bc318f264d2",
+    "retrieved_at": "2026-10-27T10:28:57.996805+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids250.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=256%2C257%2C258%2C259%2C260%2C261%2C262%2C263%2C264%2C265%2C266%2C267%2C268%2C269%2C270%2C271%2C272%2C273%2C274%2C275%2C276%2C277%2C278%2C279%2C280&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "fea64563ec72c05c905e6463fc7b7d0304df59aec4b2cf92bacdda56180dbb6c",
+    "retrieved_at": "2026-10-27T10:28:58.611078+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids275.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=281%2C282%2C283%2C284%2C285%2C286%2C287%2C288%2C289%2C290%2C291%2C292%2C293%2C294%2C295%2C296%2C297%2C298%2C299%2C300%2C301%2C302%2C303%2C304%2C305&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "e55a7afe226fce21075bdaa5053060b9b41e963856539449b7171dc28f1ca4ab",
+    "retrieved_at": "2026-10-27T10:28:58.923719+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids300.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=306%2C307%2C308%2C309%2C310%2C311%2C312%2C313%2C314%2C315%2C316%2C317%2C318%2C319%2C320%2C321%2C322%2C323%2C325%2C326%2C327%2C328%2C329%2C330%2C331&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "f70e04d6e65af187576f81141d9024a8478b944de5b5e1c740b823b9c6c66561",
+    "retrieved_at": "2026-10-27T10:28:59.168427+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids325.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=332%2C333%2C334%2C335%2C337%2C338%2C339%2C340%2C341%2C342%2C343%2C344%2C345%2C346%2C347%2C348%2C349%2C350%2C352%2C353%2C354%2C355%2C356%2C357%2C358&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "282ae8468161005a14eb0e3afce90973e3634bb8b4c2795ac92c8dcc02f5be3a",
+    "retrieved_at": "2026-10-27T10:28:59.604619+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids350.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=359%2C360%2C361%2C362%2C363%2C364%2C365%2C366%2C367%2C368%2C369%2C370%2C371%2C372%2C373%2C374%2C375%2C376%2C377%2C378%2C379%2C380%2C381%2C382%2C383&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "600753850f03b689a60e637873119fa3a51f95b3fb67ad109579fffd7cb4d4e2",
+    "retrieved_at": "2026-10-27T10:29:00.042404+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids375.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=384%2C385%2C386%2C387%2C388%2C389%2C390%2C391%2C392%2C393%2C394%2C396%2C398%2C399%2C400%2C401%2C402%2C403%2C404%2C405%2C406%2C407%2C408%2C409%2C410&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "819f30ce504031855aeec7d18408e2465885de3bedd1f7b4f09440fe78f033f8",
+    "retrieved_at": "2026-10-27T10:29:00.418486+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids400.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=411%2C412%2C413%2C414%2C415%2C416%2C417%2C419%2C420%2C421%2C422%2C423%2C424%2C425%2C426%2C427%2C428%2C429%2C430%2C431%2C432%2C433%2C434%2C435%2C436&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "c07ebecfd62a560b8ff637e3c5357f0a0b008a2d460450627cbc602330e0a115",
+    "retrieved_at": "2026-10-27T10:29:00.843182+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids425.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=437%2C438%2C439%2C440%2C441%2C442%2C443%2C444%2C445%2C446%2C447%2C448%2C449%2C450%2C451%2C452%2C453%2C454%2C455%2C456%2C457%2C458%2C459%2C460%2C461&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "a626623df1eb546c612897b93c0c7bd7c33ec42932061629f94aec46d6f63492",
+    "retrieved_at": "2026-10-27T10:29:01.442867+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids450.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=462%2C463%2C464%2C465%2C466%2C467%2C468%2C469%2C470%2C472%2C473%2C475%2C476%2C477%2C478%2C479%2C480%2C481%2C482%2C483%2C484%2C485%2C486%2C487%2C488&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "9357dcd9bdb2c166c84952c3406871d5d7e952121881cb32f89dcb1de397f6ac",
+    "retrieved_at": "2026-10-27T10:29:01.765579+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids475.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=489%2C490%2C491%2C492%2C493%2C494%2C495%2C497%2C498%2C499%2C500%2C501%2C502%2C503%2C504%2C505%2C506%2C507%2C508%2C509%2C510%2C511%2C512%2C513%2C515&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "6c75e563da493c08ac66429ac65c26c4df1537240a64fa5c6fcb0994a2ac5733",
+    "retrieved_at": "2026-10-27T10:29:02.113905+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids500.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=516%2C517%2C518%2C519%2C520%2C521%2C522%2C523%2C524%2C525%2C526%2C527%2C528%2C529%2C530%2C531%2C532%2C533%2C534%2C536%2C537%2C538%2C539%2C540%2C541&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "fd1454296e8a28ded15e4f84c26fa41935471dccd82c09c55ec756470198bac0",
+    "retrieved_at": "2026-10-27T10:29:02.586497+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids525.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=542%2C543%2C544%2C545%2C546%2C547%2C548%2C550%2C551%2C552%2C553%2C554%2C555%2C556%2C557%2C559%2C560%2C561%2C562%2C563%2C564%2C565%2C566%2C567%2C568&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "3d78091e567d979f4f5082d054f85d80968d454adeb4929cdf145498a81902f4",
+    "retrieved_at": "2026-10-27T10:29:03.258546+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids550.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=569%2C570%2C571%2C572%2C573%2C574%2C575%2C576%2C577%2C578%2C579%2C580%2C581%2C582%2C583%2C584%2C585%2C586%2C587%2C588%2C589%2C590%2C591%2C592%2C593&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "b73841b862f00c297bb027a47f660a2a41e26599e1f9dcaae12df3963ce8f77b",
+    "retrieved_at": "2026-10-27T10:29:03.621804+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids575.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=594%2C595%2C596%2C597%2C598%2C599%2C600%2C601%2C602%2C603%2C604%2C605%2C606%2C607%2C608%2C609%2C610%2C611%2C612%2C613%2C614%2C615%2C616%2C617%2C618&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "a4f810bf18779bf0ce1483411bec5ac7235de2b9e36dd1a264ef777074a13e27",
+    "retrieved_at": "2026-10-27T10:29:04.012914+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids600.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=619%2C620%2C621%2C622%2C623%2C624%2C625%2C626%2C627%2C628%2C629%2C630%2C631%2C632%2C633%2C634%2C636%2C637%2C638%2C639%2C640%2C641%2C642%2C643%2C644&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "23967b836af6455d8a98f8515df5c4b6e14f7c3ec568d5de809937fa5c87102d",
+    "retrieved_at": "2026-10-27T10:29:04.348766+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids625.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=645%2C646%2C647%2C648%2C649%2C650%2C651%2C652%2C653%2C654%2C655%2C656%2C657%2C658%2C659%2C660%2C661%2C662%2C663%2C664%2C665%2C666%2C667%2C668%2C669&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "cff98d03b987bab64aabcedb15bd79b34760a8b85006a78bd7b7ad11f7cbbe42",
+    "retrieved_at": "2026-10-27T10:29:04.884314+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids650.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=670%2C671%2C672%2C673%2C674%2C675%2C676%2C677%2C678%2C679%2C680%2C681%2C682%2C683%2C684%2C685%2C686%2C687%2C688%2C689%2C690%2C691%2C692%2C693%2C694&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "c04a3bc316d0549c08a3df9dfde4c4cbba08d9fb2d419a364d3747c5ea130b4a",
+    "retrieved_at": "2026-10-27T10:29:05.265358+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids675.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=695%2C696%2C697%2C698%2C699%2C700%2C701%2C702%2C703%2C704%2C705%2C706%2C707%2C708%2C709%2C710%2C711%2C712%2C713%2C714%2C716%2C718%2C719%2C720%2C721&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "53a81af0fe653e2b8436f0d9e5b902355d151a044c7c808952fd73c9e5322d33",
+    "retrieved_at": "2026-10-27T10:29:05.828000+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids700.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=722%2C723%2C724%2C725%2C726%2C727%2C728%2C729%2C730%2C731%2C732%2C733%2C734%2C735%2C736%2C737%2C738%2C739%2C740%2C741%2C742%2C743%2C746%2C749%2C751&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "c042341e800afd82b45f42b2302dc02917adb508bd60c54fcc485a0b7ab5cdf7",
+    "retrieved_at": "2026-10-27T10:29:06.201850+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids725.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=757%2C758%2C759%2C760%2C762%2C763%2C764%2C765%2C766%2C767%2C768%2C769%2C770%2C771%2C772%2C773%2C774%2C776%2C777%2C778%2C779%2C780%2C781%2C782%2C783&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "542b30e54c045a7f0d1178ee21b955a314bb324acef1ee643bd9514d01ff0f64",
+    "retrieved_at": "2026-10-27T10:29:06.616564+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids750.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=784%2C785%2C786%2C787%2C788%2C789%2C790%2C791%2C792%2C793%2C794%2C795%2C796%2C797%2C798%2C799%2C800%2C801%2C802%2C803%2C804%2C805%2C806%2C807%2C808&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "7e95a9f63c7afdd8532e2cc3390efc84970ef08f0c50dda330aaf14dbb322720",
+    "retrieved_at": "2026-10-27T10:29:07.007266+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids775.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=809%2C810%2C811%2C812%2C813%2C814%2C815%2C816%2C817%2C818%2C819%2C820%2C821%2C822%2C823%2C824%2C825%2C826%2C827%2C828%2C829%2C830%2C831%2C832%2C833&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "07a1f19d801314bcb8cc5996073bbd0566582713a8f3f129dc9f5b56624e781c",
+    "retrieved_at": "2026-10-27T10:29:07.237537+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids800.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=834%2C835%2C836%2C837%2C838%2C839%2C840%2C841%2C842%2C843%2C844%2C845%2C846%2C847%2C848%2C849%2C850%2C851%2C852%2C853%2C854%2C855%2C856%2C857%2C858&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "83a1b8139dbf9118e73dcd9ffbcb76827c2146c83f0dcea39bb1d9fc942cb004",
+    "retrieved_at": "2026-10-27T10:29:07.644687+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids825.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=859%2C860%2C861%2C862%2C863%2C864%2C865%2C866%2C867%2C868%2C869%2C870%2C871%2C872%2C873%2C874%2C875%2C876%2C877%2C878%2C879%2C880%2C881%2C882%2C883&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "ac66a4c7558a4815663dbaad0d35bd4bb7e6b7a9854d15bbb85e7856edd0feef",
+    "retrieved_at": "2026-10-27T10:29:07.933837+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids850.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=884%2C885%2C886%2C888%2C889%2C890%2C891%2C892%2C893%2C894%2C895%2C896%2C897%2C898%2C899%2C900%2C901%2C902%2C903%2C904%2C905%2C906%2C907%2C908%2C909&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "123fdd40df8c423388f6eba947eb3fc125ed44f160801fb32e97f27622fc1ac4",
+    "retrieved_at": "2026-10-27T10:29:08.158028+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids875.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=910%2C911%2C912%2C913%2C914%2C915%2C916%2C917%2C918%2C919%2C920%2C921%2C922%2C923%2C924%2C925%2C926%2C927%2C928%2C929%2C930%2C931%2C932%2C933%2C934&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "08f3ff117056f837d93f05d55bfb7943b5e250e67fc14fa2357e253b3280cfff",
+    "retrieved_at": "2026-10-27T10:29:08.586950+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids900.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=935%2C936%2C937%2C938%2C939%2C940%2C941%2C942%2C943%2C944%2C945%2C946%2C949%2C950%2C951%2C952%2C953%2C954%2C955%2C956%2C957%2C958%2C959%2C960%2C961&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "3f36c675be1ec43e79191a578ce0457e843246bf99a0f8dab123871caffbf6d5",
+    "retrieved_at": "2026-10-27T10:29:08.845450+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids925.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=962%2C963%2C964%2C965%2C966%2C967%2C969%2C970%2C971%2C972%2C973%2C974%2C975%2C976%2C977%2C978%2C979%2C980%2C981%2C982%2C983%2C985%2C986%2C987%2C988&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "dd77ec1e4345a503157535f80cc8c0d8e316d230d90d4be4a32c713a2d134a88",
+    "retrieved_at": "2026-10-27T10:29:09.395392+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids950.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=990%2C992%2C993%2C994%2C996%2C997%2C998%2C1003%2C1013%2C1014%2C1015%2C1016%2C1017%2C1018%2C1019%2C1020%2C1021%2C1023%2C1024%2C1025%2C1026%2C1027%2C1028%2C1029%2C1030&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "4d984afc3d789f6351bc7611ef608b18f6616a1dfb9c470e3758c1daccfd99af",
+    "retrieved_at": "2026-10-27T10:29:09.805253+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids975.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1031%2C1032%2C1033%2C1034%2C1036%2C1037%2C1038%2C1039%2C1040%2C1041%2C1042%2C1044%2C1045%2C1046%2C1047%2C1048%2C1050%2C1052%2C1053%2C1057%2C1058%2C1059%2C1060%2C1061%2C1062&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "35dd99391131142fccc53635f6574dccf4c86611a855023aa442dd2f4908f35b",
+    "retrieved_at": "2026-10-27T10:29:10.187623+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1000.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1063%2C1064%2C1065%2C1066%2C1067%2C1068%2C1069%2C1070%2C1071%2C1072%2C1073%2C1074%2C1075%2C1076%2C1077%2C1078%2C1079%2C1080%2C1081%2C1082%2C1083%2C1084%2C1085%2C1086%2C1087&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "ba82725af57fcbf48c3216d16cf4f7ae14dd875eaf149f7cd481e311c0fbbe9d",
+    "retrieved_at": "2026-10-27T10:29:10.598777+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1025.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1088%2C1089%2C1090%2C1091%2C1092%2C1093%2C1094%2C1095%2C1096%2C1097%2C1098%2C1102%2C1104%2C1106%2C1107%2C1108%2C1109%2C1110%2C1111%2C1115%2C1116%2C1117%2C1118%2C1119%2C1120&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "776986d53faa3fffae445135a6a5f3d5bc0dc3736e0152d18805f605ac866dfb",
+    "retrieved_at": "2026-10-27T10:29:10.912837+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1050.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1121%2C1122%2C1123%2C1124%2C1125%2C1126%2C1127%2C1128%2C1129%2C1130%2C1131%2C1132%2C1133%2C1134%2C1135%2C1136%2C1137%2C1138%2C1139%2C1140%2C1141%2C1142%2C1143%2C1144%2C1145&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "b0f65e6cb6a70f1bb916d5f160d4e1e8cfa7bef7ca7f0d30f6853106a0d614ff",
+    "retrieved_at": "2026-10-27T10:29:11.198539+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1075.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1146%2C1147%2C1148%2C1149%2C1150%2C1151%2C1152%2C1153%2C1154%2C1155%2C1157%2C1158%2C1159%2C1160%2C1161%2C1162%2C1163%2C1164%2C1165%2C1166%2C1167%2C1168%2C1169%2C1170%2C1171&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "841c04ca1d68e02952bd99ccec970a3ea2447b8f31aafb85ab03ee49bc842a82",
+    "retrieved_at": "2026-10-27T10:29:11.598997+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1100.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1172%2C1173%2C1174%2C1175%2C1176%2C1177%2C1178%2C1179%2C1180%2C1181%2C1182%2C1183%2C1184%2C1185%2C1186%2C1187%2C1188%2C1189%2C1190%2C1192%2C1193%2C1194%2C1195%2C1196%2C1197&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "5744dfec16a491c231b0d7cf8307b7f0576fc886305b6b0c1f5b26973bd1e608",
+    "retrieved_at": "2026-10-27T10:29:12.002581+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1125.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1198%2C1199%2C1200%2C1201%2C1202%2C1203%2C1204%2C1205%2C1206%2C1207%2C1208%2C1209%2C1210%2C1211%2C1212%2C1213%2C1214%2C1215%2C1216%2C1217%2C1218%2C1219%2C1220%2C1221%2C1222&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "e498fe87ee6372c7692181e10137abe16f51284fec61394863f25f299c76f481",
+    "retrieved_at": "2026-10-27T10:29:12.320348+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1150.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1223%2C1224%2C1225%2C1226%2C1227%2C1228%2C1229%2C1230%2C1231%2C1232%2C1233%2C1234%2C1235%2C1236%2C1237%2C1238%2C1239%2C1240%2C1241%2C1242%2C1243%2C1244%2C1245%2C1246%2C1247&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "d4ffb836438b6beb376c5f2358b38df4b38ac0fbedf200cb1f3aaa62481bd5a2",
+    "retrieved_at": "2026-10-27T10:29:12.551794+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1175.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1248%2C1249%2C1250%2C1251%2C1252%2C1253%2C1254%2C1255%2C1256%2C1257%2C1258%2C1259%2C1260%2C1261%2C1262%2C1263%2C1264%2C1265%2C1266%2C1267%2C1268%2C1269%2C1270%2C1271%2C1272&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "b6cd91d08b6f38f284a46ec642fe4667767ecaf9e5acf8cf7327239636bb6358",
+    "retrieved_at": "2026-10-27T10:29:12.743405+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1200.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1273%2C1274%2C1275%2C1276%2C1277%2C1278%2C1279%2C1280%2C1281%2C1282%2C1283%2C1284%2C1285%2C1286%2C1287%2C1288%2C1289%2C1290%2C1291%2C1292%2C1293%2C1294%2C1295%2C1296%2C1297&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "6e5c2d30d63fb62953a3992c5433d55b122fad487690fc687c385e68f754254d",
+    "retrieved_at": "2026-10-27T10:29:13.018241+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1225.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1298%2C1299%2C1300%2C1301%2C1302%2C1303%2C1304%2C1305%2C1306%2C1307%2C1308%2C1309%2C1310%2C1311%2C1312%2C1313%2C1314%2C1315%2C1316%2C1317%2C1318%2C1319%2C1320%2C1321%2C1322&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "204dadb72053ae4673a3ed1ebac7a437819b04a3c0d10ce8167fcf84c042f17c",
+    "retrieved_at": "2026-10-27T10:29:13.290327+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1250.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1323%2C1324%2C1325%2C1326%2C1327%2C1328%2C1329%2C1330%2C1331%2C1332%2C1333%2C1334%2C1335%2C1336%2C1337%2C1338%2C1339%2C1340%2C1341%2C1342%2C1343%2C1344%2C1345%2C1346%2C1347&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "b2d9f9c0e217487c49b8039a98c427c9be9fd98304235198e2552ab2258785da",
+    "retrieved_at": "2026-10-27T10:29:13.538909+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1275.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1348%2C1349%2C1350%2C1351%2C1352%2C1353%2C1354%2C1355%2C1356%2C1357%2C1358%2C1359%2C1360%2C1361%2C1362%2C1363%2C1364%2C1365%2C1366%2C1367%2C1368%2C1369%2C1370%2C1371%2C1372&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "bb2aea775776819ca346a11e1ea949b9ead9707e9786f2831fe983bf42a3456f",
+    "retrieved_at": "2026-10-27T10:29:14.230822+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1300.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1373%2C1374%2C1375%2C1376%2C1377%2C1378%2C1379%2C1380%2C1381%2C1382%2C1383%2C1384%2C1385%2C1386%2C1387%2C1388%2C1389%2C1390%2C1391%2C1392%2C1394%2C1395%2C1396%2C1397%2C1398&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "905fa8b8e09fa6d6e905b1d56b2423608f3b7ed508de5030d583c0cac4c7cee2",
+    "retrieved_at": "2026-10-27T10:29:14.712776+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1325.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1399%2C1400%2C1401%2C1402%2C1403%2C1404%2C1405%2C1407%2C1408%2C1409%2C1410%2C1411%2C1412%2C1413%2C1414%2C1415%2C1416%2C1417%2C1418%2C1419%2C1420%2C1421%2C1422%2C1423%2C1424&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "9f5b237825c911fe67df94035833be7ff315447d3881e21200c0e720abc8c84d",
+    "retrieved_at": "2026-10-27T10:29:15.059506+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1350.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1425%2C1426%2C1427%2C1428%2C1429%2C1430%2C1431%2C1432%2C1433%2C1434%2C1435%2C1436%2C1437%2C1438%2C1440%2C1441%2C1442%2C1443%2C1444%2C1445%2C1446%2C1447%2C1448%2C1449%2C1450&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "2fda5d21dead7bf44d9961afe03fccfee08a4cb0ddb5eff44c8a34b99aeb14a3",
+    "retrieved_at": "2026-10-27T10:29:15.536350+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1375.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1451%2C1452%2C1453%2C1454%2C1455%2C1456%2C1457%2C1458%2C1459%2C1460%2C1461%2C1462%2C1463%2C1464%2C1465%2C1466%2C1467%2C1468%2C1469%2C1470%2C1471%2C1472%2C1473%2C1474%2C1475&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "556eb21ae7ef699db4eb5e6379e83b5843b616c3bfb34d5b4ec48dc5c610e823",
+    "retrieved_at": "2026-10-27T10:29:15.807254+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1400.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1476%2C1477%2C1478%2C1479%2C1480%2C1481%2C1482%2C1483%2C1484%2C1485%2C1486%2C1487%2C1488%2C1489%2C1490%2C1492%2C1493%2C1494%2C1495%2C1496%2C1497%2C1498%2C1499%2C1500%2C1501&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "cbb8de3547d9803fe5c7109bb60596a079e48b9428c74120de341e18686ab7fb",
+    "retrieved_at": "2026-10-27T10:29:16.233259+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1425.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1502%2C1503%2C1504%2C1505%2C1506%2C1507%2C1508%2C1509%2C1510%2C1511%2C1512%2C1513%2C1514%2C1515%2C1516%2C1517%2C1518%2C1519%2C1520%2C1521%2C1522%2C1523%2C1524%2C1525%2C1526&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "401f39053835b9c0eae585f0ef62c0d1e6961baab02c9e4cab85130bd97fbf6a",
+    "retrieved_at": "2026-10-27T10:29:17.052903+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1450.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1527%2C1528%2C1529%2C1530%2C1531%2C1532%2C1533%2C1534%2C1535%2C1536%2C1537%2C1538%2C1539%2C1540%2C1541%2C1542%2C1543%2C1544%2C1545%2C1546%2C1547%2C1548%2C1549%2C1550%2C1551&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "5d7cecc3108990ccbc19f05faf400459fda9b6984e529ff8ca6c0e2d99ac1bdd",
+    "retrieved_at": "2026-10-27T10:29:17.671991+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1475.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1552%2C1554%2C1555%2C1556%2C1557%2C1558%2C1560%2C1561%2C1562%2C1563%2C1564%2C1565%2C1566%2C1567%2C1568%2C1569%2C1570%2C1571%2C1572%2C1573%2C1574%2C1575%2C1576%2C1577%2C1578&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "848d61c7198b43ac7ea901520ec8771efc9c626a02301f34d136a72fd4fbf574",
+    "retrieved_at": "2026-10-27T10:29:18.206686+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1500.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1579%2C1580%2C1581%2C1582%2C1583%2C1584%2C1585%2C1586%2C1587%2C1588%2C1589%2C1590%2C1591%2C1592%2C1593%2C1594%2C1595%2C1596%2C1597%2C1598%2C1599%2C1600%2C1601%2C1602%2C1603&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "94df184def64e88caba2ea9991801a6a306fc592573fbff263616ae4fb7de194",
+    "retrieved_at": "2026-10-27T10:29:18.973706+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1525.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1604%2C1605%2C1606%2C1607%2C1608%2C1609%2C1610%2C1611%2C1612%2C1613%2C1614%2C1615%2C1616%2C1617%2C1618%2C1619%2C1620%2C1621%2C1622%2C1623%2C1624%2C1625%2C1626%2C1627%2C1628&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "0b494ef50d879b95ac097c2fc6450a6b7c0670cb3072e97ee8de8b57de1699b5",
+    "retrieved_at": "2026-10-27T10:29:19.408493+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1550.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1629%2C1630%2C1631%2C1633%2C1634%2C1635%2C1636%2C1637%2C1638%2C1639%2C1640%2C1641%2C1642%2C1643%2C1644%2C1645%2C1646%2C1647%2C1648%2C1649%2C1650%2C1651%2C1652%2C1653%2C1655&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "bf7286ae7b1c60bf81e1adde35400fa9bb1a95c9914f2fbeeff21c6dbef2dfcf",
+    "retrieved_at": "2026-10-27T10:29:19.784533+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1575.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1656%2C1657%2C1658%2C1659%2C1660%2C1661%2C1662%2C1663%2C1664%2C1665%2C1666%2C1667%2C1668%2C1669%2C1670%2C1672%2C1673%2C1674%2C1675%2C1676%2C1677%2C1678%2C1679%2C1680%2C1681&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "44d0f0116fea0eba759cced4ee59c5abcd5f02f3db8004d5daa8cf612d3ed145",
+    "retrieved_at": "2026-10-27T10:29:20.151412+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1600.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1682%2C1683%2C1684%2C1685%2C1686%2C1687%2C1688%2C1689%2C1690%2C1692%2C1693%2C1695%2C1697%2C1698%2C1699%2C1700%2C1701%2C1702%2C1703%2C1704%2C1705%2C1710%2C1713%2C1715%2C1716&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "b2f770f716c23bc55d5c213b3cd4e30ddee40bca161074f994765cb4ae3eb366",
+    "retrieved_at": "2026-10-27T10:29:20.603160+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1625.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1717%2C1718%2C1719%2C1720%2C1721%2C1722%2C1723%2C1724%2C1725%2C1726%2C1727%2C1728%2C1729%2C1730%2C1731%2C1732%2C1733%2C1734%2C1735%2C1736%2C1737%2C1738%2C1739%2C1740%2C1741&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "8203b51910d5b2a1193a68aea49aa16f0c19d50e34001f206e172220330402ce",
+    "retrieved_at": "2026-10-27T10:29:21.018894+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1650.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1742%2C1743%2C1744%2C1745%2C1746%2C1747%2C1748%2C1749%2C1750%2C1751%2C1752%2C1753%2C1754%2C1755%2C1756%2C1757%2C1758%2C1759%2C1760%2C1761%2C1762%2C1763%2C1764%2C1765%2C1766&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "9d719c6ff9a2c0e76bc53a0a7fdccbc78df51bd185ecc0788190a291f150486e",
+    "retrieved_at": "2026-10-27T10:29:21.336870+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1675.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1767%2C1768%2C1769%2C1770%2C1771%2C1772%2C1773%2C1774%2C1775%2C1776%2C1777%2C1778%2C1779%2C1780%2C1781%2C1782%2C1783%2C1784%2C1785%2C1786%2C1787%2C1788%2C1789%2C1790%2C1791&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "ef7a4234b4516167eccd4e4408660f07953de55566940110bccbf0b1b277555b",
+    "retrieved_at": "2026-10-27T10:29:21.704058+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1700.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1793%2C1794%2C1795%2C1796%2C1797%2C1798%2C1799%2C1800%2C1801%2C1802%2C1803%2C1804%2C1805%2C1806%2C1807%2C1808%2C1809%2C1810%2C1811%2C1812%2C1813%2C1814%2C1815%2C1816%2C1817&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "1f1e92b388ebf85eed9723aee7f23e7a3f4370965a45b9d679303be4250bbf81",
+    "retrieved_at": "2026-10-27T10:29:22.124071+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1725.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1818%2C1819%2C1820%2C1821%2C1822%2C1823%2C1824%2C1825%2C1826%2C1827%2C1828%2C1829%2C1830%2C1831%2C1832%2C1833%2C1834%2C1835%2C1836%2C1837%2C1838%2C1839%2C1840%2C1841%2C1842&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "237554c1fa3cdaa883f77e624421a298cfc8b459b1f8013b161175c4e7fecebb",
+    "retrieved_at": "2026-10-27T10:29:22.578442+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1750.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1843%2C1844%2C1845%2C1846%2C1847%2C1848%2C1849%2C1850%2C1851%2C1852%2C1853%2C1854%2C1855%2C1856%2C1857%2C1858%2C1859%2C1860%2C1861%2C1862%2C1863%2C1864%2C1865%2C1866%2C1867&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "a42f7f98251d04f6acef36844ccace85ac3272821b4f564e876d8676272984d6",
+    "retrieved_at": "2026-10-27T10:29:22.996598+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1775.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1868%2C1869%2C1870%2C1872%2C1873%2C1874%2C1875%2C1876%2C1877%2C1878%2C1879%2C1880%2C1881%2C1882%2C1883%2C1884%2C1885%2C1886%2C1887%2C1888%2C1889%2C1890%2C1891%2C1892%2C1893&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "fca2763492698f6b9b21f35fd7642f96cc78a07d9dffbd868f7cb9189b0c01f2",
+    "retrieved_at": "2026-10-27T10:29:23.583273+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1800.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1894%2C1895%2C1896%2C1897%2C1898%2C1899%2C1900%2C1902%2C1903%2C1904%2C1906%2C1911%2C1912%2C1914%2C1915%2C1916%2C1917%2C1918%2C1919%2C1920%2C1921%2C1922%2C1923%2C1924%2C1925&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "5cf85f0950cbfdc7681d0eec9802615c2c5fd70de6ebbb1e215af1ca3a5eb568",
+    "retrieved_at": "2026-10-27T10:29:24.356921+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1825.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1926%2C1927%2C1928%2C1929%2C1930%2C1931%2C1932%2C1934%2C1935%2C1936%2C1937%2C1938%2C1939%2C1940%2C1941%2C1942%2C1943%2C1944%2C1945%2C1946%2C1947%2C1948%2C1949%2C1950%2C1951&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "6762580ed3b6dc9fe67b9c8224286d1e74ebaf2b3cf9b2f2027453256e345984",
+    "retrieved_at": "2026-10-27T10:29:24.791601+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1850.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1952%2C1953%2C1954%2C1955%2C1956%2C1957%2C1958%2C1959%2C1960%2C1961%2C1962%2C1963%2C1964%2C1965%2C1966%2C1967%2C1968%2C1969%2C1970%2C1971%2C1972%2C1973%2C1974%2C1975%2C1976&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "15042d7d9e3da5ffd8a534c1452ff52ebc181626f715f368e5e4072e2de3188e",
+    "retrieved_at": "2026-10-27T10:29:25.232137+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1875.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=1977%2C1978%2C1979%2C1980%2C1981%2C1982%2C1983%2C1984%2C1985%2C1986%2C1987%2C1988%2C1989%2C1990%2C1991%2C1992%2C1993%2C1994%2C1995%2C1996%2C1997%2C1998%2C1999%2C2000%2C2001&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "623fb152a37f9561535c3f7635c4ea69c077447972d54e32442be6db09e9160f",
+    "retrieved_at": "2026-10-27T10:29:25.910842+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1900.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2002%2C2003%2C2004%2C2005%2C2006%2C2007%2C2008%2C2009%2C2010%2C2011%2C2012%2C2013%2C2014%2C2015%2C2016%2C2017%2C2018%2C2019%2C2020%2C2021%2C2022%2C2023%2C2024%2C2025%2C2026&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "62266b30970b32c6d8a58a3d69a5c99931711f4b39f95e51a326e1285f67368c",
+    "retrieved_at": "2026-10-27T10:29:26.870085+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1925.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2028%2C2029%2C2030%2C2031%2C2032%2C2033%2C2034%2C2035%2C2036%2C2037%2C2038%2C2039%2C2043%2C2044%2C2045%2C2046%2C2047%2C2048%2C2049%2C2050%2C2051%2C2052%2C2053%2C2054%2C2055&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "8ceca41eb1c180a16bbb3c14dc74d4d54e9679352f49ef350a8ff4706521d57c",
+    "retrieved_at": "2026-10-27T10:29:27.191098+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1950.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2056%2C2057%2C2058%2C2059%2C2060%2C2061%2C2062%2C2063%2C2064%2C2065%2C2066%2C2067%2C2068%2C2069%2C2070%2C2072%2C2073%2C2074%2C2075%2C2076%2C2077%2C2078%2C2079%2C2080%2C2081&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "c49976fa326b75ac3748cb148a5843571e698330a8a826e87513878870642139",
+    "retrieved_at": "2026-10-27T10:29:27.697628+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids1975.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2082%2C2083%2C2084%2C2085%2C2086%2C2087%2C2088%2C2089%2C2090%2C2091%2C2092%2C2093%2C2094%2C2095%2C2096%2C2097%2C2098%2C2099%2C2100%2C2101%2C2102%2C2103%2C2104%2C2105%2C2106&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "028a78e4a0ce304b35cd6892c69c2e89cccfe55c16a41d62c9d3ad668516357e",
+    "retrieved_at": "2026-10-27T10:29:28.006480+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2000.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2107%2C2108%2C2109%2C2110%2C2111%2C2112%2C2113%2C2114%2C2115%2C2116%2C2117%2C2118%2C2119%2C2120%2C2121%2C2122%2C2124%2C2125%2C2126%2C2127%2C2128%2C2129%2C2130%2C2131%2C2132&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "2a60d9daedfd3f15b76f4e2108f6b8f9b09e9711712d749dee125c9a46ae8315",
+    "retrieved_at": "2026-10-27T10:29:28.303601+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2025.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2133%2C2134%2C2135%2C2136%2C2137%2C2138%2C2139%2C2140%2C2142%2C2143%2C2144%2C2145%2C2146%2C2148%2C2150%2C2151%2C2152%2C2154%2C2155%2C2159%2C2168%2C2170%2C2172%2C2173%2C2174&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "7ff4bb26435427d1f93bac15a1fb1d91fcb372d0445e67d594f7c4c19a20a496",
+    "retrieved_at": "2026-10-27T10:29:28.683472+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2050.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2175%2C2176%2C2179%2C2180%2C2181%2C2182%2C2183%2C2184%2C2185%2C2186%2C2187%2C2188%2C2189%2C2190%2C2191%2C2193%2C2194%2C2195%2C2196%2C2197%2C2198%2C2199%2C2201%2C2202%2C2203&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "f99a4f43857242ae5a8398b34f94bf9b655b812ea47d6fe45d71f9201715da01",
+    "retrieved_at": "2026-10-27T10:29:28.981324+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2075.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2204%2C2206%2C2209%2C2210%2C2214%2C2215%2C2216%2C2217%2C2218%2C2219%2C2220%2C2221%2C2222%2C2223%2C2224%2C2225%2C2226%2C2227%2C2228%2C2229%2C2230%2C2231%2C2232%2C2233%2C2234&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "4b5e02223224c9cffbd72566b50f77a3245d2f628ce4127e5ddd57718a432fa5",
+    "retrieved_at": "2026-10-27T10:29:29.349605+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2100.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2235%2C2236%2C2237%2C2238%2C2239%2C2240%2C2241%2C2242%2C2243%2C2244%2C2245%2C2246%2C2247%2C2248%2C2249%2C2250%2C2251%2C2252%2C2253%2C2254%2C2255%2C2256%2C2259%2C2260%2C2261&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "28389de66bb245c3682716705d6403c0c34a3a87e42f08358e7db0b236b5dbc9",
+    "retrieved_at": "2026-10-27T10:29:29.750947+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2125.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2262%2C2263%2C2264%2C2265%2C2266%2C2267%2C2268%2C2269%2C2271%2C2272%2C2274%2C2275%2C2276%2C2277%2C2279%2C2280%2C2281%2C2282%2C2283%2C2284%2C2285%2C2286%2C2287%2C2288%2C2289&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "47653a7b3e3f1db75cd1b7229779eb824d8360e0654416ba81968c9f8a9b795f",
+    "retrieved_at": "2026-10-27T10:29:30.053870+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2150.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2290%2C2291%2C2292%2C2293%2C2294%2C2295%2C2296%2C2297%2C2298%2C2299%2C2300%2C2301%2C2302%2C2303%2C2304%2C2305%2C2306%2C2307%2C2308%2C2310%2C2311%2C2313%2C2314%2C2315%2C2316&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "895ce62785c931f71b707dbdc1a2621f72e61a6b2f775834eda4715ee8c60b88",
+    "retrieved_at": "2026-10-27T10:29:30.347695+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2175.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2317%2C2318%2C2319%2C2320%2C2321%2C2322%2C2323%2C2324%2C2325%2C2326%2C2327%2C2328%2C2329%2C2330%2C2331%2C2332%2C2333%2C2334%2C2335%2C2336%2C2337%2C2338%2C2339%2C2340%2C2341&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "5fded45671653ce41481e5fffd0c3488f7f81deea8b6d31dd421124318f0cc2b",
+    "retrieved_at": "2026-10-27T10:29:30.647613+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2200.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2342%2C2343%2C2344%2C2345%2C2346%2C2347%2C2348%2C2349%2C2350%2C2351%2C2352%2C2353%2C2354%2C2355%2C2356%2C2357%2C2358%2C2359%2C2360%2C2361%2C2362%2C2363%2C2364%2C2365%2C2366&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "c381b17b9e168eb3c57e54a6b781d885a47370cdd189457ea5347ade30b3e201",
+    "retrieved_at": "2026-10-27T10:29:31.157334+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2225.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2367%2C2368%2C2369%2C2370%2C2371%2C2372%2C2373%2C2374%2C2375%2C2376%2C2377%2C2378%2C2379%2C2380%2C2381%2C2382%2C2383%2C2384%2C2385%2C2386%2C2387%2C2388%2C2389%2C2390%2C2391&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "a780e513a2f4accc83145563dc4079b22518c34e52d9ec1ae7d48d27428d6a47",
+    "retrieved_at": "2026-10-27T10:29:31.481016+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2250.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2392%2C2393%2C2394%2C2395%2C2396%2C2397%2C2398%2C2399%2C2400%2C2401%2C2402%2C2403%2C2404%2C2405%2C2406%2C2407%2C2408%2C2409%2C2410%2C2411%2C2412%2C2413%2C2414%2C2415%2C2416&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "4a918e3bfa285a0dcd13470e2520782dc48071532b7a65dbe78195e8498a7c38",
+    "retrieved_at": "2026-10-27T10:29:31.710365+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2275.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2417%2C2418%2C2419%2C2420%2C2421%2C2422%2C2423%2C2424%2C2425%2C2426%2C2427%2C2428%2C2429%2C2430%2C2431%2C2432%2C2433%2C2434%2C2435%2C2436%2C2437%2C2438%2C2439%2C2440%2C2441&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "002ab5567bbb39704973a209a2e0261745de6c1c0e70bef0dd35aa2333d2154e",
+    "retrieved_at": "2026-10-27T10:29:31.937273+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2300.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2442%2C2443%2C2444%2C2445%2C2446%2C2447%2C2448%2C2449%2C2450%2C2451%2C2452%2C2453%2C2454%2C2455%2C2456%2C2457%2C2458%2C2459%2C2460%2C2461%2C2462%2C2463%2C2464%2C2465%2C2466&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "28506612042a303b5e446a819ec44d264179ddaedc4544c67c53d7c847112aae",
+    "retrieved_at": "2026-10-27T10:29:32.308932+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2325.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2467%2C2468%2C2469%2C2470%2C2471%2C2472%2C2473%2C2474%2C2475%2C2476%2C2477%2C2478%2C2479%2C2480%2C2481%2C2482%2C2483%2C2484%2C2485%2C2486%2C2487%2C2488%2C2489%2C2490%2C2491&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "32f47c3427f748ec08a3d345fceca48667b841fe9245dde1436f5eb5d4a9a786",
+    "retrieved_at": "2026-10-27T10:29:32.581346+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2350.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2492%2C2493%2C2494%2C2495%2C2496%2C2497%2C2498%2C2499%2C2500%2C2501%2C2502%2C2503%2C2504%2C2505%2C2506%2C2507%2C2508%2C2509%2C2510%2C2511%2C2512%2C2513%2C2515%2C2516%2C2517&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "5fcf73e6f3ae816ba47250492601ba6cf0623450ca23450753e6605f398e91e4",
+    "retrieved_at": "2026-10-27T10:29:32.941633+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2375.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2518%2C2519%2C2520%2C2521%2C2522%2C2523%2C2524%2C2525%2C2526%2C2527%2C2528%2C2529%2C2530%2C2531%2C2532%2C2533%2C2534%2C2535%2C2536%2C2537%2C2538%2C2539%2C2540%2C2541%2C2542&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "69bae36ad4345802bc3c8c6c4a4a8eae68b96bffa5526b05e6188c324ceb5115",
+    "retrieved_at": "2026-10-27T10:29:33.203054+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2400.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2543%2C2544%2C2545%2C2546%2C2547%2C2548%2C2549%2C2550%2C2551%2C2552%2C2553%2C2555%2C2556%2C2558%2C2559%2C2560%2C2561%2C2562%2C2563%2C2564%2C2565%2C2566%2C2567%2C2568%2C2569&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "f6b7a5add015c418d18c3a6db49da45e12507b645542170e61e870c0e736212c",
+    "retrieved_at": "2026-10-27T10:29:33.650455+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2425.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2570%2C2571%2C2572%2C2573%2C2574%2C2575%2C2576%2C2577%2C2578%2C2579%2C2580%2C2581%2C2582%2C2583%2C2584%2C2585%2C2586%2C2587%2C2588%2C2589%2C2590%2C2591%2C2592%2C2593%2C2594&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "ef6e663945049f848571d1781be9409f8a614c6f6902acafa706e9d01d131dea",
+    "retrieved_at": "2026-10-27T10:29:35.003245+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2450.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2596%2C2597%2C2598%2C2599%2C2600%2C2601%2C2602%2C2603%2C2604%2C2605%2C2606%2C2607%2C2608%2C2609%2C2610%2C2611%2C2612%2C2613%2C2614%2C2615%2C2616%2C2617%2C2618%2C2619%2C2620&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "e5bd32a8079a6923cb4ed1b2b2ddfa822eb9ed223684aff57ae500ea6602fd80",
+    "retrieved_at": "2026-10-27T10:29:35.384330+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2475.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2621%2C2622%2C2623%2C2624%2C2625%2C2626%2C2627%2C2628%2C2629%2C2630%2C2631%2C2632%2C2633%2C2634%2C2635%2C2636%2C2637%2C2638%2C2639%2C2640%2C2641%2C2642%2C2643%2C2644%2C2645&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "4517763a2e59a633823b1a5c0ebc3f048d3f9bcec972bfe667a93ac4198e7ce4",
+    "retrieved_at": "2026-10-27T10:29:35.695507+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2500.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2646%2C2648%2C2649%2C2650%2C2651%2C2652%2C2653%2C2654%2C2655%2C2656%2C2659%2C2660%2C2661%2C2662%2C2663%2C2664%2C2666%2C2667%2C2668%2C2669%2C2670%2C2671%2C2672%2C2673%2C2674&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "8aec3bb955b561134812695452ba9706389a46aa0f8a968ababbce692fc18777",
+    "retrieved_at": "2026-10-27T10:29:36.249828+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2525.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2675%2C2676%2C2677%2C2678%2C2679%2C2680%2C2681%2C2682%2C2683%2C2684%2C2685%2C2686%2C2687%2C2688%2C2689%2C2690%2C2691%2C2692%2C2693%2C2694%2C2695%2C2696%2C2697%2C2698%2C2699&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "4bda761ce590c8f0336b71a47b3118f7185d6c344eff0f44dc32a4e5dd6c19be",
+    "retrieved_at": "2026-10-27T10:29:36.749532+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2550.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2700%2C2701%2C2702%2C2703%2C2704%2C2705%2C2706%2C2707%2C2708%2C2709%2C2710%2C2711%2C2712%2C2713%2C2714%2C2715%2C2716%2C2718%2C2720%2C2721%2C2722%2C2723%2C2724%2C2725%2C2726&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "aa6758988be1dd95fc2f4ce5fefe047c7108d79e3f946556603b0ce5ac342416",
+    "retrieved_at": "2026-10-27T10:29:37.053172+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2575.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2727%2C2728%2C2729%2C2730%2C2731%2C2732%2C2733%2C2734%2C2735%2C2736%2C2737%2C2738%2C2739%2C2740%2C2741%2C2742%2C2743%2C2744%2C2745%2C2746%2C2747%2C2748%2C2749%2C2750%2C2751&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "b3127f54e4611dfa574c18a0429d03b724e6b7dccfd7bb78e161e7748015d208",
+    "retrieved_at": "2026-10-27T10:29:37.374412+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2600.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2752%2C2753%2C2755%2C2756%2C2757%2C2758%2C2759%2C2760%2C2761%2C2762%2C2763%2C2764%2C2765%2C2766%2C2767%2C2768%2C2769%2C2770%2C2771%2C2772%2C2773%2C2774%2C2775%2C2776%2C2777&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "cdab244405d18a6cc61188586a90b63472d56cd5a4587de8a1044f1503c0c0a0",
+    "retrieved_at": "2026-10-27T10:29:37.803430+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2625.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2778%2C2779%2C2780%2C2781%2C2782%2C2783%2C2784%2C2785%2C2787%2C2788%2C2790%2C2791%2C2792%2C2793%2C2794%2C2796%2C2797%2C2798%2C2799%2C2800%2C2801%2C2802%2C2803%2C2804%2C2805&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "082b9a59b01791b917c981b71343a458b29eac71c88f893512d087511a609b01",
+    "retrieved_at": "2026-10-27T10:29:38.358497+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2650.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2806%2C2807%2C2808%2C2809%2C2810%2C2811%2C2812%2C2813%2C2814%2C2815%2C2816%2C2817%2C2818%2C2819%2C2820%2C2822%2C2824%2C2825%2C2826%2C2827%2C2828%2C2829%2C2830%2C2831%2C2832&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "40705b973873c80f931873cdbdee19b93267afb3fe432a513505d2dd1035ab87",
+    "retrieved_at": "2026-10-27T10:29:38.792676+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2675.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2833%2C2834%2C2835%2C2836%2C2837%2C2838%2C2839%2C2840%2C2841%2C2842%2C2843%2C2844%2C2845%2C2846%2C2847%2C2848%2C2849%2C2850%2C2851%2C2852%2C2853%2C2854%2C2855%2C2856%2C2857&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "89b6446846e4599130d21e54bfacbdcf3c2127f5c5472edc3c6b6bb2a57ea66b",
+    "retrieved_at": "2026-10-27T10:29:39.126059+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2700.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2858%2C2859%2C2860%2C2861%2C2862%2C2863%2C2864%2C2867%2C2869%2C2870%2C2871%2C2872%2C2873%2C2874%2C2875%2C2876%2C2877%2C2878%2C2879%2C2880%2C2881%2C2882%2C2883%2C2884%2C2885&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "03b7585eff16c84232e4db2d3251a65e3b9852a3ec1d80c387aae548f193991f",
+    "retrieved_at": "2026-10-27T10:29:39.634290+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2725.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2886%2C2887%2C2888%2C2889%2C2890%2C2891%2C2892%2C2893%2C2894%2C2895%2C2896%2C2897%2C2898%2C2899%2C2900%2C2901%2C2902%2C2903%2C2905%2C2906%2C2907%2C2908%2C2909%2C2910%2C2911&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "9920136a8ba3ccf46684249529a101bfa0bc46e63dffa8d81bf93d04af211dae",
+    "retrieved_at": "2026-10-27T10:29:40.164018+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2750.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2912%2C2913%2C2914%2C2915%2C2916%2C2918%2C2919%2C2920%2C2921%2C2922%2C2923%2C2924%2C2925%2C2926%2C2927%2C2928%2C2929%2C2930%2C2931%2C2932%2C2933%2C2934%2C2935%2C2936%2C2937&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "469f40b0ddd297479aadd39e14050d82fb7a546e73234c2a05c5a1df2efdf93d",
+    "retrieved_at": "2026-10-27T10:29:40.556014+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2775.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2938%2C2939%2C2940%2C2941%2C2942%2C2943%2C2944%2C2945%2C2946%2C2947%2C2948%2C2949%2C2950%2C2951%2C2952%2C2953%2C2954%2C2955%2C2956%2C2957%2C2958%2C2959%2C2960%2C2961%2C2962&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "004eccdfd273a8c7210d77215179ddac89c9c87364d39900eef8c38b16c98374",
+    "retrieved_at": "2026-10-27T10:29:40.882114+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2800.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2963%2C2964%2C2965%2C2966%2C2967%2C2968%2C2969%2C2970%2C2971%2C2972%2C2973%2C2974%2C2975%2C2976%2C2977%2C2978%2C2979%2C2980%2C2981%2C2982%2C2983%2C2984%2C2985%2C2986%2C2987&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "6886087ea5ab37e88f500480ff6f37a0f9485a2197a079e6a0d3a1c1f50e1a88",
+    "retrieved_at": "2026-10-27T10:29:41.874313+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2825.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=2988%2C2989%2C2990%2C2991%2C2992%2C2993%2C2994%2C2995%2C2996%2C2997%2C2998%2C2999%2C3000%2C3001%2C3002%2C3003%2C3004%2C3005%2C3006%2C3007%2C3008%2C3009%2C3010%2C3011%2C3012&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "fd98f4accf139addf1eecf6076c362b4f4a91a53d2750f50bb05a78d9b5c660c",
+    "retrieved_at": "2026-10-27T10:29:42.142093+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2850.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3013%2C3014%2C3015%2C3016%2C3017%2C3018%2C3019%2C3020%2C3021%2C3022%2C3023%2C3024%2C3025%2C3026%2C3027%2C3029%2C3030%2C3031%2C3032%2C3033%2C3034%2C3035%2C3036%2C3037%2C3038&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "0a0626f3dea6890dfc0607ab65561229eb0f6df7daa32b4c903ca819a6adcc7f",
+    "retrieved_at": "2026-10-27T10:29:43.004359+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2875.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3039%2C3040%2C3041%2C3042%2C3043%2C3044%2C3045%2C3046%2C3047%2C3048%2C3049%2C3050%2C3051%2C3052%2C3053%2C3054%2C3055%2C3057%2C3059%2C3063%2C3070%2C3071%2C3072%2C3073%2C3074&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "5f48d798bcad37372293b31ea87153fe6a30927b04014f0d8f778ceba389939d",
+    "retrieved_at": "2026-10-27T10:29:43.543812+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2900.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3075%2C3076%2C3077%2C3078%2C3079%2C3080%2C3081%2C3082%2C3083%2C3084%2C3085%2C3086%2C3090%2C3091%2C3092%2C3093%2C3094%2C3095%2C3096%2C3097%2C3098%2C3099%2C3100%2C3101%2C3102&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "78f1f3cf578ecc75456279870fe6784fca7fdedff7a0403fe24d428458de51cc",
+    "retrieved_at": "2026-10-27T10:29:43.902912+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2925.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3103%2C3104%2C3105%2C3106%2C3107%2C3108%2C3109%2C3110%2C3111%2C3112%2C3113%2C3114%2C3115%2C3116%2C3117%2C3118%2C3119%2C3120%2C3121%2C3122%2C3123%2C3124%2C3125%2C3126%2C3127&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "f6fbe3d9d2cb6c4bb668e481fc3f8831f920d0683d534f8ab9b62ee0a0c292d8",
+    "retrieved_at": "2026-10-27T10:29:44.224252+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2950.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3128%2C3129%2C3130%2C3131%2C3132%2C3133%2C3134%2C3135%2C3136%2C3137%2C3138%2C3139%2C3140%2C3141%2C3142%2C3143%2C3144%2C3145%2C3146%2C3147%2C3148%2C3149%2C3151%2C3152%2C3153&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "4ca907979703d6f4073e18e31981aa7458b4fd5c1b566eae47bccb2ed74cefc6",
+    "retrieved_at": "2026-10-27T10:29:44.565843+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids2975.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3154%2C3155%2C3156%2C3157%2C3158%2C3159%2C3160%2C3161%2C3162%2C3163%2C3164%2C3165%2C3166%2C3167%2C3168%2C3169%2C3170%2C3171%2C3172%2C3173%2C3174%2C3175%2C3176%2C3177%2C3178&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "f74deed7dcded2fdae7f1273ee481f76c11397fe3642cd0d20cac9cdf4a0d19a",
+    "retrieved_at": "2026-10-27T10:29:44.983527+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3000.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3179%2C3180%2C3181%2C3182%2C3183%2C3184%2C3185%2C3186%2C3187%2C3188%2C3189%2C3190%2C3191%2C3192%2C3193%2C3194%2C3195%2C3196%2C3199%2C3200%2C3202%2C3203%2C3204%2C3205%2C3206&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "5c8b84eb1c9f3ec051d039ff6fd31d2447041f564abf19b02c787391e5c8418e",
+    "retrieved_at": "2026-10-27T10:29:45.549595+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3025.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3207%2C3208%2C3209%2C3210%2C3211%2C3212%2C3213%2C3214%2C3215%2C3216%2C3217%2C3218%2C3219%2C3220%2C3221%2C3222%2C3223%2C3224%2C3225%2C3226%2C3227%2C3229%2C3230%2C3231%2C3232&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "1bb322d757f422d6330464a4c4f216e025b4f9f25515f842ce4eb221bc56e1ad",
+    "retrieved_at": "2026-10-27T10:29:45.903643+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3050.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3233%2C3234%2C3235%2C3236%2C3237%2C3238%2C3239%2C3240%2C3241%2C3242%2C3243%2C3244%2C3245%2C3246%2C3247%2C3248%2C3249%2C3250%2C3251%2C3252%2C3253%2C3254%2C3255%2C3256%2C3257&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "89d89bd3d98a8aaeff3a9f1988ed0e843f0dbc5a9ea764ece8971084a030256c",
+    "retrieved_at": "2026-10-27T10:29:46.320420+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3075.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3258%2C3259%2C3260%2C3262%2C3263%2C3264%2C3265%2C3266%2C3267%2C3268%2C3269%2C3270%2C3271%2C3272%2C3273%2C3274%2C3275%2C3276%2C3277%2C3278%2C3279%2C3280%2C3281%2C3282%2C3283&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "3cd55132d2445321f65d1b80708508afa99320b20b8626451eeb58be0cd86a92",
+    "retrieved_at": "2026-10-27T10:29:46.665938+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3100.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3284%2C3285%2C3286%2C3287%2C3288%2C3289%2C3290%2C3291%2C3292%2C3294%2C3295%2C3296%2C3300%2C3301%2C3302%2C3303%2C3306%2C3307%2C3309%2C3310%2C3311%2C3312%2C3314%2C3315%2C3325&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "f9eeff41807cf2548578f4cb0da6381e2c01ce8dd6fdbc4eeeaea27f2b6bc405",
+    "retrieved_at": "2026-10-27T10:29:47.379826+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3125.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3327%2C3328%2C3329%2C3330%2C3331%2C3332%2C3333%2C3334%2C3336%2C3337%2C3338%2C3339%2C3340%2C3341%2C3342%2C3343%2C3344%2C3345%2C3346%2C3347%2C3348%2C3349%2C3350%2C3351%2C3352&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "7003ac96ccd255d46b4ec6557565861dfb3f8a2a6bb2fa85d7cf4f5ee855efc9",
+    "retrieved_at": "2026-10-27T10:29:47.858345+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3150.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3353%2C3354%2C3355%2C3356%2C3357%2C3358%2C3359%2C3360%2C3361%2C3363%2C3366%2C3367%2C3371%2C3372%2C3373%2C3374%2C3375%2C3376%2C3377%2C3378%2C3379%2C3380%2C3381%2C3382%2C3383&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "9c07b5fe26ec0a1ac763f1bbf40eb7143c59351d4c50713b2a51e93653975b8d",
+    "retrieved_at": "2026-10-27T10:29:48.471232+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3175.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3384%2C3385%2C3386%2C3387%2C3388%2C3390%2C3392%2C3393%2C3394%2C3395%2C3396%2C3397%2C3398%2C3399%2C3400%2C3401%2C3402%2C3403%2C3405%2C3406%2C3407%2C3408%2C3409%2C3410%2C3411&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "b16d8631352c2cb1c848f347d14e9ac1688f2ab316e7f76d3fe37d5c845e0c63",
+    "retrieved_at": "2026-10-27T10:29:48.707041+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3200.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3412%2C3415%2C3416%2C3417%2C3418%2C3419%2C3420%2C3421%2C3422%2C3423%2C3424%2C3425%2C3429%2C3430%2C3431%2C3432%2C3433%2C3434%2C3435%2C3436%2C3437%2C3438%2C3439%2C3440%2C3441&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "7be8251abd94283ac9342b21841f6303d0aa1a1023a28757da7af8571835210b",
+    "retrieved_at": "2026-10-27T10:29:49.018968+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3225.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3443%2C3444%2C3445%2C3446%2C3447%2C3448%2C3449%2C3450%2C3451%2C3452%2C3453%2C3454%2C3455%2C3456%2C3457%2C3458%2C3459%2C3460%2C3461%2C3462%2C3463%2C3464%2C3466%2C3467%2C3468&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "317bc3d29fc5787e2245d1bfbc2d92a06c6d5de512fb3b11d99c9d504fbb01bb",
+    "retrieved_at": "2026-10-27T10:29:49.455611+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3250.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3469%2C3470%2C3471%2C3472%2C3473%2C3474%2C3475%2C3476%2C3477%2C3478%2C3479%2C3480%2C3481%2C3482%2C3483%2C3484%2C3485%2C3486%2C3487%2C3488%2C3489%2C3490%2C3491%2C3492%2C3493&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "068a88c63cf631e613cb2d4500573982b80ac5b8f80a29d5c7053618d328ccd4",
+    "retrieved_at": "2026-10-27T10:29:49.708391+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3275.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3494%2C3495%2C3496%2C3497%2C3498%2C3499%2C3500%2C3501%2C3502%2C3503%2C3505%2C3506%2C3507%2C3508%2C3509%2C3510%2C3511%2C3512%2C3513%2C3514%2C3515%2C3516%2C3517%2C3518%2C3519&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "c5d023c00b062a85576939b84371035ff9d54927931efd67fd06f151951008c5",
+    "retrieved_at": "2026-10-27T10:29:49.989181+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3300.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3520%2C3521%2C3522%2C3523%2C3524%2C3525%2C3526%2C3527%2C3528%2C3529%2C3530%2C3531%2C3532%2C3534%2C3535%2C3536%2C3537%2C3538%2C3539%2C3540%2C3541%2C3542%2C3543%2C3544%2C3545&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "59e4c9a757092e4bb5fcf0abb302635fc88fae96e9f48237a022ec0933ad96d8",
+    "retrieved_at": "2026-10-27T10:29:50.233410+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3325.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3546%2C3547%2C3548%2C3549%2C3550%2C3551%2C3552%2C3553%2C3554%2C3555%2C3556%2C3557%2C3558%2C3559%2C3560%2C3561%2C3562%2C3563%2C3564%2C3565%2C3566%2C3567%2C3568%2C3569%2C3570&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "e67122e316faa5e9d96f1a9d11da66c390751ef75647068b4657db6013bd502e",
+    "retrieved_at": "2026-10-27T10:29:50.497967+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3350.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3571%2C3572%2C3573%2C3574%2C3575%2C3576%2C3577%2C3578%2C3579%2C3580%2C3581%2C3582%2C3584%2C3585%2C3586%2C3588%2C3589%2C3590%2C3591%2C3592%2C3593%2C3594%2C3595%2C3596%2C3597&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "83fbc1d0d3d9e1b0240a351198d3047b8ba955b465118cb1989e22c784fb0ca4",
+    "retrieved_at": "2026-10-27T10:29:50.758021+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3375.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3598%2C3599%2C3600%2C3601%2C3602%2C3603%2C3604%2C3605%2C3606%2C3607%2C3608%2C3609%2C3610%2C3611%2C3612%2C3613%2C3614%2C3615%2C3616%2C3617%2C3618%2C3619%2C3620%2C3621%2C3622&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "d10979b42f5190922512eb2adbb9e12d7364168c7d04b53781069f82aa7ab0f0",
+    "retrieved_at": "2026-10-27T10:29:50.966706+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3400.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3623%2C3624%2C3625%2C3626%2C3627%2C3628%2C3629%2C3630%2C3631%2C3632%2C3633%2C3634%2C3635%2C3636%2C3637%2C3638%2C3639%2C3640%2C3641%2C3642%2C3643%2C3644%2C3645%2C3646%2C3647&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "55d5ca30755666ce578e37df4f684ae82d8ef4bbbb51ace0e2994dc877b1904b",
+    "retrieved_at": "2026-10-27T10:29:51.203368+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3425.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3648%2C3649%2C3650%2C3651%2C3652%2C3653%2C3654%2C3655%2C3656%2C3658%2C3659%2C3660%2C3661%2C3662%2C3663%2C3664%2C3665%2C3667%2C3668%2C3669%2C3670%2C3671%2C3672%2C3673%2C3674&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "23e2e7d82f65183d2f67297432d0d4a0e867c3e6e56464be3ccc13f6a1f5fc1a",
+    "retrieved_at": "2026-10-27T10:29:51.555864+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3450.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3675%2C3676%2C3677%2C3678%2C3679%2C3680%2C3681%2C3682%2C3683%2C3684%2C3685%2C3686%2C3687%2C3688%2C3689%2C3690%2C3691%2C3692%2C3693%2C3694%2C3695%2C3696%2C3697%2C3698%2C3699&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "797500912d6e0e81d909505661acb8f68418c372b51468bd856c47d6354342ff",
+    "retrieved_at": "2026-10-27T10:29:51.794541+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3475.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3700%2C3701%2C3702%2C3703%2C3704%2C3705%2C3706%2C3708%2C3709%2C3710%2C3711%2C3712%2C3713%2C3715%2C3716%2C3717%2C3718%2C3719%2C3720%2C3721%2C3722%2C3723%2C3724%2C3725%2C3726&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "c53e4b444602dba3059329cb7ea61fae5fcfad8f9ae2f9a158d3eb0dfa7c888f",
+    "retrieved_at": "2026-10-27T10:29:52.271530+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3500.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3727%2C3728%2C3729%2C3730%2C3731%2C3732%2C3733%2C3734%2C3735%2C3736%2C3737%2C3738%2C3739%2C3740%2C3741%2C3742%2C3743%2C3744%2C3745%2C3746%2C3747%2C3748%2C3749%2C3750%2C3751&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "c43f1910d8f242d27e8ea53198f8471e1e009709328d1b963a3193258c64c9cd",
+    "retrieved_at": "2026-10-27T10:29:52.683563+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3525.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3752%2C3753%2C3754%2C3755%2C3756%2C3757%2C3758%2C3759%2C3760%2C3761%2C3762%2C3763%2C3764%2C3765%2C3766%2C3767%2C3768%2C3769%2C3770%2C3771%2C3772%2C3773%2C3774%2C3775%2C3776&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "dff45d1e67bfaa79b535c3b7a8348381b81f089cf7276d106ac722e795c10119",
+    "retrieved_at": "2026-10-27T10:29:52.936977+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3550.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3777%2C3778%2C3779%2C3780%2C3781%2C3782%2C3783%2C3784%2C3785%2C3786%2C3787%2C3788%2C3789%2C3790%2C3791%2C3792%2C3793%2C3794%2C3795%2C3796%2C3797%2C3798%2C3799%2C3800%2C3801&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "8788a8a526accc4c5c89e03478ad418285191bed4721049ced59d6d42ecc29bb",
+    "retrieved_at": "2026-10-27T10:29:53.499040+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3575.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3802%2C3803%2C3804%2C3805%2C3806%2C3807%2C3808%2C3809%2C3810%2C3811%2C3812%2C3813%2C3814%2C3815%2C3816%2C3817%2C3818%2C3819%2C3821%2C3823%2C3824%2C3825%2C3826%2C3827%2C3828&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "c863e9880eef3514f4e9250d28895a15a64b83ae4464b60a0ea46d2bd23004a8",
+    "retrieved_at": "2026-10-27T10:29:53.988461+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3600.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3829%2C3830%2C3831%2C3832%2C3833%2C3834%2C3835%2C3836%2C3837%2C3838%2C3839%2C3840%2C3841%2C3842%2C3843%2C3844%2C3845%2C3846%2C3847%2C3848%2C3849%2C3850%2C3851%2C3852%2C3853&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "0484a1ccf77da333c2b8afdbe9a73ee204a85b9b4b98bd88c0be8850edc2a1a5",
+    "retrieved_at": "2026-10-27T10:29:54.504445+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3625.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3854%2C3855%2C3856%2C3857%2C3858%2C3859%2C3860%2C3861%2C3862%2C3863%2C3864%2C3865%2C3866%2C3867%2C3868%2C3869%2C3870%2C3871%2C3873%2C3874%2C3875%2C3876%2C3877%2C3878%2C3879&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "13572b06c0bf1c2bb95318fa54243aa63e0b8dec97838bc4da72e426e39cede1",
+    "retrieved_at": "2026-10-27T10:29:54.767033+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3650.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3880%2C3881%2C3882%2C3883%2C3884%2C3885%2C3886%2C3887%2C3888%2C3889%2C3890%2C3891%2C3892%2C3893%2C3894%2C3895%2C3896%2C3897%2C3898%2C3899%2C3900%2C3901%2C3902%2C3903%2C3904&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "3425e338f7a517621281bfd535997d8679be2434abd041f7a46931827275c5e1",
+    "retrieved_at": "2026-10-27T10:29:55.027782+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3675.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3905%2C3906%2C3907%2C3908%2C3909%2C3910%2C3912%2C3913%2C3914%2C3915%2C3916%2C3917%2C3918%2C3919%2C3920%2C3921%2C3922%2C3923%2C3924%2C3925%2C3926%2C3927%2C3928%2C3929%2C3930&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "2e80eaec48dd8af99660544f9b2ba7e1cceca646cfb7abfabd5ddaa776c91620",
+    "retrieved_at": "2026-10-27T10:29:55.893290+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3700.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3931%2C3932%2C3933%2C3934%2C3935%2C3936%2C3937%2C3938%2C3939%2C3940%2C3942%2C3944%2C3945%2C3946%2C3947%2C3948%2C3949%2C3950%2C3952%2C3953%2C3954%2C3955%2C3956%2C3957%2C3958&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "af588650a5d81ec83843415527e278b96592e71d9a0c59f1eace84150c4787de",
+    "retrieved_at": "2026-10-27T10:29:56.210913+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3725.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3959%2C3960%2C3961%2C3962%2C3963%2C3964%2C3965%2C3966%2C3967%2C3968%2C3969%2C3970%2C3971%2C3972%2C3973%2C3974%2C3975%2C3976%2C3977%2C3978%2C3979%2C3980%2C3981%2C3982%2C3983&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "199a7fb559a517b4bfed6a396ab7bf2e120e7c696ebcc2b18fdd220293f520d5",
+    "retrieved_at": "2026-10-27T10:29:56.623589+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3750.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=3984%2C3985%2C3986%2C3987%2C3988%2C3989%2C3990%2C3991%2C3992%2C3993%2C3994%2C3995%2C3996%2C3997%2C3998%2C3999%2C4000%2C4001%2C4002%2C4003%2C4004%2C4005%2C4006%2C4007%2C4008&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "c34ab1c61c5b65d1934f3442adb159cc9a2d5cc9dd4e686e57b8097b9b5b49f0",
+    "retrieved_at": "2026-10-27T10:29:56.933670+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3775.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4009%2C4010%2C4011%2C4012%2C4013%2C4014%2C4015%2C4016%2C4017%2C4018%2C4021%2C4022%2C4024%2C4025%2C4026%2C4027%2C4028%2C4029%2C4030%2C4031%2C4032%2C4033%2C4034%2C4035%2C4036&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "7a0135dc29ce43381f130c409a7104ac15f3a455886264f8bd67f78e7607c30d",
+    "retrieved_at": "2026-10-27T10:29:57.437547+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3800.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4037%2C4038%2C4039%2C4040%2C4042%2C4043%2C4044%2C4045%2C4046%2C4047%2C4048%2C4049%2C4050%2C4051%2C4052%2C4053%2C4054%2C4055%2C4056%2C4057%2C4058%2C4059%2C4060%2C4061%2C4062&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "11dff9b3a471a35e23f0d1d3851a361b856eb649c77952e776cc0b20c9d27b02",
+    "retrieved_at": "2026-10-27T10:29:58.111430+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3825.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4063%2C4064%2C4065%2C4066%2C4067%2C4068%2C4069%2C4070%2C4071%2C4072%2C4073%2C4074%2C4075%2C4076%2C4077%2C4078%2C4079%2C4080%2C4081%2C4082%2C4083%2C4084%2C4085%2C4086%2C4087&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "ed50c098cbc84e03a215df3f6d5903bcfba1a9d28d7ba7ebc2f634112db3e461",
+    "retrieved_at": "2026-10-27T10:29:58.724355+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3850.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4089%2C4090%2C4091%2C4092%2C4093%2C4094%2C4095%2C4096%2C4097%2C4098%2C4099%2C4100%2C4101%2C4102%2C4103%2C4104%2C4105%2C4106%2C4107%2C4108%2C4109%2C4110%2C4111%2C4112%2C4113&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "577364430fb20c94438038de388edd20995a50bf69d86c01882e1a5d8bbd33f8",
+    "retrieved_at": "2026-10-27T10:29:59.075740+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3875.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4114%2C4115%2C4116%2C4117%2C4118%2C4119%2C4120%2C4121%2C4122%2C4123%2C4124%2C4125%2C4126%2C4127%2C4128%2C4129%2C4130%2C4131%2C4133%2C4134%2C4135%2C4136%2C4137%2C4138%2C4139&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "eb3e9f1b1b51213a0d193401cf4d8d3cbcd7df7a4fffa622041f80b81d70f7af",
+    "retrieved_at": "2026-10-27T10:29:59.364000+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3900.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4140%2C4141%2C4142%2C4143%2C4144%2C4145%2C4146%2C4147%2C4148%2C4149%2C4150%2C4151%2C4152%2C4153%2C4154%2C4155%2C4156%2C4157%2C4158%2C4159%2C4160%2C4161%2C4162%2C4163%2C4164&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "e3d7a418c7c2559b13d1e1829e32669aceb22d17cf62ee4756147ccc6bd96884",
+    "retrieved_at": "2026-10-27T10:29:59.663068+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3925.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4165%2C4166%2C4167%2C4168%2C4169%2C4170%2C4171%2C4172%2C4173%2C4174%2C4175%2C4176%2C4177%2C4178%2C4179%2C4180%2C4181%2C4182%2C4184%2C4185%2C4187%2C4188%2C4189%2C4190%2C4191&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "0286fb660f0ab14c7ca9244f9c6cb0bea0025eb2608c15b8712532c92a5b4d6f",
+    "retrieved_at": "2026-10-27T10:29:59.995160+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3950.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4192%2C4193%2C4194%2C4195%2C4196%2C4197%2C4198%2C4199%2C4200%2C4201%2C4202%2C4203%2C4204%2C4205%2C4206%2C4207%2C4208%2C4209%2C4210%2C4211%2C4212%2C4213%2C4218%2C4219%2C4226&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "e666597b7ba8f81506f547cce86ec52484cf99ea0756cd64c53689d5aa2910e2",
+    "retrieved_at": "2026-10-27T10:30:00.413814+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids3975.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4227%2C4228%2C4229%2C4230%2C4231%2C4232%2C4233%2C4234%2C4235%2C4236%2C4237%2C4238%2C4239%2C4241%2C4242%2C4243%2C4244%2C4247%2C4248%2C4249%2C4250%2C4251%2C4252%2C4253%2C4254&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "5b0fc9ac865478f5a1e13d0ac80f34fc151465b95c74773c9536de867c86cb75",
+    "retrieved_at": "2026-10-27T10:30:00.830752+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4000.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4255%2C4256%2C4257%2C4258%2C4259%2C4260%2C4261%2C4262%2C4263%2C4264%2C4265%2C4266%2C4267%2C4268%2C4269%2C4270%2C4271%2C4272%2C4273%2C4274%2C4275%2C4276%2C4277%2C4278%2C4279&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "a87271aecbed17a6954c62d7e18cf567d71ea4b8c446563d563b0870dcd03965",
+    "retrieved_at": "2026-10-27T10:30:01.267489+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4025.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4280%2C4281%2C4282%2C4283%2C4284%2C4285%2C4286%2C4287%2C4288%2C4289%2C4290%2C4291%2C4292%2C4293%2C4294%2C4295%2C4296%2C4297%2C4298%2C4299%2C4300%2C4301%2C4302%2C4303%2C4304&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "662f334ebe5f170113aca95d214f0bc64f6404fcf6aca1832bf78c53af3b7150",
+    "retrieved_at": "2026-10-27T10:30:01.516388+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4050.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4305%2C4306%2C4307%2C4308%2C4309%2C4310%2C4311%2C4312%2C4313%2C4314%2C4315%2C4316%2C4317%2C4318%2C4319%2C4320%2C4321%2C4322%2C4323%2C4324%2C4325%2C4326%2C4327%2C4328%2C4329&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "3c16b0d883bc138852a25f2c8e7eb0246bc91c174412efa20f3042a1878ec634",
+    "retrieved_at": "2026-10-27T10:30:02.018683+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4075.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4330%2C4331%2C4332%2C4333%2C4334%2C4335%2C4336%2C4337%2C4338%2C4339%2C4340%2C4341%2C4342%2C4343%2C4344%2C4345%2C4346%2C4347%2C4348%2C4349%2C4350%2C4351%2C4352%2C4355%2C4356&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "2669cca85281087250ebdf1ee51485bebc02eac640f934f5f02988d4215b025d",
+    "retrieved_at": "2026-10-27T10:30:02.354292+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4100.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4357%2C4358%2C4359%2C4360%2C4361%2C4362%2C4363%2C4364%2C4365%2C4366%2C4367%2C4368%2C4369%2C4370%2C4371%2C4372%2C4373%2C4374%2C4375%2C4376%2C4377%2C4378%2C4380%2C4382%2C4383&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "cf9edf7423f053f7af9082e1678c5c780e4a6c7945b7003cd4b4b599e5b7f06b",
+    "retrieved_at": "2026-10-27T10:30:02.706024+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4125.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4384%2C4385%2C4386%2C4387%2C4388%2C4389%2C4390%2C4391%2C4392%2C4393%2C4394%2C4395%2C4396%2C4397%2C4398%2C4399%2C4400%2C4401%2C4402%2C4403%2C4404%2C4405%2C4406%2C4407%2C4408&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "a840c33fc126420b5250c3020fe68eb3641b9969581fee9168aaba10bc0da997",
+    "retrieved_at": "2026-10-27T10:30:03.316300+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4150.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4409%2C4410%2C4411%2C4412%2C4413%2C4414%2C4415%2C4418%2C4419%2C4420%2C4421%2C4422%2C4423%2C4424%2C4425%2C4426%2C4427%2C4428%2C4429%2C4430%2C4431%2C4432%2C4433%2C4434%2C4435&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "72029b0c7a074a73c908159622da7b9688faf840274488760400238776ebc15a",
+    "retrieved_at": "2026-10-27T10:30:03.534147+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4175.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4436%2C4437%2C4438%2C4439%2C4440%2C4441%2C4442%2C4443%2C4444%2C4445%2C4446%2C4447%2C4448%2C4449%2C4450%2C4451%2C4452%2C4454%2C4456%2C4457%2C4458%2C4459%2C4461%2C4463%2C4464&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "39603c43d50563a30c9f484781146d28f52182b94550cc6df1523842dfd9a48b",
+    "retrieved_at": "2026-10-27T10:30:04.310896+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4200.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4465%2C4466%2C4481%2C4482%2C4484%2C4485%2C4486%2C4487%2C4488%2C4489%2C4490%2C4491%2C4492%2C4493%2C4494%2C4495%2C4496%2C4497%2C4498%2C4499%2C4500%2C4501%2C4502%2C4503%2C4504&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "64b03970edb062de460f765d96000027268cb0e8cbf07de7502e2f38b2c04130",
+    "retrieved_at": "2026-10-27T10:30:04.703740+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4225.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4505%2C4506%2C4507%2C4508%2C4509%2C4510%2C4511%2C4513%2C4514%2C4515%2C4516%2C4519%2C4522%2C4526%2C4528%2C4529%2C4530%2C4531%2C4532%2C4533%2C4534%2C4535%2C4536%2C4537%2C4538&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "518d68acde5c80d839626e507d20dc8bbfe72932493b250ee466e208a792ab05",
+    "retrieved_at": "2026-10-27T10:30:05.298673+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4250.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4539%2C4540%2C4541%2C4542%2C4543%2C4544%2C4545%2C4546%2C4547%2C4548%2C4549%2C4550%2C4551%2C4552%2C4553%2C4554%2C4555%2C4556%2C4557%2C4558%2C4559%2C4560%2C4561%2C4562%2C4563&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "49954bbf3ec45dd1f11bb47f3e2612d27d1f1b6456c3f4907d874933c2469574",
+    "retrieved_at": "2026-10-27T10:30:05.670221+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4275.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4564%2C4565%2C4566%2C4567%2C4568%2C4571%2C4572%2C4573%2C4574%2C4575%2C4576%2C4577%2C4578%2C4579%2C4580%2C4581%2C4584%2C4585%2C4586%2C4587%2C4588%2C4589%2C4590%2C4591%2C4592&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "ec14c2859aa7b67f66fd39eeba0c9d6bef41f8577d9182142f69d6763fcab981",
+    "retrieved_at": "2026-10-27T10:30:06.131682+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4300.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4593%2C4594%2C4595%2C4596%2C4597%2C4599%2C4600%2C4601%2C4602%2C4603%2C4604%2C4605%2C4606%2C4607%2C4608%2C4609%2C4610%2C4611%2C4612%2C4613%2C4614%2C4615%2C4616%2C4617%2C4618&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "2503543edae57a8c545031bc370cbb5cfe3d1f945cb230babb40564224d29020",
+    "retrieved_at": "2026-10-27T10:30:06.629334+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4325.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4619%2C4620%2C4621%2C4623%2C4624%2C4626%2C4627%2C4628%2C4629%2C4630%2C4631%2C4632%2C4633%2C4634%2C4638%2C4639%2C4640%2C4641%2C4642%2C4643%2C4644%2C4645%2C4646%2C4648%2C4649&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "02e181a7fa18de63d905db38df1d062369b6c1aef445c7569a4c3adf434791da",
+    "retrieved_at": "2026-10-27T10:30:06.957948+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4350.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4650%2C4651%2C4652%2C4653%2C4654%2C4656%2C4657%2C4658%2C4659%2C4660%2C4665%2C4666%2C4668%2C4669%2C4671%2C4674%2C4675%2C4676%2C4677%2C4678%2C4679%2C4681%2C4682%2C4683%2C4684&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "c02bf566dc9835170ef730a71ca6ec732787a5a94d29189240d96932d7c553a1",
+    "retrieved_at": "2026-10-27T10:30:07.430770+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4375.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4685%2C4686%2C4687%2C4688%2C4689%2C4690%2C4691%2C4692%2C4693%2C4694%2C4695%2C4696%2C4697%2C4698%2C4699%2C4700%2C4701%2C4702%2C4704%2C4705%2C4706%2C4707%2C4708%2C4709%2C4711&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "99aa14022ddfb6c7aee65a5281283348ebdb3cd3dc360b743aa68d09d9de558a",
+    "retrieved_at": "2026-10-27T10:30:08.023833+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4400.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=4712%2C5096%2C5097%2C5100%2C5103%2C5104%2C5105%2C5106%2C5107%2C5108%2C5502%2C5505%2C5506%2C5508%2C5509%2C5510%2C5511%2C5512%2C5513%2C5514%2C5515%2C5516%2C5517%2C5518%2C5523&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "a3c50fc618b1d42b217fa841fac900a82b0a2082fd2f3a694e04848360f0e3a3",
+    "retrieved_at": "2026-10-27T10:30:08.333948+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4425.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=5524%2C5525%2C5528%2C5529%2C5530%2C5531%2C5532%2C5533%2C5534%2C5535%2C5536%2C5537%2C5538%2C5539%2C5540%2C5541%2C5901%2C5905%2C5908%2C5909%2C5910%2C5911%2C5921%2C5922%2C5926&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "c0fff3b423914b221e57560952fc6a1c1cef8abfab1c7d723c3868bb40093239",
+    "retrieved_at": "2026-10-27T10:30:08.783571+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4450.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=5927%2C5930%2C5931%2C5932%2C5933%2C5935%2C5936%2C5937%2C5938%2C5939%2C5940%2C5941%2C5942%2C5943%2C5947%2C5949%2C5950%2C5951%2C5954%2C5955%2C5956%2C5957%2C5958%2C5959%2C5960&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "5854103b2ff925ef5685f23379febf7268c3f1fcb85fe4ae167b7d51ebe89041",
+    "retrieved_at": "2026-10-27T10:30:09.086338+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4475.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=5961%2C5962%2C5964%2C5967%2C5968%2C5970%2C5971%2C5972%2C5973%2C5974%2C5975%2C5976%2C5977%2C5978%2C5979%2C5980%2C5981%2C5982%2C5984%2C5985%2C5986%2C5987%2C5988%2C5989%2C5990&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "a1db628cea6ccb145d06f1f1dce188662ae4400d2c00659714f54e161ca77a9e",
+    "retrieved_at": "2026-10-27T10:30:09.362119+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4500.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=5991%2C5992%2C5994%2C5995%2C5996%2C5997%2C5998%2C6000%2C6001%2C6006%2C6007%2C6008%2C6009%2C6010%2C6012%2C6015%2C6018%2C7101%2C7501%2C7502%2C7503%2C7504%2C7904%2C8704%2C9104&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "1ea5b01dcc4b4be4266b984d6877869796d75f8509665a3194ca8b4535ef5075",
+    "retrieved_at": "2026-10-27T10:30:09.724352+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4525.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=9504%2C9505%2C9508%2C9509%2C10327%2C10728%2C10729%2C10730%2C10731%2C10732%2C10733%2C10734%2C10735%2C10736%2C10737%2C10738%2C10739%2C10740%2C10741%2C10742%2C10743%2C11128%2C11129%2C11130%2C11131&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "36809b8c653240048de5e46062a268b63bdfdc78f7d75c5f1740103da8d0f5c8",
+    "retrieved_at": "2026-10-27T10:30:10.163093+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4550.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=11534%2C11933%2C11935%2C12336%2C12337%2C12737%2C12738%2C12739%2C17540%2C17541%2C18341%2C18741%2C18743%2C19144%2C19145%2C19146%2C19147%2C19152%2C19153%2C19154%2C19155%2C19156%2C19157%2C19158%2C19159&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "d09541c744de1f6011d1e7249906176750661351d94a24951932f2ff416fef2c",
+    "retrieved_at": "2026-10-27T10:30:10.652235+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4575.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=19161%2C19164%2C19553%2C19554%2C19555%2C19556%2C19557%2C19558%2C19561%2C19562%2C19563%2C19564%2C19963%2C19964%2C19965%2C19966%2C19967%2C19968%2C19969%2C20369%2C20370%2C20371%2C20769%2C21169%2C21571&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "9291fd18c2b0080c0d46082a6e6f46e274daf49d5e7255202c796c99bc7f3598",
+    "retrieved_at": "2026-10-27T10:30:11.340225+00:00",
+    "count": 25
+  },
+  {
+    "file": "layer0-ids4600.json",
+    "url": "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/EDP/Administrative_Boundaries/MapServer/0/query?objectIds=21573%2C21574%2C21575%2C21976%2C22377%2C22379%2C22381&outFields=OBJECTID%2CCADID%2CSUBURBNAME%2CSTATE%2CLASTUPDATE&returnGeometry=true&outSR=4283&f=json",
+    "sha256": "41bb364476851c3cbafd9f9dcbc0808715d1df08c3fb5924906f9b84d6a359dc",
+    "retrieved_at": "2026-10-27T10:30:11.556264+00:00",
+    "count": 7
+  }
+]

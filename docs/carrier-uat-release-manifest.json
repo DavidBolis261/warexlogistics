@@ -1,0 +1,55 @@
+{
+  "kind": "reviewed_change_manifest_not_standalone_deployment_bundle",
+  "base_commit": "8d8905c925712e1e294c74e283ef081e4cff8169",
+  "coverage_version": "nsw-33-councils-locality-candidate-v2-20261027",
+  "files": [
+    {
+      "path": "DriverAPI/driver_api_server.py",
+      "sha256": "d37474a906621e8a57fd323ca742f68c2ea744898db76e02b7aaa7992bb222ce",
+      "bytes": 6719
+    },
+    {
+      "path": "DriverAPI/requirements.txt",
+      "sha256": "f195847ad6e950f89dfba6fd65c6c0e463bab6baf21880fd05d07a45a583db33",
+      "bytes": 392
+    },
+    {
+      "path": "DriverAPI/api/carrier_preview.py",
+      "sha256": "88ad4333617a717305755aa02224ed6e441c1df69db7f848afad89c1cd75c7db",
+      "bytes": 9523
+    },
+    {
+      "path": "DriverAPI/integrations/carrier_coverage.py",
+      "sha256": "f599edda938df8cfe8de433410a1dfc2f57315b647b2546f16d34a2a8aa7c677",
+      "bytes": 3785
+    },
+    {
+      "path": "DriverAPI/integrations/carrier_labels.py",
+      "sha256": "afb242701a515facc1ce5d101449a3743ea750e403799fa064e5a51689fa82e0",
+      "bytes": 4387
+    },
+    {
+      "path": "DriverAPI/integrations/carrier_persistence.py",
+      "sha256": "3a10700220d87e77e81a866abcb1d49e92bdaab2edf2992b18ba6d60e9b14b36",
+      "bytes": 3290
+    },
+    {
+      "path": "DriverAPI/integrations/carrier_setup.py",
+      "sha256": "9498c2caf33b8e8d248a52ce22f84af52df2638e9da48add4ada239578bb239e",
+      "bytes": 3249
+    },
+    {
+      "path": "DriverAPI/integrations/draft_rates.py",
+      "sha256": "7a3f47f510fe7c319940005628b53244070aed575b0f94617faab4e001406ba6",
+      "bytes": 10390
+    },
+    {
+      "path": "DriverAPI/resources/carrier_coverage_v2.json",
+      "sha256": "f5e34df7186fb8284bef75db2aaa201fdd69c788150b18fee2c292d309b48a2d",
+      "bytes": 130011
+    }
+  ],
+  "status": "uncommitted; deployment, interim manual review and restricted UAT table/key/access approved; execution deferred to parent",
+  "tests": "63 aggregate repository tests pass; prior 6 geometry tests and PostgreSQL 18.6 validation pass",
+  "known_baseline_defect": "GET /api/driver/docs serialization returns 500; unchanged HEAD function"
+}
